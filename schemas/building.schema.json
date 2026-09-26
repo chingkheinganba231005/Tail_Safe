@@ -1,0 +1,648 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tailsafe:schema:building:v1",
+  "$defs": {
+    "Edge": {
+      "additionalProperties": false,
+      "description": "A physical connection between two nodes.",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_.\\-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EdgeKind"
+        },
+        "length": {
+          "description": "Travel distance (m); along the slope for stairs.",
+          "exclusiveMinimum": 0,
+          "title": "Length",
+          "type": "number"
+        },
+        "width": {
+          "description": "Clear width (m): door leaf, stair or corridor.",
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "number"
+        },
+        "capacity": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Flow capacity override (persons/s).",
+          "title": "Capacity"
+        },
+        "directed": {
+          "default": false,
+          "description": "One-way from source to target only.",
+          "title": "Directed",
+          "type": "boolean"
+        },
+        "fire_rated": {
+          "default": false,
+          "title": "Fire Rated",
+          "type": "boolean"
+        },
+        "self_closing": {
+          "default": false,
+          "description": "Doors: closes itself after use.",
+          "title": "Self Closing",
+          "type": "boolean"
+        },
+        "can_block": {
+          "default": false,
+          "description": "May be blocked in scenarios.",
+          "title": "Can Block",
+          "type": "boolean"
+        },
+        "stair": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Stair id, for stair flights.",
+          "title": "Stair"
+        },
+        "opening": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Doors: the opening as a plan segment (m).",
+          "title": "Opening"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        }
+      },
+      "required": [
+        "id",
+        "source",
+        "target",
+        "kind",
+        "length",
+        "width"
+      ],
+      "title": "Edge",
+      "type": "object"
+    },
+    "EdgeKind": {
+      "description": "Kinds of physical connections.",
+      "enum": [
+        "flat",
+        "door",
+        "stair"
+      ],
+      "title": "EdgeKind",
+      "type": "string"
+    },
+    "Feature": {
+      "additionalProperties": false,
+      "description": "A non-walkable plan feature drawn for context (lift shaft, service room, void).",
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Polygon",
+          "type": "array"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        }
+      },
+      "required": [
+        "kind",
+        "polygon"
+      ],
+      "title": "Feature",
+      "type": "object"
+    },
+    "Level": {
+      "additionalProperties": false,
+      "description": "One storey.",
+      "properties": {
+        "index": {
+          "description": "Integer level; ground floor = 0.",
+          "title": "Index",
+          "type": "integer"
+        },
+        "label": {
+          "description": "Display label, Hong Kong style (G/F, 1/F, ...).",
+          "title": "Label",
+          "type": "string"
+        },
+        "elevation": {
+          "description": "Finished floor level above ground (m).",
+          "title": "Elevation",
+          "type": "number"
+        },
+        "height": {
+          "description": "Floor-to-floor height (m).",
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "number"
+        },
+        "kind": {
+          "$ref": "#/$defs/LevelKind",
+          "default": "typical"
+        },
+        "features": {
+          "items": {
+            "$ref": "#/$defs/Feature"
+          },
+          "title": "Features",
+          "type": "array"
+        }
+      },
+      "required": [
+        "index",
+        "label",
+        "elevation",
+        "height"
+      ],
+      "title": "Level",
+      "type": "object"
+    },
+    "LevelKind": {
+      "description": "Role of a storey in the stack.",
+      "enum": [
+        "ground",
+        "typical",
+        "refuge",
+        "podium"
+      ],
+      "title": "LevelKind",
+      "type": "string"
+    },
+    "Lift": {
+      "additionalProperties": false,
+      "description": "A lift car serving a set of lobbies.",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_.\\-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "stops": {
+          "items": {
+            "$ref": "#/$defs/LiftStop"
+          },
+          "title": "Stops",
+          "type": "array"
+        },
+        "discharge_level": {
+          "default": 0,
+          "title": "Discharge Level",
+          "type": "integer"
+        },
+        "firefighting": {
+          "default": false,
+          "description": "Designated firefighting lift.",
+          "title": "Firefighting",
+          "type": "boolean"
+        },
+        "car_capacity": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Override (persons).",
+          "title": "Car Capacity"
+        },
+        "rated_speed": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Override (m/s).",
+          "title": "Rated Speed"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "stops"
+      ],
+      "title": "Lift",
+      "type": "object"
+    },
+    "LiftStop": {
+      "additionalProperties": false,
+      "description": "A lift landing.",
+      "properties": {
+        "level": {
+          "title": "Level",
+          "type": "integer"
+        },
+        "node": {
+          "title": "Node",
+          "type": "string"
+        }
+      },
+      "required": [
+        "level",
+        "node"
+      ],
+      "title": "LiftStop",
+      "type": "object"
+    },
+    "Node": {
+      "additionalProperties": false,
+      "description": "A place in the egress graph.",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_.\\-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/NodeType"
+        },
+        "level": {
+          "title": "Level",
+          "type": "integer"
+        },
+        "x": {
+          "description": "Plan position (m), reference point of the space.",
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Label"
+        },
+        "area": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Floor area (m\u00b2).",
+          "title": "Area"
+        },
+        "polygon": {
+          "anyOf": [
+            {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Footprint on its level, counter-clockwise (m).",
+          "title": "Polygon"
+        },
+        "unit_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For units: key into population.household_size in params.",
+          "title": "Unit Type"
+        },
+        "stair": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Stair id, for stair landings.",
+          "title": "Stair"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "level",
+        "x",
+        "y"
+      ],
+      "title": "Node",
+      "type": "object"
+    },
+    "NodeType": {
+      "description": "Kinds of places in the egress graph.",
+      "enum": [
+        "unit",
+        "corridor",
+        "lobby",
+        "protected_lobby",
+        "lift_lobby",
+        "stair_landing",
+        "refuge",
+        "open_area",
+        "exit"
+      ],
+      "title": "NodeType",
+      "type": "string"
+    },
+    "Stair": {
+      "additionalProperties": false,
+      "description": "A staircase (the landings and flights reference it by ``id``).",
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_.\\-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/StairKind",
+          "default": "dogleg"
+        },
+        "clear_width": {
+          "description": "Clear width of the flights (m).",
+          "exclusiveMinimum": 0,
+          "title": "Clear Width",
+          "type": "number"
+        },
+        "riser": {
+          "description": "Riser height (m).",
+          "exclusiveMinimum": 0,
+          "title": "Riser",
+          "type": "number"
+        },
+        "going": {
+          "description": "Tread going (m).",
+          "exclusiveMinimum": 0,
+          "title": "Going",
+          "type": "number"
+        },
+        "shaft": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Shared shaft id (scissor pairs share one shaft).",
+          "title": "Shaft"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "clear_width",
+        "riser",
+        "going"
+      ],
+      "title": "Stair",
+      "type": "object"
+    },
+    "StairKind": {
+      "description": "Stair geometry, which sets the travel distance per storey.",
+      "enum": [
+        "dogleg",
+        "scissor",
+        "straight"
+      ],
+      "title": "StairKind",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Multi-floor egress graph of a building. Nodes are places (flats, corridors, lobbies, stair landings, refuge areas, exits); edges are physical connections stored once (flat, door, stair \u2014 stair edges run from the upper landing to the lower); lifts list the lobby node served on each level. SI units; ground floor is level 0.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "id": {
+      "pattern": "^[A-Za-z0-9_.\\-]+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "typology": {
+      "description": "cruciform, slab, twin_core, care_home or custom.",
+      "title": "Typology",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "levels": {
+      "items": {
+        "$ref": "#/$defs/Level"
+      },
+      "title": "Levels",
+      "type": "array"
+    },
+    "stairs": {
+      "items": {
+        "$ref": "#/$defs/Stair"
+      },
+      "title": "Stairs",
+      "type": "array"
+    },
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/Node"
+      },
+      "title": "Nodes",
+      "type": "array"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/Edge"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "lifts": {
+      "items": {
+        "$ref": "#/$defs/Lift"
+      },
+      "title": "Lifts",
+      "type": "array"
+    },
+    "metadata": {
+      "additionalProperties": true,
+      "description": "Generator settings and provenance.",
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "typology",
+    "levels",
+    "nodes",
+    "edges"
+  ],
+  "title": "TailSafe building",
+  "type": "object"
+}

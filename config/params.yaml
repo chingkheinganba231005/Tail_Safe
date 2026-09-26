@@ -37,6 +37,28 @@ _sources:
     ASSUMPTION — needs citation (candidate references to check: SFPE Handbook
     movement chapters; published stair-descent studies of older and mobility-
     impaired people)
+  assumption_fire: &assumption_fire >-
+    ASSUMPTION — needs citation (candidate references to check: SFPE Handbook
+    fire dynamics and smoke-production chapters; PD 7974-1)
+  assumption_smoke_transport: &assumption_smoke_transport >-
+    ASSUMPTION — needs citation (engineering approximation of a zone/network
+    smoke model; calibrate against CFD (e.g. FDS) or CONTAM-type network models)
+  tgrowth: &tgrowth >-
+    Standard t-squared fire growth coefficients (NFPA 72 / SFPE Handbook
+    design fires). VERIFY against the edition used.
+  mulholland: &mulholland >-
+    Mass specific extinction coefficient for flaming combustion (Mulholland &
+    Croarkin, as used by FDS). VERIFY.
+  jin: &jin >-
+    Visibility S = C / K for reflecting (C = 3) or light-emitting (C = 8) signs
+    (Jin). VERIFY.
+  frantzich: &frantzich >-
+    Walking speed in smoke v = max(v_min, v0 (1 + (beta / alpha) Ks)) with
+    alpha = 0.706 m/s, beta = -0.057 m^2/s (Frantzich & Nilsson 2003, as used in
+    FDS+Evac). VERIFY.
+  iso13571: &iso13571 >-
+    ISO 13571 (life-threatening components of fire: guidelines for estimating
+    time available for escape). VERIFY against the current edition.
   assumption_demography: &assumption_demography >-
     ASSUMPTION — needs citation (check Census and Statistics Department
     population and household statistics for Hong Kong)
@@ -107,6 +129,13 @@ movement:
         the floor when both the floor and the stair above are queueing. The rest
         goes to people already in the stair. Unused share passes to the other stream.
       source: *assumption
+  self_closing_door_capacity_factor:
+    value: 0.9
+    unit: fraction
+    note: >-
+      Capacity of a self-closing door relative to an open doorway (people must
+      push it open). Doors held open by policy get full capacity.
+    source: *assumption
   counterflow:
     capacity_penalty:
       value: 0.5
@@ -200,6 +229,11 @@ lifts:
     value: 4.0
     unit: persons
     note: "Car capacity consumed by one wheelchair user"
+    source: *assumption
+  start_stop_overhead:
+    value: 4.0
+    unit: s
+    note: "Acceleration and deceleration time added to each lift journey"
     source: *assumption
   evacuation_mode_delay:
     value: 60.0
@@ -370,6 +404,21 @@ behaviour:
     unit: probability of resting at a refuge floor, by slowest household member
     source: *assumption_behaviour
   refuge_rest_duration: {dist: lognormal, median: 120.0, sigma: 0.5, min: 10.0, max: 900.0, unit: s, source: *assumption_behaviour}
+  route_choice:
+    nominal_speed_flat:
+      value: 1.2
+      unit: m/s
+      note: "Speeds used only to estimate route travel times for route choice"
+      source: *assumption_behaviour
+    nominal_speed_stair_down: {value: 0.7, unit: m/s, source: *assumption_behaviour}
+    nominal_speed_stair_up: {value: 0.4, unit: m/s, source: *assumption_behaviour}
+    stair_choice_temperature:
+      value: 30.0
+      unit: s
+      note: >-
+        Logit scale for choosing among staircases: P(stair) ~ exp(-extra travel time / T).
+        Small values mean almost everyone uses the nearest stair.
+      source: *assumption_behaviour
 
 # -----------------------------------------------------------------------------
 # Fire service rescue of occupants who wait for assistance.
@@ -390,3 +439,94 @@ rescue:
   climb_time_per_floor: {value: 20.0, unit: s, source: *assumption}
   carry_down_time_per_floor: {value: 25.0, unit: s, source: *assumption}
   handling_time: {value: 120.0, unit: s, source: *assumption}
+
+# -----------------------------------------------------------------------------
+# Hazard model: simplified zone smoke network (engineering approximation).
+# -----------------------------------------------------------------------------
+hazard:
+  fire:
+    growth_coefficient:
+      dist: categorical
+      p: {0.01172: 0.35, 0.0469: 0.45, 0.1876: 0.20}
+      unit: kW/s^2
+      note: "t-squared growth: medium (0.01172), fast (0.0469), ultra-fast (0.1876); probabilities assumed"
+      source: *tgrowth
+    peak_hrr:
+      dist: lognormal
+      median: 3000.0
+      sigma: 0.4
+      min: 1000.0
+      max: 8000.0
+      unit: kW
+      note: "Ventilation-limited peak heat release of a flat fire"
+      source: *assumption_fire
+    heat_of_combustion: {value: 20000.0, unit: kJ/kg, note: "Effective, mixed residential fuel", source: *assumption_fire}
+    convective_fraction: {value: 0.7, unit: fraction, source: *assumption_fire}
+    soot_yield: {value: 0.05, unit: kg/kg fuel, source: *assumption_fire}
+    co_yield: {value: 0.05, unit: kg/kg fuel, note: "Between well-ventilated and under-ventilated values", source: *assumption_fire}
+    co2_yield: {value: 1.5, unit: kg/kg fuel, source: *assumption_fire}
+    fire_room_max_temperature_rise: {value: 800.0, unit: K, source: *assumption_fire}
+  transport:
+    horizontal_exchange_velocity:
+      value: 0.3
+      unit: m/s
+      note: "Mixing velocity through an open doorway or corridor opening (per m^2 of opening)"
+      source: *assumption_smoke_transport
+    opening_height: {value: 2.0, unit: m, note: "Height of doorways and corridor openings", source: *assumption}
+    shaft_exchange_velocity:
+      value: 0.4
+      unit: m/s
+      note: "Vertical exchange between stair landings per m^2 of stair plan opening"
+      source: *assumption_smoke_transport
+    stack_bias:
+      value: 0.6
+      unit: fraction
+      note: "Upward flows are scaled by (1 + b), downward by (1 - b)"
+      source: *assumption_smoke_transport
+    closed_door_leakage:
+      value: 0.03
+      unit: fraction of the open-door exchange
+      note: "Self-closing door that is shut (non-fire-rated)"
+      source: *assumption_smoke_transport
+    fire_door_leakage:
+      value: 0.01
+      unit: fraction of the open-door exchange
+      source: *assumption_smoke_transport
+    door_usage_open_fraction:
+      value: 0.05
+      unit: fraction
+      note: "Extra open fraction of self-closing stair doors while people pass through"
+      source: *assumption_smoke_transport
+    fire_flat_door_open_probability:
+      value: 0.5
+      unit: probability
+      note: "Occupants leave the fire flat's door open behind them"
+      source: *assumption_behaviour
+    lift_shaft_leakage_area: {value: 0.06, unit: m^2 per landing door, source: *assumption_smoke_transport}
+    lift_shaft_velocity: {value: 1.0, unit: m/s, source: *assumption_smoke_transport}
+    refuge_vent_rate: {value: 0.05, unit: 1/s, note: "Air changes of an open-sided refuge floor", source: *assumption_smoke_transport}
+    fire_room_vent_rate: {value: 0.05, unit: 1/s, note: "Venting of the fire flat through windows", source: *assumption_smoke_transport}
+    wall_heat_loss_rate: {value: 0.01, unit: 1/s, note: "First-order loss of smoke heat to boundaries", source: *assumption_smoke_transport}
+  tenability:
+    mass_extinction_coefficient: {value: 8700.0, unit: m^2/kg, source: *mulholland}
+    visibility_constant: {value: 3.0, unit: dimensionless, note: "Reflecting signs", source: *jin}
+    smoke_speed_alpha: {value: 0.706, unit: m/s, source: *frantzich}
+    smoke_speed_beta: {value: -0.057, unit: m^2/s, source: *frantzich}
+    smoke_speed_min_fraction: {value: 0.1, unit: fraction, source: *frantzich}
+    visibility_limit: {value: 10.0, unit: m, note: "Tenability limit for ASET (large spaces)", source: *iso13571}
+    temperature_limit: {value: 60.0, unit: degC, source: *iso13571}
+    ambient_temperature: {value: 25.0, unit: degC, source: *assumption}
+    co_fed_dose: {value: 35000.0, unit: ppm min, note: "FED_CO = sum(ppm * minutes) / dose", source: *iso13571}
+    co2_hyperventilation_scale: {value: 5.0, unit: "% CO2", note: "Hyperventilation factor exp(%CO2 / scale)", source: *iso13571}
+    heat_fed_constant: {value: 5.0e7, unit: min K^3.4, note: "t_I = constant * T^-3.4 (T in degC)", source: *iso13571}
+    fed_incapacitation: {value: 1.0, unit: FED, source: *iso13571}
+    fed_limit_susceptible: {value: 0.3, unit: FED, note: "Protects susceptible people; used for RSET > ASET", source: *iso13571}
+  fire_unit_premovement:
+    dist: lognormal
+    median: 30.0
+    sigma: 0.5
+    min: 5.0
+    max: 300.0
+    unit: s
+    note: "Household of the fire flat reacts quickly (they discover the fire)"
+    source: *assumption_behaviour

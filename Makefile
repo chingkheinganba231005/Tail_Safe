@@ -7,15 +7,15 @@ STAMP  := $(VENV)/.installed
 PORT   ?= 8000
 
 .DEFAULT_GOAL := help
-.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo clean
+.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo stress-demo clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 $(STAMP): pyproject.toml
 	$(PYTHON) -m venv $(VENV)
-	$(BIN)/python -m pip install --upgrade pip
-	$(BIN)/python -m pip install -e ".[dev]"
+	$(BIN)/python -m pip install -q --upgrade pip
+	$(BIN)/python -m pip install -q -e ".[dev]"
 	@touch $(STAMP)
 
 install: $(STAMP) ## Create .venv and install tailsafe with dev dependencies
@@ -54,9 +54,12 @@ schema: $(STAMP) ## Regenerate schemas/*.json from the Pydantic models
 	$(BIN)/tailsafe schema export
 
 demo: $(STAMP) ## Generate and render the 40-storey cruciform demo building
-	$(BIN)/tailsafe building generate cruciform --floors 40 --out data/templates/cruciform_40.json
-	$(BIN)/tailsafe building render data/templates/cruciform_40.json --out out/cruciform_40.png
+	$(BIN)/tailsafe building generate cruciform --storeys 40 --out out/cruciform_40.json
+	$(BIN)/tailsafe building render out/cruciform_40.json --out out/cruciform_40.png
 
 clean: ## Remove caches and build outputs (keeps .venv)
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov build dist out
 	find . -name __pycache__ -type d -prune -not -path './$(VENV)/*' -exec rm -rf {} +
+
+stress-demo: $(STAMP) ## Monte Carlo stress test of the pitch scenario (1,000 runs)
+	$(BIN)/tailsafe stress run cruciform --spec demo --runs 1000 --out out/stress-demo
