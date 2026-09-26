@@ -57,3 +57,34 @@ def test_schema_export(tmp_path: Path) -> None:
     res = runner.invoke(app, ["schema", "export", "--out-dir", str(tmp_path)])
     assert res.exit_code == 0
     assert (tmp_path / "building.schema.json").exists()
+
+
+def test_sim_run_and_validate(tmp_path: Path) -> None:
+    out = tmp_path / "run.json"
+    png = tmp_path / "run.png"
+    res = runner.invoke(
+        app,
+        [
+            "sim",
+            "run",
+            "slab",
+            "--storeys",
+            "6",
+            "--slot",
+            "weekend_night",
+            "--block-stair",
+            "A@60",
+            "--out",
+            str(out),
+            "--plot",
+            str(png),
+        ],
+    )
+    assert res.exit_code == 0, res.stdout
+    assert out.exists() and png.exists()
+    import json
+
+    data = json.loads(out.read_text())
+    assert data["results"]["not_evacuated"] == 0
+    res = runner.invoke(app, ["validate"])
+    assert res.exit_code == 0 and "FAIL" not in res.stdout

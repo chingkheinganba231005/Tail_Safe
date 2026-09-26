@@ -201,6 +201,11 @@ lifts:
     unit: persons
     note: "Car capacity consumed by one wheelchair user"
     source: *assumption
+  start_stop_overhead:
+    value: 4.0
+    unit: s
+    note: "Acceleration and deceleration time added to each lift journey"
+    source: *assumption
   evacuation_mode_delay:
     value: 60.0
     unit: s
@@ -370,6 +375,21 @@ behaviour:
     unit: probability of resting at a refuge floor, by slowest household member
     source: *assumption_behaviour
   refuge_rest_duration: {dist: lognormal, median: 120.0, sigma: 0.5, min: 10.0, max: 900.0, unit: s, source: *assumption_behaviour}
+  route_choice:
+    nominal_speed_flat:
+      value: 1.2
+      unit: m/s
+      note: "Speeds used only to estimate route travel times for route choice"
+      source: *assumption_behaviour
+    nominal_speed_stair_down: {value: 0.7, unit: m/s, source: *assumption_behaviour}
+    nominal_speed_stair_up: {value: 0.4, unit: m/s, source: *assumption_behaviour}
+    stair_choice_temperature:
+      value: 30.0
+      unit: s
+      note: >-
+        Logit scale for choosing among staircases: P(stair) ~ exp(-extra travel time / T).
+        Small values mean almost everyone uses the nearest stair.
+      source: *assumption_behaviour
 
 # -----------------------------------------------------------------------------
 # Fire service rescue of occupants who wait for assistance.

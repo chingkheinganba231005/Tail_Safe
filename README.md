@@ -35,6 +35,9 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe --help
 .venv/bin/tailsafe params check              # validate the parameter registry
 .venv/bin/tailsafe params list --assumptions # values that still need a citation
+.venv/bin/tailsafe validate                  # analytical checks of the simulator
+.venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
+    --block-stair A@240 --plot out/run.png   # one scenario: JSON summary + plot
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
@@ -48,8 +51,8 @@ typical-floor plan with the egress graph, and the 3D stack with the refuge floor
 |---|---|---|
 | Parameter registry with sources | `config/params.yaml`, `tailsafe/config.py` | ✅ |
 | Building model, JSON schema, HK typologies | `tailsafe/building/` | ✅ |
-| Synthetic population and behaviour | `tailsafe/population/` | see [status](#status) |
-| Mesoscopic queue-network simulator | `tailsafe/sim/` | see [status](#status) |
+| Synthetic population and behaviour | `tailsafe/population/` | ✅ |
+| Mesoscopic queue-network simulator (validated against hydraulic calculations) | `tailsafe/sim/` | ✅ |
 | Scenario sampler, Monte Carlo, risk metrics | `tailsafe/scenarios/`, `tailsafe/risk/` | see [status](#status) |
 | Hazard (smoke / FED / ASET), bottlenecks, optimiser, surrogate, vision, briefing, web UI | | planned |
 

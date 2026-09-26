@@ -466,7 +466,7 @@ def add_corridor(
             NodeType.CORRIDOR,
             level,
             polygon=transform.poly(rect(x0, -half, x1, half)),
-            label=f"Corridor {name} at {lab}",
+            label=f"Corridor {name}{j} at {lab}",
         )
         if res.segments:
             bld.edge(res.segments[-1], seg_id, EdgeKind.FLAT, width=doors.corridor_width)

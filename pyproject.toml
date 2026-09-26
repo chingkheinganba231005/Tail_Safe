@@ -84,10 +84,12 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["D1"]
+# The Numba kernel keeps explicit comparisons and loops for nopython mode.
+"tailsafe/sim/_kernel.py" = ["SIM109"]
 
 [tool.ruff.lint.pep8-naming]
 # Physics notation (N, M, dt, ...) is clearer than snake_case here.
-ignore-names = ["N", "M", "K", "L", "W", "A", "C", "D", "Q", "V", "T", "X", "Y", "F*", "S*"]
+ignore-names = ["A", "B", "C", "D", "E", "G", "H", "K", "L", "M", "N", "P", "Q", "R", "T", "U", "V", "W", "X", "Y", "Z", "F*", "S*"]
 
 # --------------------------------------------------------------------------- mypy
 [tool.mypy]

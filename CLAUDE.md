@@ -17,6 +17,9 @@ make format      # ruff format + safe autofixes
 make dev         # FastAPI backend on :8000 with reload
 make schema      # regenerate schemas/*.json from the Pydantic models
 make demo        # generate + render the 40-storey cruciform block
+.venv/bin/tailsafe validate --markdown        # analytical checks of the simulator
+.venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
+    --block-stair A@240 --plot out/run.png  # one scenario, summary JSON + plot
 .venv/bin/tailsafe --help
 ```
 
@@ -49,7 +52,8 @@ make demo        # generate + render the 40-storey cruciform block
 tailsafe/config.py     parameter registry loader (inverse-CDF sampling)
 tailsafe/building/     egress graph model, schema, validation, HK templates, rendering
 tailsafe/population/   profiles, synthetic households, occupancy priors
-tailsafe/sim/          mesoscopic queue-network engine (Numba kernel)
+tailsafe/rng.py        named random streams (common random numbers)
+tailsafe/sim/          mesoscopic queue-network engine (Numba kernel in _kernel.py)
 tailsafe/scenarios/    scenario sampler, Monte Carlo runner (CRN, LHS, convergence)
 tailsafe/risk/         tail metrics with bootstrap CIs, breakdowns
 tailsafe/api/          FastAPI app
@@ -64,8 +68,8 @@ docs/                  architecture, validation, assumptions, pitch metrics
 |---|---|---|
 | M0 | Scaffolding: tooling, CI, CLAUDE.md, params.yaml | ✅ done |
 | M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make demo`) |
-| M2 | Meso simulator + population model | ⏳ next |
-| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ⏳ |
+| M2 | Meso simulator + population model | ✅ done (`tailsafe validate`, `tailsafe sim run`) |
+| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ⏳ next |
 | M4–M11 | Hazard, bottlenecks, optimiser, web, micro-sim, vision, surrogate, briefing | not started |
 
 ## Decisions taken (open for review)
@@ -88,6 +92,9 @@ started and are easy to revisit while the codebase is small:
    max specific flow) and storage capacity. Merges at stair landings share the
    downstream capacity by a configurable floor/stair deference ratio.
 4. **Households move as groups** at the pace of their slowest member.
+5. **Walking density** excludes people standing in queues and is capped at the
+   flow-maximising density 1/(2a); denser states are represented by queues.
+   Without this, slow walkers cause a runaway density–speed collapse.
 
 ## Open questions for the project owner
 
@@ -100,3 +107,11 @@ started and are easy to revisit while the codebase is small:
   staircase pair. Should it instead have two separate cores?
 - Refuge floors: should occupants be forced to transfer between stairs at a
   refuge floor (stair discontinuity), as some codes require?
+
+## Gotchas
+
+- The Numba kernel is compiled on first use (~10 s) and cached on disk
+  (`__pycache__`). After editing `tailsafe/sim/_kernel.py` the next run
+  recompiles. `NUMBA_DISABLE_JIT=1` runs it as plain Python for debugging (slow).
+- `Building` caches lookups (`node_by_id` ...). Treat it as immutable; use
+  `model_copy(update=...)`, which drops the caches.

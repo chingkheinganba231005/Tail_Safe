@@ -34,3 +34,36 @@ or pessimistic. Numeric values and their sources live in
 - Every lift stops at every level; one lift per building is the firefighting lift.
 - Doors are always openable; their fire rating and self-closing flags are
   recorded for the hazard model (M4).
+
+## Population and behaviour
+
+- Households move together at the pace of their slowest member; nobody splits
+  from their household.
+- Ages and wheelchair use are drawn independently per household member (a
+  household made only of children gets an adult). The 65+ share knob applies to
+  residents; the share among people *present* differs by time of day.
+- A live-in domestic helper is present per the helper probabilities and the
+  time-slot presence rates. Helpers are excluded from the 65+ census share.
+- Wheelchair users above ground never walk down alone. They are carried by
+  their household if an able adult or helper is present (with a probability), or
+  wait for a lift (only when lifts are in evacuation service) or for rescue.
+  Frail older adults walk, slowly, unless lifts are available.
+- A household's fatigue follows the member who will be slowest over the full
+  descent from their floor.
+- Care-home staff each escort one room; staff do not make repeated trips.
+
+## Mesoscopic simulator
+
+- Walkers can overtake each other freely on an arc. On narrow stairs this is
+  optimistic; slow walkers raise the walking density and so slow others, but
+  they do not block them.
+- Density slows walkers only up to the flow-maximising density; beyond that,
+  congestion shows up as queues and spillback.
+- Everyone knows the fastest route to an exit (by estimated travel time) and
+  learns about blockages only on reaching them.
+- Doors are always open to flow; closing and hold-open policies act only through
+  the hazard model (M4).
+- The fire service rescues households one at a time, lowest floor first, using
+  the stairs without interfering with the crowd.
+- Lifts board households first come, first served and carry them to the
+  discharge level without intermediate pick-ups.

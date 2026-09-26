@@ -85,3 +85,79 @@ stairs pointing down between levels, non-stair edges within a level, lift stops
 on the right level, and a reverse BFS proving every unit can reach an exit.
 Tests additionally check generated plans for overlapping spaces and doors that
 do not sit on their rooms.
+
+## Synthetic population (`tailsafe/population/`)
+
+- **Profiles** (`profiles.py`): able adult, child, older adult (65–79), frail
+  older adult (80+), wheelchair user, domestic helper — each with horizontal,
+  stair-down and stair-up speed distributions, a fatigue curve
+  `m(n) = m_min + (1 − m_min)·exp(−n / n_e)` over storeys descended, a
+  pre-movement multiplier and a space factor (able-adult equivalents).
+- **Households** (`synth.py`): per unit, a household size (by unit type), ages
+  (residential or care-home mix, optionally rescaled to a target 65+ share),
+  wheelchair use, a live-in domestic helper, and presence by time slot
+  (weekday/weekend × day/night). Care homes get staff who escort the most
+  dependent rooms.
+- **Groups.** Each occupied unit's present members form a group that moves at
+  the pace of its slowest member; space is the sum of members' space factors.
+  Evacuation *mode*: walk; carry a wheelchair user down (needs an able escort);
+  wait for an evacuation lift (only if lifts are in evacuation service); or wait
+  for fire-service rescue.
+- **Behaviours.** Counter-flow visits to another flat (own floor or up to N
+  floors above) with a dwell; rest stops at a refuge floor on the way down.
+- **Common random numbers.** For every unit a fixed-shape block of uniforms is
+  drawn per named stream (`tailsafe/rng.py`: occupancy, speeds, pre-movement,
+  behaviour). Scenario knobs change only the transforms, so two scenarios with
+  the same seed are coupled draw-for-draw.
+
+## Mesoscopic simulator (`tailsafe/sim/`)
+
+| File | Role |
+|---|---|
+| `network.py` | Building → arrays: arcs with effective width, capacity, area, storage |
+| `routing.py` | Next-hop tables per blockage state and route class; stair-choice logit |
+| `_kernel.py` | Numba time-stepping kernel (queues, merging, lifts, rescue, exposure) |
+| `meso.py` | Scenario inputs, preparation, `run_meso()`, `MesoResult` |
+| `cases.py`, `validation.py` | Idealised cases and the analytical validation report |
+| `plot.py` | Evacuation curve and per-stair congestion heatmaps |
+
+A **link-queue model** (in the family of MATSim's queue simulation) adapted to
+pedestrians:
+
+1. **Arcs.** Capacity = max specific flow × effective width (hydraulic model);
+   storage = jam density × area; doors also count part of the room in front of
+   them, where their queue forms.
+2. **Walking.** Groups advance continuously along arcs; speed = profile speed
+   (stair-down speed decays with fatigue) × hydraulic density factor × hazard
+   multiplier. Density counts walkers in both directions (counter-flow), not the
+   people standing in the end queue, and is capped at the flow-maximising
+   density 1/(2a) because denser states are represented by queues. Without the
+   cap, slow walkers trigger a runaway density–speed collapse.
+3. **Queues.** A group reaching the end of an arc joins a FIFO queue and moves
+   on when the next arc has inflow capacity this step (capacity is a token
+   budget; a group spends its size) and storage space. Entry times carry the
+   exact arrival time within the step, so free-flowing groups are not delayed
+   by the time step. Groups blocked by storage for over 60 s squeeze in anyway
+   (counted), which prevents counter-flow gridlock.
+4. **Merging.** A smooth weighted round-robin shares the capacity of a
+   contested arc among the queues feeding it; at stair landings the floor stream
+   gets the deference ratio and the stair stream the rest, and unused share goes
+   to whoever is waiting. This reproduces configured ratios to within 0.005.
+5. **Routing.** Next-hop tables by estimated travel time (Dijkstra from the
+   exits on the reversed graph), one per blockage epoch and route class
+   (fastest / only stair *s*). Each group picks a staircase by a logit on
+   extra travel time, or gets one assigned by floor. Blockages are discovered on
+   arrival at the blocked arc. Waypoint tables send groups to a relative's flat,
+   a refuge area or a lift lobby. A `Router` caches tables across scenarios.
+6. **Lifts** in evacuation service start after a delay, pick floors top-down (or
+   nearest / bottom-up), board FIFO up to car capacity, and unload at the
+   discharge level; outages stop a lift after its current trip.
+7. **Rescue.** Households that cannot self-evacuate wait. Fire-service teams
+   start at the rescue time and take the lowest waiting floor first: climb,
+   handle, carry down. When only rescue is left, the kernel skips ahead
+   event by event.
+8. **Exposure.** With a hazard field, groups accumulate FED at their location
+   and are incapacitated at the threshold (removed from queues).
+
+Performance: a 40-storey, ~1,850-occupant night scenario runs in 0.1–0.3 s on
+one core after the one-off JIT compile (cached on disk).
