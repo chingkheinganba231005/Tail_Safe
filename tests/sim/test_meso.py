@@ -211,3 +211,25 @@ def test_series_recording(slab10_net: SimNetwork, night_pop: Population) -> None
     assert res.series.max() == pytest.approx(res.arc_max_queue.max(), rel=0.5)
     tops = res.top_queues(3)
     assert tops and tops[0]["queue_person_seconds"] >= tops[-1]["queue_person_seconds"]
+
+
+def test_held_open_doors_restore_capacity(slab10: Building, slab10_net: SimNetwork) -> None:
+    from tailsafe.sim.meso import prepare
+    from tailsafe.sim.routing import Router
+
+    p = get_params()
+    doors = [e.id for e in slab10.edges if e.kind == EdgeKind.DOOR and ".stair." in e.target]
+    pop = uniform_population(slab10, 1)
+    base = prepare(slab10_net, pop, SimScenario(), SimConfig(), p, Router(slab10_net))
+    held = prepare(
+        slab10_net,
+        pop,
+        SimScenario(held_open_doors=tuple(doors)),
+        SimConfig(),
+        p,
+        Router(slab10_net),
+    )
+    cap_base, cap_held = base.args[6], held.args[6]
+    arcs = np.concatenate([slab10_net.arcs_of_edge(d) for d in doors])
+    factor = p.scalar("movement.self_closing_door_capacity_factor")
+    np.testing.assert_allclose(cap_held[arcs], cap_base[arcs] / factor)

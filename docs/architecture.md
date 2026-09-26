@@ -211,3 +211,46 @@ a plain-language headline.
 Performance: 1,000 scenarios of the 40-storey demo block (~1,830 occupants)
 take ~41 s on 4 cores (`make stress-demo`; target < 120 s, checked by the slow
 test).
+
+## Hazard model (`tailsafe/hazard/`)
+
+A deliberately simple **multi-zone smoke network**, documented as an
+engineering approximation rather than fire engineering:
+
+| File | Role |
+|---|---|
+| `zones.py` | Zone network: volumes, exchange flows through openings, shafts, vents |
+| `_kernel.py` | Numba integrators: zone transport and fused field derivation |
+| `tenability.py` | Visibility, walking speed in smoke, CO/CO₂/heat FED (ISO 13571 style) |
+| `model.py` | `FireSpec`, `HazardModel.run()` → `HazardResult` (fields + per-node ASET) |
+| `external.py` | Import node time series from CFD (FDS) or network models (`.npz`) |
+| `plot.py` | Worst visibility per floor over time (corridors, each stair) |
+
+1. **Fire.** t² growth (medium/fast/ultra-fast, sampled) capped at a sampled
+   peak HRR, in one flat. Its door is left open with a probability; its
+   windows vent.
+2. **Transport.** Each node is a well-mixed zone. A fuel-equivalent "products"
+   tracer and the convective heat move along exchange flows. Open openings
+   exchange `v_h × area`. Shut self-closing doors leak a fraction (less if
+   fire-rated), and stair doors are also open part of the time while people
+   pass. Stair flights and lift shafts exchange vertically with an upward bias
+   (stack effect). Exits are sinks and refuge floors are ventilated. Explicit
+   integration at the largest stable step: tracer mass is conserved except
+   through sinks and vents (tested).
+3. **Tenability.** Soot → extinction → visibility and walking-speed multiplier
+   (Frantzich–Nilsson). CO with CO₂ hyperventilation, plus convective heat above
+   ambient → FED rate. **ASET per node** = first time visibility < 10 m,
+   T > 60 °C, or a person standing there since ignition reaches FED 0.3.
+4. **Coupling.** The meso kernel reads the speed multiplier and FED rate on a
+   10 s grid. Groups slow down in smoke, accumulate FED, and are incapacitated
+   at FED 1. **RSET vs ASET** (`risk/tenability.py`): a floor fails if its last
+   household leaves after the earliest ASET of its corridors and lobbies; a
+   scenario fails if any floor fails or anyone reaches FED 0.3. Monte Carlo
+   reports P(RSET > ASET) with Wilson intervals, per-floor failure
+   probabilities and incapacitation statistics.
+5. **Door hold-open policy.** Holding stair doors open restores their full
+   flow capacity (self-closing doors otherwise lose 10%) but lets smoke into the
+   stairs: a real trade-off for the optimiser.
+
+Cost: ~45 ms per fire (1,500 zones, 2 h at 10 s records), so a 1,000-scenario
+stress test with smoke takes about a minute on 4 cores.

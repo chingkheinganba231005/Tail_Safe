@@ -47,6 +47,8 @@ def test_capacities_follow_hydraulic_model(slab10_net: SimNetwork) -> None:
     expect = p.scalar("movement.hydraulic.max_specific_flow_horizontal") * (
         net.arc_width[doors] - 2 * p.scalar("movement.boundary_layer.door")
     )
+    factor = p.scalar("movement.self_closing_door_capacity_factor")
+    expect = np.where(net.arc_self_closing[doors], expect * factor, expect)
     np.testing.assert_allclose(net.arc_cap[doors], expect)
     assert (net.arc_store >= 2.0).all()
 

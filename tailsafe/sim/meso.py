@@ -101,6 +101,7 @@ class SimScenario:
     rescue_start: float | None = None
     rescue_teams: int | None = None
     hazard: HazardField | None = None
+    held_open_doors: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -113,7 +114,7 @@ class SimConfig:
     record_interval: float = 5.0
     stuck_time: float = 60.0
     speed_floor: float = 0.05
-    fed_threshold: float = 1.0
+    fed_threshold: float | None = None  # default: hazard.tenability.fed_incapacitation
 
 
 @dataclass
@@ -138,6 +139,7 @@ class MesoResult:
     lift_trips: int
     wall_time: float
     config: SimConfig
+    scenario: SimScenario = field(default_factory=lambda: SimScenario())
 
     # ------------------------------------------------------------------ agents
     @property
@@ -165,16 +167,35 @@ class MesoResult:
         return int(self.population.group_size[~self.evacuated].sum())
 
     @property
+    def incapacitated(self) -> NDArray[np.bool_]:
+        """Groups incapacitated by smoke (FED reached the threshold)."""
+        out: NDArray[np.bool_] = self.group_state == K.ST_INCAPACITATED
+        return out
+
+    @property
+    def n_incapacitated(self) -> int:
+        """Occupants incapacitated by smoke."""
+        return int(self.population.group_size[self.incapacitated].sum())
+
+    @property
     def total_time(self) -> float:
-        """Time the last occupant is out (``inf`` if anyone is not)."""
+        """Time the last occupant who gets out is out (including rescue).
+
+        Incapacitated occupants are excluded (see :attr:`n_incapacitated`);
+        ``inf`` only if someone neither got out nor was incapacitated by ``t_max``.
+        """
         if self.population.n_groups == 0:
             return 0.0
-        return float(self.group_exit.max())
+        pending = ~self.evacuated & ~self.incapacitated
+        if pending.any():
+            return float("inf")
+        done = self.group_exit[self.evacuated]
+        return float(done.max()) if done.size else 0.0
 
     @property
     def self_evacuation_time(self) -> float:
         """Time the last occupant who left without fire-service rescue is out."""
-        mask = ~self.group_rescued
+        mask = ~self.group_rescued & ~self.incapacitated
         if not mask.any():
             return 0.0
         return float(self.group_exit[mask].max())
@@ -218,6 +239,8 @@ class MesoResult:
             "p50_exit_s": self.exit_time_quantile(0.5),
             "p95_exit_s": self.exit_time_quantile(0.95),
             "rescued_occupants": int(self.population.group_size[self.group_rescued].sum()),
+            "incapacitated_occupants": self.n_incapacitated,
+            "max_fed": float(self.group_fed.max()) if self.group_fed.size else 0.0,
             "not_evacuated": self.n_not_evacuated,
             "lift_trips": self.lift_trips,
             "forced_entries": self.forced_entries,
@@ -381,6 +404,19 @@ def prepare(
 
     rec_every = max(1, round(config.record_interval / config.dt))
     n_rec = int(np.ceil(config.t_max / config.dt / rec_every)) + 1 if config.record_series else 0
+    fed_threshold = (
+        config.fed_threshold
+        if config.fed_threshold is not None
+        else params.scalar("hazard.tenability.fed_incapacitation")
+    )
+    # Doors held open by policy get their full (open doorway) capacity back.
+    arc_cap = net.arc_cap
+    if scenario.held_open_doors:
+        factor = params.scalar("movement.self_closing_door_capacity_factor")
+        held = np.zeros(net.n_arcs, dtype=bool)
+        for eid in scenario.held_open_doors:
+            held[net.arcs_of_edge(eid)] = True
+        arc_cap = np.where(held & net.arc_self_closing, net.arc_cap / factor, net.arc_cap)
     hyd = "movement.hydraulic."
     args = (
         net.arc_src,
@@ -389,7 +425,7 @@ def prepare(
         net.arc_len,
         net.arc_area,
         net.arc_store,
-        net.arc_cap,
+        arc_cap,
         net.arc_rev,
         arc_mw,
         blocked_from,
@@ -437,7 +473,7 @@ def prepare(
         hz_dt,
         hz_speed,
         hz_fed,
-        config.fed_threshold,
+        fed_threshold,
         params.scalar(hyd + "speed_density_a"),
         params.scalar(hyd + "free_flow_density"),
         config.speed_floor,
@@ -514,4 +550,5 @@ def run_meso(
         lift_trips=int(meta[K.META_LIFT_TRIPS]),
         wall_time=time.perf_counter() - t0,
         config=cfg,
+        scenario=sc,
     )

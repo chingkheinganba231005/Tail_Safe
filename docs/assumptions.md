@@ -82,3 +82,25 @@ or pessimistic. Numeric values and their sources live in
   `total_time` tail. Read `self_evacuation_time` alongside it.
 - Non-finite losses (nobody should be left inside without hazards) would be
   counted as censored and capped, making tail statistics lower bounds.
+
+## Hazard model (simplified — not a substitute for CFD)
+
+- One fire, in a flat, growing as t² to a constant peak; no decay, no flashover
+  dynamics, no suppression by sprinklers or firefighters.
+- Each space is one well-mixed zone: no hot upper layer, so smoke is spread
+  over the whole height of a room or corridor (optimistic early, pessimistic
+  later in tall spaces).
+- Transport uses fixed exchange flows with assumed velocities; wind, outside
+  temperature and pressurisation systems are not modelled explicitly (the stack
+  bias is a crude stand-in). HK's warm climate may give weaker stack effects.
+- Self-closing doors are shut except for a constant "in use" fraction for
+  stair doors; the fire flat's door is either open or shut for the whole fire.
+- Species scale with one products tracer (soot, CO, CO₂ yields fixed); O₂
+  depletion, HCN, irritants and radiant heat are ignored.
+- Occupants do not turn back from smoke-logged stairs by themselves; stair
+  loss is modelled with explicit blockages (e.g. the demo's Stair A at 4 min).
+- The fire flat's household reacts quickly (short pre-movement); everyone else
+  hears the alarm at ignition.
+- Numbers are only as good as the assumed parameters in `params.yaml`
+  (`hazard.*`). Import CFD results through `tailsafe.hazard.external` when
+  available.

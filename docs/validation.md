@@ -82,7 +82,26 @@ sees exactly the same households, pre-movement times, lift failures and rescue
 start as the baseline on each scenario; CVaR matches its closed form for a
 normal distribution; a paired bootstrap detects a uniform 2% improvement.
 
-## 4. Parameter registry
+## 4. Hazard model and monotonicity (M4)
+
+| Check | Test | Status |
+|---|---|---|
+| Zone integrator conserves tracer mass; a puff mixes to equal concentrations | `tests/hazard/test_hazard.py` | ✅ |
+| Stack effect: upward exchange exceeds downward on every flight; the floor above the fire is worse than the floor below | `tests/hazard/test_hazard.py` | ✅ |
+| Leaving the fire flat's door open makes the corridor untenable sooner | `tests/hazard/test_hazard.py` | ✅ |
+| Holding stair doors open lets more smoke into the stair | `tests/hazard/test_hazard.py` | ✅ |
+| FED: 1,000 ppm CO for 35 min gives FED 1 (ISO 13571 simplified form); ambient air gives no heat dose | `tests/hazard/test_hazard.py` | ✅ |
+| Imported CFD fields give the expected ASET | `tests/hazard/test_hazard.py` | ✅ |
+| **Monotonicity (paired, 40 scenarios):** blocking a stair never shortens evacuation (≥ 95% of scenarios, mean increase) | `tests/validation/test_monotonicity.py` | ✅ |
+| Wider stair doors and exits never lengthen evacuation | `tests/validation/test_monotonicity.py` | ✅ |
+| Smoke never speeds evacuation; P(RSET > ASET) rises when fire-flat doors are left open | `tests/validation/test_monotonicity.py` | ✅ |
+
+Note on stair width: widening a *stair* in this model also lengthens the
+walking line around each dog-leg turn (π·W/2), so for uncongested scenarios a
+wider stair can be slightly slower. The monotonicity test therefore widens
+doors and exits, which add capacity without changing path lengths.
+
+## 5. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

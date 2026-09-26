@@ -5,7 +5,8 @@ Each physical edge becomes one or two directed arcs. Every arc gets
 * an **effective width** — clear width minus the boundary layers of the
   hydraulic model (stairs, corridors, doors);
 * an **inflow capacity** (persons/s) = max specific flow × effective width
-  (or the edge's explicit ``capacity``);
+  (or the edge's explicit ``capacity``), reduced for self-closing doors that
+  people must push open;
 * an **area** used for density: length × clear width, plus, for doors, a share
   of the space in front of the door (the source node's area divided by its
   number of exits), because queues for a door form in the room before it;
@@ -74,6 +75,7 @@ class SimNetwork:
     arc_rev: NDArray[np.int32]
     arc_stair: NDArray[np.int32]
     arc_is_door: NDArray[np.bool_]
+    arc_self_closing: NDArray[np.bool_]
     in_ptr: NDArray[np.int32]
     in_arc: NDArray[np.int32]
     out_ptr: NDArray[np.int32]
@@ -156,6 +158,8 @@ def compile_network(building: Building, params: Params | None = None) -> SimNetw
     boundary = np.where(is_stair, bl_stair, np.where(is_door, bl_door, bl_corr))
     weff = np.maximum(width - 2.0 * boundary, 0.2)
     cap = np.where(is_stair, fs_s, fs_h) * weff
+    self_closing = np.array([edges[a.edge_id].self_closing for a in all_arcs], dtype=bool)
+    cap = np.where(self_closing, cap * p.scalar("movement.self_closing_door_capacity_factor"), cap)
     override = np.array([edges[a.edge_id].capacity or np.nan for a in all_arcs], dtype=np.float64)
     cap = np.where(np.isnan(override), cap, override)
     area = length * width + np.where(is_door, node_area[src] / np.maximum(outdeg[src], 1.0), 0.0)
@@ -222,6 +226,7 @@ def compile_network(building: Building, params: Params | None = None) -> SimNetw
         arc_rev=rev,
         arc_stair=arc_stair,
         arc_is_door=is_door,
+        arc_self_closing=self_closing,
         in_ptr=in_ptr,
         in_arc=in_order.astype(np.int32),
         out_ptr=out_ptr,

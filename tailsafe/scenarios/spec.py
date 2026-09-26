@@ -78,6 +78,27 @@ class RandomStairBlockage(_Model):
     time: Dist = Field(default_factory=lambda: Dist.fixed(0.0))
 
 
+class HazardSpec(_Model):
+    """Fire and smoke. Unset fields fall back to the ``hazard`` registry section."""
+
+    enabled: bool = True
+    fire_unit: str | None = Field(
+        default=None,
+        description="Flat where the fire starts; None = random flat on the fire level.",
+    )
+    growth: Dist | None = Field(default=None, description="t-squared growth coefficient (kW/s²).")
+    peak_hrr: Dist | None = Field(default=None, description="Peak heat release rate (kW).")
+    door_open_probability: float | None = Field(default=None, ge=0.0, le=1.0)
+    hold_open_stair_doors: bool = Field(
+        default=False,
+        description="Policy: stair (and protected-lobby) doors are held open — full "
+        "flow capacity, but smoke passes freely.",
+    )
+    held_open_doors: list[str] = Field(default_factory=list)
+    horizon: float = Field(default=7200.0, gt=0)
+    record_dt: float = Field(default=10.0, gt=0)
+
+
 class ScenarioSpec(_Model):
     """What to stress-test. Unset fields fall back to the parameter registry."""
 
@@ -108,6 +129,7 @@ class ScenarioSpec(_Model):
         default=None, description="Start of fire-service rescue; default from the registry."
     )
     rescue_teams: int | None = Field(default=None, ge=0)
+    hazard: HazardSpec | None = Field(default=None, description="Fire and smoke (M4).")
 
     def digest_payload(self) -> dict[str, Any]:
         """Canonical content for cache keys (name and description excluded)."""
@@ -131,4 +153,5 @@ def demo_spec() -> ScenarioSpec:
         fire_level=14,
         stair_blockages=[StairBlockage(stair="A", time=Dist.fixed(240.0))],
         lifts_out_of_service=1,
+        hazard=HazardSpec(),
     )

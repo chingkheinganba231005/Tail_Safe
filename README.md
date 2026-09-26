@@ -68,7 +68,8 @@ scenarios (`make stress-demo`):
 | Synthetic population and behaviour | `tailsafe/population/` | ✅ |
 | Mesoscopic queue-network simulator (validated against hydraulic calculations) | `tailsafe/sim/` | ✅ |
 | Scenario sampler, parallel Monte Carlo, CVaR₉₅ with CIs, tail breakdowns | `tailsafe/scenarios/`, `tailsafe/risk/` | ✅ |
-| Hazard (smoke / FED / ASET), bottlenecks, optimiser, surrogate, vision, briefing, web UI | | planned |
+| Zone smoke model: visibility, FED, ASET, P(RSET > ASET) | `tailsafe/hazard/`, `tailsafe/risk/tenability.py` | ✅ |
+| Bottlenecks, optimiser, surrogate, vision, briefing, web UI | | planned |
 
 ## Status
 

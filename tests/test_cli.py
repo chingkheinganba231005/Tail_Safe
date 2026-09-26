@@ -88,3 +88,31 @@ def test_sim_run_and_validate(tmp_path: Path) -> None:
     assert data["results"]["not_evacuated"] == 0
     res = runner.invoke(app, ["validate"])
     assert res.exit_code == 0 and "FAIL" not in res.stdout
+
+
+def test_sim_run_with_fire(tmp_path: Path) -> None:
+    out = tmp_path / "fire.json"
+    png = tmp_path / "fire.png"
+    res = runner.invoke(
+        app,
+        [
+            "sim",
+            "run",
+            "slab",
+            "--storeys",
+            "6",
+            "--fire",
+            "L03.unit.02",
+            "--fire-door-open",
+            "--out",
+            str(out),
+            "--plot",
+            str(png),
+        ],
+    )
+    assert res.exit_code == 0, res.stdout
+    import json
+
+    data = json.loads(out.read_text())
+    assert data["tenability"] is not None
+    assert (tmp_path / "fire_smoke.png").exists()

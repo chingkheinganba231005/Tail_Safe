@@ -18,8 +18,9 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.stats import qmc
 
-from tailsafe.building.model import Building, LevelKind
+from tailsafe.building.model import Building, EdgeKind, LevelKind, NodeType
 from tailsafe.config import Params, get_params
+from tailsafe.hazard.model import FireSpec, HazardModel
 from tailsafe.population.synth import Population, PopulationConfig, sample_population
 from tailsafe.rng import stream, stream_id
 from tailsafe.scenarios.spec import ScenarioSpec
@@ -31,7 +32,7 @@ DIM_FIRE_LEVEL = 1
 DIM_RANDOM_BLOCK = 2  # occurrence, which stair, time: slots 2, 3, 4
 DIM_LIFTS_OUT = 5  # up to 3 lifts: slots 5, 6, 7
 DIM_BLOCK_TIMES = 8  # up to 4 named blockages: slots 8..11
-DIM_HAZARD = 12  # reserved for the hazard model: slots 12..15
+DIM_HAZARD = 12  # hazard: growth, peak HRR, fire door open, fire flat: slots 12..15
 MAX_LIFTS_OUT = 3
 MAX_NAMED_BLOCKAGES = 4
 
@@ -98,6 +99,34 @@ class ScenarioSampler:
             {n.level for n in building.units}
             - {lv.index for lv in building.levels if lv.kind == LevelKind.REFUGE}
         )
+        self._units_by_level: dict[int, list[str]] = {}
+        for n in building.units:
+            self._units_by_level.setdefault(n.level, []).append(n.id)
+        self.held_open = self._held_open_doors()
+        self.hazard_model: HazardModel | None = None
+        hz = spec.hazard
+        if hz is not None and hz.enabled:
+            if hz.fire_unit is not None and hz.fire_unit not in {n.id for n in building.units}:
+                raise ValueError(f"fire_unit {hz.fire_unit!r} is not a unit of the building")
+            self.hazard_model = HazardModel(building, self.params, held_open=self.held_open)
+
+    def _held_open_doors(self) -> tuple[str, ...]:
+        hz = self.spec.hazard
+        if hz is None:
+            return ()
+        doors = set(hz.held_open_doors)
+        if hz.hold_open_stair_doors:
+            stairish = {NodeType.STAIR_LANDING, NodeType.PROTECTED_LOBBY}
+            nodes = self.building.node_by_id
+            for e in self.building.edges:
+                ends = (nodes[e.source].type, nodes[e.target].type)
+                if (
+                    e.kind == EdgeKind.DOOR
+                    and any(t in stairish for t in ends)
+                    and NodeType.EXIT not in ends
+                ):
+                    doors.add(e.id)
+        return tuple(sorted(doors))
 
     def sample(self, seed: int, index: int, u: NDArray[np.float64]) -> SampledScenario:
         """Draw scenario ``index`` using the scenario-level uniforms ``u``."""
@@ -148,6 +177,9 @@ class ScenarioSampler:
         )
         info["evacuation_lifts"] = list(evac)
 
+        hazard = None
+        if self.hazard_model is not None and spec.hazard is not None:
+            hazard = self._sample_hazard(fire_level, u, info)
         pop = sample_population(
             self.building,
             PopulationConfig(
@@ -162,6 +194,12 @@ class ScenarioSampler:
             index=index,
             params=p,
         )
+        if hazard is not None:
+            # The household of the fire flat discovers the fire and reacts quickly.
+            fire_groups = [g for g, uid in enumerate(pop.group_unit) if uid == hazard.fire.node]
+            if fire_groups:
+                pre = p["hazard.fire_unit_premovement"].ppf(stream(seed, "hazard", index).random(1))
+                pop.group_premovement[fire_groups] = float(np.asarray(pre)[0])
         sim = SimScenario(
             blockages=tuple(blockages),
             evacuation_lifts=evac,
@@ -170,5 +208,39 @@ class ScenarioSampler:
             stair_assignment=dict(spec.stair_assignment),
             rescue_start=rescue_start,
             rescue_teams=spec.rescue_teams,
+            hazard=hazard,
+            held_open_doors=self.held_open,
         )
         return SampledScenario(index=index, population=pop, sim=sim, info=info)
+
+    def _sample_hazard(self, fire_level: int, u: NDArray[np.float64], info: dict[str, Any]) -> Any:
+        """Draw the fire (flat, growth, peak, door) and run the smoke model."""
+        assert self.hazard_model is not None and self.spec.hazard is not None
+        hz = self.spec.hazard
+        p = self.params
+        if hz.fire_unit is not None:
+            unit = hz.fire_unit
+        else:
+            options = self._units_by_level.get(fire_level) or [
+                uid for lv in self._occupied_levels for uid in self._units_by_level.get(lv, [])
+            ]
+            unit = options[min(int(u[DIM_HAZARD + 3] * len(options)), len(options) - 1)]
+        growth_p = hz.growth.as_param() if hz.growth else p["hazard.fire.growth_coefficient"]
+        peak_p = hz.peak_hrr.as_param() if hz.peak_hrr else p["hazard.fire.peak_hrr"]
+        growth = float(np.asarray(growth_p.ppf(np.array([u[DIM_HAZARD]])), dtype=float)[0])
+        peak = float(np.asarray(peak_p.ppf(np.array([u[DIM_HAZARD + 1]])), dtype=float)[0])
+        p_open = (
+            hz.door_open_probability
+            if hz.door_open_probability is not None
+            else p.scalar("hazard.transport.fire_flat_door_open_probability")
+        )
+        fire = FireSpec(
+            node=unit, growth=growth, peak=peak, door_open=bool(u[DIM_HAZARD + 2] < p_open)
+        )
+        info["fire"] = {
+            "unit": unit,
+            "growth_kw_s2": growth,
+            "peak_kw": peak,
+            "door_open": fire.door_open,
+        }
+        return self.hazard_model.run(fire, horizon=hz.horizon, record_dt=hz.record_dt)

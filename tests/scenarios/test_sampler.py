@@ -99,3 +99,38 @@ def test_spec_roundtrip() -> None:
     again = ScenarioSpec.model_validate_json(spec.model_dump_json())
     assert again == spec
     assert "name" not in again.digest_payload()
+
+
+def test_hazard_sampling(tower: Building) -> None:
+    from tailsafe.config import get_params
+    from tailsafe.hazard.model import HazardResult
+    from tailsafe.scenarios.spec import HazardSpec
+
+    spec = ScenarioSpec(fire_level=6, hazard=HazardSpec(door_open_probability=0.5))
+    sampler = ScenarioSampler(tower, spec)
+    u = scenario_uniforms(2, 0, 30, lhs=True, batch_size=30)
+    opens = []
+    for i in range(30):
+        sc = sampler.sample(2, i, u[i])
+        assert isinstance(sc.sim.hazard, HazardResult)
+        fire = sc.info["fire"]
+        assert fire["unit"].startswith("L06.unit.")
+        opens.append(fire["door_open"])
+        g = [k for k, uid in enumerate(sc.population.group_unit) if uid == fire["unit"]]
+        if g:
+            pre = get_params()["hazard.fire_unit_premovement"]
+            assert sc.population.group_premovement[g[0]] <= pre.spec["max"]
+    assert 0.3 < np.mean(opens) < 0.7
+    with pytest.raises(ValueError):
+        ScenarioSampler(tower, ScenarioSpec(hazard=HazardSpec(fire_unit="L99.unit.X")))
+
+
+def test_hold_open_policy(tower: Building) -> None:
+    from tailsafe.scenarios.spec import HazardSpec
+
+    spec = ScenarioSpec(hazard=HazardSpec(hold_open_stair_doors=True))
+    sampler = ScenarioSampler(tower, spec)
+    assert sampler.held_open
+    assert all(".stair." in e or ".pl." in e for e in sampler.held_open)
+    sc = sampler.sample(0, 0, scenario_uniforms(0, 0, 1)[0])
+    assert sc.sim.held_open_doors == sampler.held_open

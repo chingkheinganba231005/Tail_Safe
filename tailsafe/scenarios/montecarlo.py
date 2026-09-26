@@ -24,7 +24,8 @@ from numpy.typing import NDArray
 
 from tailsafe.building.model import Building
 from tailsafe.config import Params, get_params
-from tailsafe.risk.metrics import RiskSummary, cvar_halfwidth, summarize
+from tailsafe.risk.metrics import Estimate, RiskSummary, cvar_halfwidth, summarize
+from tailsafe.risk.tenability import rset_aset, wilson_interval
 from tailsafe.scenarios.sampler import ScenarioSampler, scenario_uniforms
 from tailsafe.scenarios.spec import ScenarioSpec
 from tailsafe.sim.meso import MesoResult, SimConfig, run_meso
@@ -79,11 +80,25 @@ class RunOutput:
     groups: dict[str, NDArray[Any]] | None
     arc_maxq: NDArray[np.float32]
     arc_qint: NDArray[np.float32]
+    rset_exceeds_aset: bool = False
+    n_over_fed_limit: int = 0
+    n_incapacitated: int = 0
+    max_fed: float = 0.0
+    floor_levels: list[int] = field(default_factory=list)
+    floor_rset: list[float] = field(default_factory=list)
+    floor_aset: list[float] = field(default_factory=list)
 
 
-def compress(index: int, res: MesoResult, info: dict[str, Any], keep_groups: bool) -> RunOutput:
+def compress(
+    index: int,
+    res: MesoResult,
+    info: dict[str, Any],
+    keep_groups: bool,
+    params: Params | None = None,
+) -> RunOutput:
     """Reduce a :class:`MesoResult` to what the Monte Carlo analysis needs."""
     pop = res.population
+    ra = rset_aset(res, params)
     groups: dict[str, NDArray[Any]] | None = None
     if keep_groups:
         groups = {
@@ -111,6 +126,13 @@ def compress(index: int, res: MesoResult, info: dict[str, Any], keep_groups: boo
         groups=groups,
         arc_maxq=res.arc_max_queue.astype(np.float32),
         arc_qint=res.arc_queue_integral.astype(np.float32),
+        rset_exceeds_aset=ra.fails,
+        n_over_fed_limit=ra.occupants_over_fed_limit,
+        n_incapacitated=ra.occupants_incapacitated,
+        max_fed=ra.max_fed,
+        floor_levels=[int(x) for x in ra.floor_levels],
+        floor_rset=[float(x) for x in ra.floor_rset],
+        floor_aset=[float(x) for x in ra.floor_aset],
     )
 
 
@@ -149,7 +171,7 @@ def _simulate_chunk(
         res = run_meso(
             w["net"], sc.population, sc.sim, w["sim_config"], params=w["params"], router=w["router"]
         )
-        out.append(compress(i, res, sc.info, w["keep_groups"]))
+        out.append(compress(i, res, sc.info, w["keep_groups"], w["params"]))
     return out
 
 
@@ -213,6 +235,47 @@ class MCResult:
         """Time-integrated queue (person-seconds) per scenario and arc ``[n, M]``."""
         return np.stack([r.arc_qint for r in self.runs])
 
+    # ------------------------------------------------------------------ tenability
+    def p_rset_exceeds_aset(self) -> Estimate:
+        """P(RSET > ASET) across scenarios with a Wilson 95% interval."""
+        k = sum(r.rset_exceeds_aset for r in self.runs)
+        lo, hi = wilson_interval(k, self.n)
+        return Estimate(k / self.n if self.n else 0.0, lo, hi)
+
+    def floor_exceedance(self) -> dict[int, Estimate]:
+        """Per floor: P(RSET_floor > ASET_floor) with Wilson intervals."""
+        hits: dict[int, int] = {}
+        seen: dict[int, int] = {}
+        for r in self.runs:
+            for lv, rs, a in zip(r.floor_levels, r.floor_rset, r.floor_aset, strict=True):
+                seen[lv] = seen.get(lv, 0) + 1
+                hits[lv] = hits.get(lv, 0) + int(rs > a)
+        out = {}
+        for lv in sorted(seen):
+            lo, hi = wilson_interval(hits[lv], seen[lv])
+            out[lv] = Estimate(hits[lv] / seen[lv], lo, hi)
+        return out
+
+    def tenability_summary(self) -> dict[str, Any]:
+        """P(RSET > ASET), exposure and incapacitation statistics."""
+        p = self.p_rset_exceeds_aset()
+        inc = self.array("n_incapacitated")
+        over = self.array("n_over_fed_limit")
+        any_inc = int((inc > 0).sum())
+        lo, hi = wilson_interval(any_inc, self.n)
+        floors = self.floor_exceedance()
+        worst = sorted(floors.items(), key=lambda kv: -kv[1].value)[:5]
+        return {
+            "p_rset_exceeds_aset": asdict(p),
+            "p_any_incapacitated": asdict(Estimate(any_inc / max(self.n, 1), lo, hi)),
+            "mean_incapacitated": float(inc.mean()) if self.n else 0.0,
+            "mean_over_fed_limit": float(over.mean()) if self.n else 0.0,
+            "cvar_incapacitated": float(np.sort(inc)[-max(1, self.n // 20) :].mean())
+            if self.n
+            else 0.0,
+            "worst_floors": [{"level": lv, **asdict(est)} for lv, est in worst if est.value > 0],
+        }
+
     def summary(self) -> dict[str, Any]:
         """Headline numbers (JSON-friendly)."""
         return {
@@ -225,6 +288,7 @@ class MCResult:
             "occupants_mean": float(self.array("n_agents").mean()) if self.runs else 0.0,
             "rescued_occupants_mean": float(self.array("n_rescued").mean()) if self.runs else 0.0,
             "risk": {name: self.risk(name).as_dict() for name in LOSSES},
+            "tenability": self.tenability_summary() if self.runs else {},
         }
 
     # ------------------------------------------------------------------ persistence

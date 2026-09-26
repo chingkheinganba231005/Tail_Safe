@@ -186,11 +186,21 @@ def sim_run(
     lift_out: Annotated[
         list[str] | None, typer.Option(help="Lift out of service as LIFT@SECONDS (repeatable).")
     ] = None,
+    fire: Annotated[
+        str | None, typer.Option(help="Start a fire in this flat (node id), e.g. L14.unit.N3.")
+    ] = None,
+    fire_door_open: Annotated[
+        bool, typer.Option(help="The fire flat's door is left open.")
+    ] = False,
     out: Annotated[Path | None, typer.Option(help="Write the summary JSON here.")] = None,
     plot: Annotated[Path | None, typer.Option(help="Write an evacuation plot here.")] = None,
 ) -> None:
     """Simulate one evacuation scenario and print the headline results."""
+    from tailsafe.config import get_params
+    from tailsafe.hazard.model import FireSpec, HazardModel
+    from tailsafe.hazard.plot import save_hazard_plot
     from tailsafe.population.synth import PopulationConfig, TimeSlot, sample_population
+    from tailsafe.risk.tenability import rset_aset
     from tailsafe.sim.meso import SimConfig, SimScenario, run_meso, stair_blockage
     from tailsafe.sim.plot import save_run_plot
 
@@ -210,7 +220,19 @@ def sim_run(
     outages = tuple(
         (lid, float(t or 0.0)) for lid, _, t in (x.partition("@") for x in lift_out or [])
     )
-    scenario = SimScenario(blockages=blockages, evacuation_lifts=lifts, lift_outages=outages)
+    hazard = None
+    if fire:
+        pr = get_params()
+        fire_spec = FireSpec(
+            node=fire,
+            growth=float(pr["hazard.fire.growth_coefficient"].ppf([0.5])[0]),
+            peak=float(pr["hazard.fire.peak_hrr"].ppf([0.5])[0]),
+            door_open=fire_door_open,
+        )
+        hazard = HazardModel(b, pr).run(fire_spec, keep_fields=plot is not None)
+    scenario = SimScenario(
+        blockages=blockages, evacuation_lifts=lifts, lift_outages=outages, hazard=hazard
+    )
     res = run_meso(b, pop, scenario, SimConfig(record_series=plot is not None))
     summary = {
         "building": b.name,
@@ -225,6 +247,7 @@ def sim_run(
         "population": pop.summary(),
         "results": res.summary(),
         "floor_clearance_s": {b.level_label(k): v for k, v in res.floor_clearance().items()},
+        "tenability": _tenability_json(rset_aset(res), b) if hazard is not None else None,
         "top_queues": res.top_queues(8),
         "disclaimer": DISCLAIMER,
     }
@@ -236,6 +259,25 @@ def sim_run(
     if plot:
         save_run_plot(res, plot, title=f"{b.name} — {slot}, seed {seed}")
         typer.echo(f"Wrote {plot}")
+        if hazard is not None:
+            hz_plot = plot.with_name(plot.stem + "_smoke" + plot.suffix)
+            save_hazard_plot(b, hazard, hz_plot)
+            typer.echo(f"Wrote {hz_plot}")
+
+
+def _tenability_json(ra: Any, b: Any) -> dict[str, Any]:
+    fails = [
+        {"floor": b.level_label(int(lv)), "rset_s": float(r), "aset_s": float(a)}
+        for lv, r, a in zip(ra.floor_levels, ra.floor_rset, ra.floor_aset, strict=True)
+        if r > a
+    ]
+    return {
+        "rset_exceeds_aset": ra.fails,
+        "failing_floors": fails,
+        "occupants_over_fed_limit": ra.occupants_over_fed_limit,
+        "occupants_incapacitated": ra.occupants_incapacitated,
+        "max_fed": ra.max_fed,
+    }
 
 
 def _load_spec(spec: str) -> Any:
@@ -271,6 +313,19 @@ def _print_risk(result: Any) -> None:
             f"{_fmt_minutes(r.cvar.value):>10}  "
             f"[{_fmt_minutes(r.cvar.lo)}, {_fmt_minutes(r.cvar.hi)}]"
         )
+    if result.spec.hazard is not None and result.spec.hazard.enabled:
+        ten = result.tenability_summary()
+        p = ten["p_rset_exceeds_aset"]
+        inc = ten["p_any_incapacitated"]
+        typer.echo(
+            f"\nP(RSET > ASET) = {p['value']:.3f} [{p['lo']:.3f}, {p['hi']:.3f}]   "
+            f"P(anyone incapacitated) = {inc['value']:.3f} [{inc['lo']:.3f}, {inc['hi']:.3f}]   "
+            f"mean incapacitated = {ten['mean_incapacitated']:.2f}"
+        )
+        for row in ten["worst_floors"]:
+            typer.echo(
+                f"  floor {row['level']:>3}: P(RSET_floor > ASET_floor) = {row['value']:.3f}"
+            )
 
 
 @stress_app.command("spec")
