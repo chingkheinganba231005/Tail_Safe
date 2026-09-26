@@ -23,7 +23,8 @@ def _pdf_first_page(data: bytes) -> NDArray[np.float32]:
     pdf = pdfium.PdfDocument(data)
     page = pdf[0]
     img = page.render(scale=PDF_DPI / 72).to_pil().convert("L")
-    return np.asarray(img, dtype=np.float32) / 255.0
+    ink: NDArray[np.float32] = np.asarray(img, dtype=np.float32)  # img is untyped (optional dep)
+    return ink / np.float32(255.0)
 
 
 def load_image(source: bytes | str | Path) -> NDArray[np.float32]:
@@ -48,7 +49,8 @@ def load_image(source: bytes | str | Path) -> NDArray[np.float32]:
         rgba = img.convert("RGBA")
         bg = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
         img = Image.alpha_composite(bg, rgba)
-    return np.asarray(img.convert("L"), dtype=np.float32) / 255.0
+    grey: NDArray[np.float32] = np.asarray(img.convert("L"), dtype=np.float32) / np.float32(255.0)
+    return grey
 
 
 def to_data_url(png: bytes) -> str:
