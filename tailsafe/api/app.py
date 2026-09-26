@@ -14,6 +14,7 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
@@ -132,7 +133,10 @@ class ReplayRequest(_Req):
     spec: ScenarioSpec = Field(default_factory=demo_spec)
     index: int = Field(default=0, ge=0)
     seed: int = Field(default=0, ge=0)
-    runs: int = Field(default=300, ge=1, le=MAX_RUNS, description="Batch layout of the stress test")
+    runs: int = Field(default=300, ge=1, le=MAX_RUNS, description="Runs of the stress test")
+    batch_size: int = Field(
+        default=100, ge=1, le=1000, description="LHS batch size of the stress test"
+    )
 
 
 # ============================================================================ basics
@@ -304,6 +308,17 @@ def submit_optimize(req: OptimizeRequest) -> dict[str, Any]:
             }
             for loss in ("total_time", "self_evacuation_time", "p95_occupant_time")
         }
+        # Everything needed to replay the worst confirmation scenario with and
+        # without the plan (same seed and batch layout, so identical draws).
+        worst = int(np.argmax(out.confirm_baseline.loss("total_time")))
+        summary["replay"] = {
+            "baseline_spec": req.spec.model_dump(mode="json"),
+            "plan_spec": out.best.plan.apply(req.spec, b).model_dump(mode="json"),
+            "seed": cfg.confirm_seed,
+            "runs": cfg.confirm_scenarios,
+            "batch_size": min(100, cfg.confirm_scenarios),
+            "worst_index": int(out.confirm_baseline.runs[worst].index),
+        }
         summary["disclaimer"] = DISCLAIMER
         return finite(summary)  # type: ignore[no-any-return]
 
@@ -318,12 +333,17 @@ def submit_replay(req: ReplayRequest) -> dict[str, Any]:
     _check_spec(b, req.spec)
     p = get_params()
     key = cache_key(
-        b.digest(), req.spec.model_dump(mode="json"), req.index, req.seed, req.runs, p.digest
+        b.digest(),
+        req.spec.model_dump(mode="json"),
+        req.index,
+        req.seed,
+        req.batch_size,
+        p.digest,
     )
 
     def work(progress: Any) -> dict[str, Any]:
         progress(0, 1)
-        cfg = MCConfig(n_runs=req.runs, seed=req.seed)
+        cfg = MCConfig(n_runs=req.runs, seed=req.seed, batch_size=req.batch_size)
         u = scenario_uniforms(req.seed, req.index, 1, lhs=cfg.lhs, batch_size=cfg.batch_size)[0]
         sc = ScenarioSampler(b, req.spec, p).sample(req.seed, req.index, u, keep_hazard_fields=True)
         net = compile_network(b, p)

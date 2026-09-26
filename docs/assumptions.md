@@ -111,7 +111,10 @@ or pessimistic. Numeric values and their sources live in
   (wheelchair users, frail older adults) who choose to wait for them
   (`behaviour.use_evacuation_lift_probability`). The firefighting lift is never
   used, lifts are not affected by smoke, and they start after a fixed
-  switch-over delay.
+  switch-over delay. With the "wheelchair users only" rule, households with a
+  frail older adult walk (slowly) instead of waiting. Letting frail residents
+  wait for a lift can shorten the total evacuation time yet lengthen the time
+  for 95% of occupants to get out, when too few lifts serve too many floors.
 - **Floor wardens** are trained residents or staff already on their floor at
   the alarm. They knock on every door of their floor and the floors next to
   it within a fixed sweep time, and escort one household that cannot use the

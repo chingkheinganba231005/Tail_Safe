@@ -237,6 +237,7 @@ class ScenarioSampler:
                 share_65_plus=spec.share_65_plus,
                 share_80_plus_of_65_plus=spec.share_80_plus_of_65_plus,
                 evacuation_lifts=bool(evac),
+                lift_for_frail=spec.lift_eligibility == "mobility_impaired",
                 counter_flow_probability=spec.counter_flow_probability,
                 vacancy_rate=spec.vacancy_rate,
             ),

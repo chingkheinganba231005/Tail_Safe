@@ -106,6 +106,26 @@ def test_mobility_modes(tower: Building) -> None:
         assert has_lift_mode == lifts
 
 
+def test_lift_eligibility_wheelchair_only(tower: Building) -> None:
+    both = sample_population(
+        tower, PopulationConfig(evacuation_lifts=True, share_65_plus=0.35), seed=9
+    )
+    wheel = sample_population(
+        tower,
+        PopulationConfig(evacuation_lifts=True, share_65_plus=0.35, lift_for_frail=False),
+        seed=9,
+    )
+    has_wheel = np.zeros(wheel.n_groups, dtype=bool)
+    has_wheel[wheel.agent_group[wheel.agent_profile == Profile.WHEELCHAIR_USER]] = True
+    waiting = wheel.group_mode == Mode.WAIT_LIFT
+    assert waiting.any() and not (waiting & ~has_wheel).any()
+    # Frail households that waited for a lift now walk; the draws are otherwise identical.
+    frail_only = (both.group_mode == Mode.WAIT_LIFT) & ~has_wheel
+    assert frail_only.any()
+    assert (wheel.group_mode[frail_only] == Mode.WALK).all()
+    np.testing.assert_array_equal(wheel.group_premovement, both.group_premovement)
+
+
 def test_counter_flow_probability(tower: Building) -> None:
     none = sample_population(tower, PopulationConfig(counter_flow_probability=0.0), seed=1)
     assert all(w is None for w in none.group_waypoint)

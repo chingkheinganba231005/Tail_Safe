@@ -206,7 +206,11 @@ def merge(a: InterventionPlan, b: InterventionPlan) -> InterventionPlan:
     """``a`` with every lever that ``b`` sets taken from ``b``."""
     upd: dict[str, Any] = {}
     if b.evacuation_lifts:
-        upd.update(evacuation_lifts=True, lift_priority=b.lift_priority)
+        upd.update(
+            evacuation_lifts=True,
+            lift_priority=b.lift_priority,
+            lift_eligibility=b.lift_eligibility,
+        )
     if b.hold_open_stair_doors:
         upd["hold_open_stair_doors"] = True
     if b.stair_split_level is not None:
@@ -230,7 +234,8 @@ def screening_plans(
     levels = _residential_levels(building)
     if "lifts" in cfg.levers and any(not lf.firefighting for lf in building.lifts):
         out["lifts"] = [
-            InterventionPlan(evacuation_lifts=True, lift_priority=r)
+            InterventionPlan(evacuation_lifts=True, lift_priority=r, lift_eligibility=who)
+            for who in ("mobility_impaired", "wheelchair_users")
             for r in ("top_down", "nearest", "bottom_up")
         ]
     if "hold_open" in cfg.levers and spec.hazard is not None:

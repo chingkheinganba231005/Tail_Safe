@@ -4,7 +4,8 @@ A plan is applied to a :class:`~tailsafe.scenarios.spec.ScenarioSpec`; the
 result is evaluated with the same scenario draws as the baseline (common random
 numbers). Levers:
 
-* **Evacuation lifts** for mobility-impaired residents, with a dispatch rule;
+* **Evacuation lifts** for mobility-impaired residents (or wheelchair users
+  only), with a dispatch rule;
 * **Door hold-open policy** for stair doors (more flow, more smoke in stairs);
 * **Stair assignment** by floor band (upper floors to one stair, lower floors
   to the other);
@@ -30,6 +31,7 @@ class InterventionPlan(BaseModel):
 
     evacuation_lifts: bool = False
     lift_priority: Literal["top_down", "nearest", "bottom_up"] = "top_down"
+    lift_eligibility: Literal["mobility_impaired", "wheelchair_users"] = "mobility_impaired"
     hold_open_stair_doors: bool = False
     stair_split_level: int | None = Field(
         default=None, description="Floors at or above use upper_stair; below use lower_stair."
@@ -74,6 +76,7 @@ class InterventionPlan(BaseModel):
         if self.evacuation_lifts:
             update["evacuation_lifts"] = True
             update["lift_priority"] = self.lift_priority
+            update["lift_eligibility"] = self.lift_eligibility
         if self.hold_open_stair_doors:
             hz = spec.hazard or HazardSpec(enabled=False)
             update["hazard"] = hz.model_copy(update={"hold_open_stair_doors": True})
@@ -106,9 +109,12 @@ class InterventionPlan(BaseModel):
                 "nearest": "nearest waiting floor first",
                 "bottom_up": "lowest floors first",
             }[self.lift_priority]
-            out.append(
-                f"Use the non-firefighting lifts to evacuate mobility-impaired residents ({rule})."
+            who = (
+                "mobility-impaired residents"
+                if self.lift_eligibility == "mobility_impaired"
+                else "wheelchair users only (frail residents walk)"
             )
+            out.append(f"Use the non-firefighting lifts to evacuate {who} ({rule}).")
         if self.hold_open_stair_doors:
             out.append("Hold stair doors open during evacuation.")
         if self.stair_split_level is not None and self.upper_stair and self.lower_stair:

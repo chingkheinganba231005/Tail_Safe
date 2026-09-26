@@ -57,6 +57,7 @@ class QueueSpot:
 
     arc: int
     where: str
+    edge: str  # building edge the arc belongs to (for highlighting)
     recurrence: float  # share of tail scenarios with max queue >= threshold
     tail_person_seconds: float
     all_person_seconds: float
@@ -77,6 +78,8 @@ class BottleneckRow:
     tail_person_seconds: float
     structural_clearance_s: float
     in_min_cut: bool
+    edges: tuple[str, ...] = ()  # building edges relaxed in the counterfactual
+    stair: str | None = None
 
 
 def queue_recurrence(
@@ -101,6 +104,7 @@ def queue_recurrence(
         QueueSpot(
             arc=int(k),
             where=result.arc_labels[int(k)],
+            edge=result.arc_edge_ids[int(k)],
             recurrence=float(rec[k]),
             tail_person_seconds=float(tail_ps[k]),
             all_person_seconds=float(all_ps[k]),
@@ -272,6 +276,8 @@ def attribute_bottlenecks(
                 else 0.0,
                 structural_clearance_s=float(st.clearance_time[arcs].max()) if arcs.size else 0.0,
                 in_min_cut=bool(set(arcs.tolist()) & set(st.min_cut_arcs)),
+                edges=cand.edges,
+                stair=cand.stair,
             )
         )
     rows.sort(key=lambda r: r.delta_cvar.value if r.delta_cvar else 0.0)

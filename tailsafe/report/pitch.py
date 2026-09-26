@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from tailsafe import DISCLAIMER, __version__
+from tailsafe.building.builder import hk_level_label
 
 
 def _min(seconds: float) -> str:
@@ -22,6 +23,15 @@ def _min(seconds: float) -> str:
 def _ci(est: dict[str, float]) -> str:
     v, lo, hi = est["value"] / 60, est["lo"] / 60, est["hi"] / 60
     return f"{v:.1f} min (95% CI {lo:.1f} to {hi:.1f})"
+
+
+def _mark(delta: dict[str, float]) -> str:
+    """Significance mark for a paired change where lower is better."""
+    if delta["hi"] < 0:
+        return " ✔"
+    if delta["lo"] > 0:
+        return " ▲"
+    return ""
 
 
 def load_json(path: Path | None) -> dict[str, Any] | None:
@@ -89,7 +99,9 @@ def pitch_markdown(
         ]
         worst = ten.get("worst_floors") or []
         if worst:
-            floors = ", ".join(f"level {w['level']} ({w['value']:.2f})" for w in worst[:3])
+            floors = ", ".join(
+                f"{hk_level_label(int(w['level']))} ({w['value']:.2f})" for w in worst[:3]
+            )
             lines.append(f"- **Floors most often failing:** {floors}.")
     bd = metrics.get("breakdown") or {}
     heads = [b.get("headline") for b in bd.values() if isinstance(b, dict) and b.get("headline")]
@@ -133,7 +145,7 @@ def pitch_markdown(
         for key, label in names.items():
             row = conf["losses"][key]
             d = row["delta_cvar"]
-            sig = " ✔" if row["significant"] else ""
+            sig = _mark(d)
             lines.append(
                 f"| {label} | {_min(row['before_cvar'])} | {_min(row['after_cvar'])} | "
                 f"{d['value'] / 60:+.1f} min ({d['lo'] / 60:+.1f} to {d['hi'] / 60:+.1f}){sig} |"
@@ -141,9 +153,14 @@ def pitch_markdown(
         pr = conf["p_rset_exceeds_aset"]
         lines.append(
             f"| P(RSET > ASET) | {pr['before']:.2f} | {pr['after']:.2f} | "
-            f"{pr['delta']['value']:+.2f} ({pr['delta']['lo']:+.2f} to {pr['delta']['hi']:+.2f}) |"
+            f"{pr['delta']['value']:+.2f} ({pr['delta']['lo']:+.2f} to {pr['delta']['hi']:+.2f})"
+            f"{_mark(pr['delta'])} |"
         )
-        lines += ["", "✔ = the 95% confidence interval excludes zero."]
+        lines += [
+            "",
+            "✔ = significantly better, ▲ = significantly worse (the 95% confidence "
+            "interval of the change excludes zero).",
+        ]
         worse = [
             label for key, label in names.items() if conf["losses"][key]["delta_cvar"]["lo"] > 0
         ]

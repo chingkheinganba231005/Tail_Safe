@@ -63,6 +63,22 @@ scenarios (`make stress-demo`):
 > rescue logistics). Treat them as a demonstration of the method until the
 > registry is calibrated.
 
+### Example: the fix, and its trade-off
+
+`tailsafe optimize` searches cheap operational plans with common random numbers
+and confirms the best one on 400 fresh scenarios. For the pitch scenario it
+proposes evacuation lifts for mobility-impaired residents plus two floor
+wardens. The tail of the total evacuation time roughly halves, because
+wheelchair users no longer wait for fire-service rescue, and P(RSET > ASET)
+falls slightly. But the time for 95% of occupants to get out gets *worse* in
+most scenarios: frail residents who would otherwise walk wait for the lifts.
+With only one working evacuation lift that queue is long; when the lift out
+of service happens to be the firefighting lift, both evacuation lifts run and
+nearly everyone gains. The numbers are in
+[`docs/pitch_metrics.md`](docs/pitch_metrics.md), generated from the saved results.
+
+![Before/after distributions on the same 400 scenarios](docs/img/opt_demo.png)
+
 ## What is in the box
 
 | Area | Module | Status |

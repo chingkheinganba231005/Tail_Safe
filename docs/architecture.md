@@ -288,7 +288,7 @@ combines three views into one ranked table with plain-English labels:
 
 | File | Role |
 |---|---|
-| `plan.py` | `InterventionPlan`: evacuation lifts + dispatch rule, stair-door hold-open, stair assignment by floor band, phased release by band, floor wardens; `apply()` to a `ScenarioSpec`, `describe()` in plain English |
+| `plan.py` | `InterventionPlan`: evacuation lifts + dispatch rule + eligibility, stair-door hold-open, stair assignment by floor band, phased release by band, floor wardens; `apply()` to a `ScenarioSpec`, `describe()` in plain English |
 | `search.py` | `Objective` (CVaR, P(RSET > ASET), or weighted mean + CVaR), `optimize()`, paired confirmation |
 | `cmaes.py` | Small deterministic CMA-ES for the continuous phasing delays |
 | `plot.py` | Before/after distributions on the same scenarios |
@@ -298,7 +298,8 @@ plan is simulated on the same `n_scenarios` draws (seed fixed), through one
 reusable `MonteCarloPool`, so differences between plans are not swamped by
 scenario noise. The search:
 
-1. *Screen* single levers: three lift dispatch rules, door hold-open, stair
+1. *Screen* single levers: three lift dispatch rules × two eligibility rules
+   (all mobility-impaired residents, or wheelchair users only), door hold-open, stair
    assignments (split level × stair order), three phasing presets (upper floors
    first, lower floors first, fire floor and the floor above first), and a
    warden on each of a few candidate floors (the fire floor, floors whose

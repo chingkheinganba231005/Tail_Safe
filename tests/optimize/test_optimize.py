@@ -54,6 +54,11 @@ def test_plan_apply_and_describe(tower: Building) -> None:
     assert any("lifts" in s for s in lines) and any("wardens" in s for s in lines)
     assert InterventionPlan().describe() == ["No change (baseline)."]
     assert InterventionPlan().is_empty() and not plan.is_empty()
+    assert out.lift_eligibility == "mobility_impaired"
+    wheel = InterventionPlan(evacuation_lifts=True, lift_eligibility="wheelchair_users")
+    assert wheel.apply(spec, tower).lift_eligibility == "wheelchair_users"
+    assert "wheelchair users only" in wheel.describe()[0]
+    assert merge(InterventionPlan(), wheel).lift_eligibility == "wheelchair_users"
 
 
 def test_merge() -> None:
@@ -131,6 +136,8 @@ def test_screening_plans(tower: Building) -> None:
     plans = screening_plans(tower, demo_spec(), OptimizeConfig())
     assert {"lifts", "hold_open", "stair_assignment", "phasing"} <= set(plans)
     assert all(pl.evacuation_lifts for pl in plans["lifts"])
+    who = {pl.lift_eligibility for pl in plans["lifts"]}
+    assert who == {"mobility_impaired", "wheelchair_users"}
     only = screening_plans(tower, demo_spec(), OptimizeConfig(levers=("lifts",)))
     assert set(only) == {"lifts"}
 

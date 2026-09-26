@@ -70,6 +70,7 @@ class PopulationConfig:
     share_65_plus: float | None = None
     share_80_plus_of_65_plus: float | None = None
     evacuation_lifts: bool = False
+    lift_for_frail: bool = True  # frail older adults may wait for a lift too (else wheelchair only)
     counter_flow_probability: float | None = None
     vacancy_rate: float | None = None
 
@@ -413,7 +414,8 @@ def _build_groups(
     um = u_mode[g_units]
     upstairs = level > 0
     mode = np.full(G, Mode.WALK, dtype=np.int8)
-    lift = upstairs & (has_wheel | has_frail) & cfg.evacuation_lifts & (um[:, 0] < p_lift)
+    eligible = has_wheel | (has_frail & cfg.lift_for_frail)
+    lift = upstairs & eligible & cfg.evacuation_lifts & (um[:, 0] < p_lift)
     mode[lift] = Mode.WAIT_LIFT
     wheel_up = upstairs & has_wheel & ~lift
     carry = wheel_up & (escorts > 0) & (um[:, 1] < p_carry)

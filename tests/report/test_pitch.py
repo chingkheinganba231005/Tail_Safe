@@ -102,6 +102,10 @@ def test_pitch_flags_trade_offs() -> None:
     assert "**Trade-off:**" in text
     assert "time for 95% of occupants" in text and "P(RSET > ASET)" in text
     assert "time until everyone" not in text.split("**Trade-off:**")[1]
+    rows = {line.split("|")[1].strip(): line for line in text.splitlines() if line.startswith("| ")}
+    assert rows["Time until everyone is out (incl. fire-service rescue)"].endswith("✔ |")
+    assert rows["Time for 95% of occupants to get out"].endswith("▲ |")
+    assert rows["P(RSET > ASET)"].endswith("▲ |")
 
 
 _LOSSES = ("total_time", "self_evacuation_time", "p95_occupant_time")
