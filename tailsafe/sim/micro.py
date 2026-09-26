@@ -28,6 +28,10 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
+from tailsafe.building.geometry import bbox as _bbox
+from tailsafe.building.geometry import clip_centred as _clip_centred
+from tailsafe.building.geometry import rectangularity
+from tailsafe.building.geometry import shared_boundary as _shared_boundary
 from tailsafe.building.model import Building
 from tailsafe.config import Params, get_params
 from tailsafe.population.profiles import Profile
@@ -67,48 +71,6 @@ class MicroGeometry:
     p_y1: NDArray[np.float64]
     p_nx: NDArray[np.float64]  # flat arcs: portal normal towards the target room;
     p_ny: NDArray[np.float64]  # stair arcs: unit vector across the landings
-
-
-def _bbox(poly: list[list[float]] | list[tuple[float, float]]) -> tuple[float, float, float, float]:
-    xs = [float(p[0]) for p in poly]
-    ys = [float(p[1]) for p in poly]
-    return min(xs), max(xs), min(ys), max(ys)
-
-
-def _shared_boundary(
-    a: tuple[float, float, float, float], b: tuple[float, float, float, float]
-) -> tuple[Point, Point] | None:
-    """Longest common piece of the boundaries of two axis-aligned rectangles."""
-    ax0, ax1, ay0, ay1 = a
-    bx0, bx1, by0, by1 = b
-    tol = 1e-3
-    cands: list[tuple[Point, Point]] = []
-    for xa in (ax0, ax1):
-        for xb in (bx0, bx1):
-            if abs(xa - xb) < tol:
-                lo, hi = max(ay0, by0), min(ay1, by1)
-                if hi - lo > tol:
-                    cands.append(((xa, lo), (xa, hi)))
-    for ya in (ay0, ay1):
-        for yb in (by0, by1):
-            if abs(ya - yb) < tol:
-                lo, hi = max(ax0, bx0), min(ax1, bx1)
-                if hi - lo > tol:
-                    cands.append(((lo, ya), (hi, ya)))
-    if not cands:
-        return None
-    return max(cands, key=lambda c: abs(c[1][0] - c[0][0]) + abs(c[1][1] - c[0][1]))
-
-
-def _clip_centred(seg: tuple[Point, Point], width: float) -> tuple[Point, Point]:
-    (x0, y0), (x1, y1) = seg
-    length = float(np.hypot(x1 - x0, y1 - y0))
-    if width >= length or length <= 0:
-        return seg
-    mx, my = (x0 + x1) / 2, (y0 + y1) / 2
-    ux, uy = (x1 - x0) / length, (y1 - y0) / length
-    h = width / 2
-    return (mx - ux * h, my - uy * h), (mx + ux * h, my + uy * h)
 
 
 def _facing_side(
@@ -154,6 +116,9 @@ def micro_problems(building: Building) -> list[str]:
             apart.append(e.id)
     if apart:
         out.append(f"{len(apart)} walkway(s) between rooms that do not touch, e.g. {apart[0]}")
+    odd = [n.id for n in building.nodes if n.polygon and rectangularity(n.polygon) < 0.9]
+    if odd:
+        out.append(f"{len(odd)} room(s) that are not rectangles, e.g. {odd[0]}")
     return out
 
 

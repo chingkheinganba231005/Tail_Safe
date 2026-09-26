@@ -29,6 +29,8 @@ stress_app = typer.Typer(help="Monte Carlo stress tests and tail-risk metrics.")
 app.add_typer(stress_app, name="stress")
 micro_app = typer.Typer(help="Microscopic replays and meso–micro cross-checks.")
 app.add_typer(micro_app, name="micro")
+vision_app = typer.Typer(help="Read floor-plan images into buildings.")
+app.add_typer(vision_app, name="vision")
 
 
 @app.command()
@@ -634,6 +636,101 @@ def micro_fd() -> None:
             f"| {r['density']:.2f} | {r['speed']:.2f} | {r['hydraulic_speed']:.2f} "
             f"| {r['flow']:.2f} | {r['hydraulic_flow']:.2f} |"
         )
+
+
+def _parse_scale(scale: str | None) -> Any:
+    from tailsafe.vision.detect import Scale
+
+    if not scale:
+        return None
+    try:
+        x1, y1, x2, y2, metres = (float(v) for v in scale.split(","))
+    except ValueError as exc:
+        raise typer.BadParameter("--scale is x1,y1,x2,y2,metres (pixels and metres)") from exc
+    return Scale(x1=x1, y1=y1, x2=x2, y2=y2, metres=metres)
+
+
+@vision_app.command("synth")
+def vision_synth(
+    template: Annotated[str, typer.Argument(help="Template to render a floor of.")] = "cruciform",
+    level: Annotated[int, typer.Option(help="Floor to render.")] = 1,
+    px_per_m: Annotated[float, typer.Option(help="Resolution.")] = 20.0,
+    noise: Annotated[float, typer.Option(help="Grey noise (0-1).")] = 0.03,
+    out: Annotated[Path, typer.Option(help="PNG to write.")] = Path("out/plan.png"),
+) -> None:
+    """Render a synthetic floor plan (with known answer) to try the reader on."""
+    from tailsafe.building.templates import generate
+    from tailsafe.vision.synth import render_plan, to_png_bytes
+
+    b = generate(template)
+    img, truth = render_plan(b, level, px_per_m=px_per_m, noise=noise, blur=0.5 if noise else 0.0)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(to_png_bytes(img))
+    (out.with_suffix(".truth.json")).write_text(
+        json.dumps(truth.as_dict(), indent=1), encoding="utf-8"
+    )
+    typer.echo(
+        f"Wrote {out} ({img.shape[1]}×{img.shape[0]} px, {1 / px_per_m:.3f} m/px) and its truth"
+    )
+
+
+@vision_app.command("detect")
+def vision_detect(
+    image: Annotated[Path, typer.Argument(help="PNG, JPEG or PDF floor plan.")],
+    scale: Annotated[
+        str | None, typer.Option(help="Reference line: x1,y1,x2,y2,metres (image pixels).")
+    ] = None,
+    out: Annotated[Path | None, typer.Option(help="Detection JSON to write.")] = None,
+    overlay: Annotated[Path | None, typer.Option(help="PNG with the detection drawn.")] = None,
+) -> None:
+    """Find walls, doorways, rooms and stairs in a plan image."""
+    from tailsafe.vision.detect import detect_plan
+    from tailsafe.vision.graph import detection_summary
+    from tailsafe.vision.overlay import save_overlay
+    from tailsafe.vision.raster import load_image
+
+    img = load_image(image)
+    det = detect_plan(img, _parse_scale(scale))
+    typer.echo(json.dumps(detection_summary(det), indent=2))
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(det.model_dump_json(indent=1), encoding="utf-8")
+    if overlay:
+        save_overlay(img, det, overlay)
+        typer.echo(f"Wrote {overlay}", err=True)
+
+
+@vision_app.command("build")
+def vision_build(
+    detection: Annotated[Path, typer.Argument(help="Detection JSON (possibly corrected).")],
+    storeys: Annotated[int, typer.Option(help="Storeys including G/F.")] = 10,
+    name: Annotated[str, typer.Option(help="Building name.")] = "Building from floor plan",
+    out: Annotated[Path, typer.Option(help="Building JSON to write.")] = Path(
+        "out/plan_building.json"
+    ),
+) -> None:
+    """Stack a detected floor into a building JSON (validated)."""
+    from tailsafe.building.graph import summary
+    from tailsafe.building.io import save_building
+    from tailsafe.vision.detect import PlanDetection
+    from tailsafe.vision.graph import plan_to_building
+
+    det = PlanDetection.model_validate_json(detection.read_text(encoding="utf-8"))
+    b = plan_to_building(det, storeys=storeys, name=name)
+    save_building(b, out)
+    typer.echo(json.dumps(summary(b), indent=2, ensure_ascii=False))
+
+
+@vision_app.command("eval")
+def vision_eval(
+    reference_scale: Annotated[
+        bool, typer.Option(help="Give the reader the true scale (as a reference line).")
+    ] = True,
+) -> None:
+    """Precision and recall on synthetic plans rendered from the templates."""
+    from tailsafe.vision.evaluate import evaluate, evaluation_markdown
+
+    typer.echo(evaluation_markdown(evaluate(reference_scale=reference_scale)))
 
 
 @app.command()

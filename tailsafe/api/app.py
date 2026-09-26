@@ -40,6 +40,7 @@ from tailsafe.scenarios.sampler import ScenarioSampler, scenario_uniforms
 from tailsafe.scenarios.spec import ScenarioSpec, demo_spec
 from tailsafe.sim.meso import SimConfig, run_meso
 from tailsafe.sim.network import compile_network
+from tailsafe.vision.detect import PlanDetection, Scale
 
 app = FastAPI(
     title="TailSafe API",
@@ -443,6 +444,77 @@ def micro_level(job_id: str, level: int) -> dict[str, Any]:
             cached = {k: z[k] for k in z.files}
         JOBS.objects[f"micro-frames-{job_id}"] = cached
     return micro_level_view(cached, level)
+
+
+# ============================================================================ floor plans
+MAX_IMAGE_CHARS = 30_000_000  # ~22 MB of image data as base64
+
+
+class VisionDetectRequest(_Req):
+    """A plan image (data URL) and, optionally, a reference line for the scale."""
+
+    image: str = Field(max_length=MAX_IMAGE_CHARS)
+    scale: Scale | None = None
+
+
+class VisionBuildRequest(_Req):
+    """A (corrected) detection and how many storeys to stack."""
+
+    detection: PlanDetection
+    storeys: int = Field(default=10, ge=1, le=80)
+    floor_height: float | None = Field(default=None, gt=2.0, lt=8.0)
+    name: str = Field(default="Building from floor plan", max_length=200)
+
+
+@app.post("/api/vision/detect")
+def vision_detect(req: VisionDetectRequest) -> dict[str, Any]:
+    """Read walls, doorways, rooms and stairs from a plan image."""
+    from tailsafe.vision.detect import detect_plan
+    from tailsafe.vision.graph import detection_summary
+    from tailsafe.vision.raster import load_image
+
+    try:
+        img = load_image(req.image)
+        det = detect_plan(img, req.scale)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return {"detection": det.model_dump(mode="json"), "summary": detection_summary(det)}
+
+
+@app.post("/api/vision/build")
+def vision_build(req: VisionBuildRequest) -> dict[str, Any]:
+    """Stack the corrected floor into a building and register it."""
+    from tailsafe.vision.graph import plan_to_building
+
+    try:
+        b = plan_to_building(
+            req.detection, storeys=req.storeys, floor_height=req.floor_height, name=req.name
+        )
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    _store(b)
+    return finite(building_view(b))  # type: ignore[no-any-return]
+
+
+@app.get("/api/vision/sample")
+def vision_sample(template: str = "cruciform", level: int = 1) -> dict[str, Any]:
+    """A synthetic plan rendered from a template, to try the reader without a drawing."""
+    from tailsafe.vision.raster import to_data_url
+    from tailsafe.vision.synth import render_plan, to_png_bytes
+
+    if template not in TEMPLATES:
+        raise HTTPException(422, f"unknown template {template!r}")
+    b = generate(template)
+    if level not in {lv.index for lv in b.levels}:
+        raise HTTPException(422, f"{template} has no level {level}")
+    img, truth = render_plan(b, level, noise=0.02, blur=0.4, seed=level)
+    return {
+        "image": to_data_url(to_png_bytes(img)),
+        "width": int(img.shape[1]),
+        "height": int(img.shape[0]),
+        "m_per_px": truth.m_per_px,
+        "note": "Synthetic plan rendered from the procedural template (for trying the reader).",
+    }
 
 
 @app.get("/api/jobs")

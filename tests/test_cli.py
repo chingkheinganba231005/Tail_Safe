@@ -152,3 +152,37 @@ def test_micro_run_compare_and_fd(tmp_path: Path) -> None:
 
     res = runner.invoke(app, ["micro", "fd"])
     assert res.exit_code == 0 and "| Density" in res.stdout
+
+
+def test_vision_synth_detect_build(tmp_path: Path) -> None:
+    import json
+
+    png = tmp_path / "plan.png"
+    res = runner.invoke(app, ["vision", "synth", "slab", "--level", "1", "--out", str(png)])
+    assert res.exit_code == 0, res.stdout
+    truth = json.loads(png.with_suffix(".truth.json").read_text())
+    ten_m = 10 / truth["m_per_px"]
+    det = tmp_path / "det.json"
+    overlay = tmp_path / "overlay.png"
+    res = runner.invoke(
+        app,
+        [
+            "vision",
+            "detect",
+            str(png),
+            "--scale",
+            f"0,0,{ten_m},0,10",
+            "--out",
+            str(det),
+            "--overlay",
+            str(overlay),
+        ],
+    )
+    assert res.exit_code == 0, res.stdout
+    assert json.loads(res.stdout)["rooms"]["stair"] == 2 and overlay.exists()
+    out = tmp_path / "b.json"
+    res = runner.invoke(app, ["vision", "build", str(det), "--storeys", "5", "--out", str(out)])
+    assert res.exit_code == 0, res.stdout
+    assert json.loads(out.read_text())["levels"][4]["label"] == "4/F"
+    res = runner.invoke(app, ["vision", "detect", str(png), "--scale", "1,2,3"])
+    assert res.exit_code != 0

@@ -40,6 +40,7 @@ dev = [
     "types-PyYAML",
     "types-jsonschema",
 ]
+vision = ["pypdfium2>=4.0"]
 
 [project.scripts]
 tailsafe = "tailsafe.cli:app"
@@ -100,7 +101,7 @@ warn_unreachable = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["numba", "numba.*", "scipy", "scipy.*", "networkx", "networkx.*", "mpl_toolkits.*"]
+module = ["numba", "numba.*", "scipy", "scipy.*", "networkx", "networkx.*", "mpl_toolkits.*", "pypdfium2"]
 ignore_missing_imports = true
 
 # --------------------------------------------------------------------------- pytest

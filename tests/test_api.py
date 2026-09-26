@@ -202,3 +202,28 @@ def test_micro_replay_and_floor_frames() -> None:
     graph_only = client.post("/api/buildings/upload", json=corridor).json()
     bad = client.post("/api/micro", json={"building_id": graph_only["id"], "spec": {"name": "x"}})
     assert bad.status_code == 422
+
+
+def test_vision_detect_edit_build() -> None:
+    sample = client.get("/api/vision/sample", params={"template": "slab", "level": 1}).json()
+    assert sample["image"].startswith("data:image/png;base64,")
+    width_px = 10 / sample["m_per_px"]
+    scale = {"x1": 0, "y1": 0, "x2": width_px, "y2": 0, "metres": 10}
+    det = client.post("/api/vision/detect", json={"image": sample["image"], "scale": scale}).json()
+    detection = det["detection"]
+    assert det["summary"]["rooms"].get("stair") == 2
+    assert detection["m_per_px"] == pytest.approx(sample["m_per_px"])
+
+    # The editor retypes a room and adds a doorway, then builds 6 storeys.
+    unit = next(r for r in detection["rooms"] if r["type"] == "unit")
+    unit["type"] = "refuge"
+    d0 = detection["doors"][0]
+    detection["doors"].append({"id": "E1", "a": d0["a"], "b": d0["b"], "width_m": 0.9, "rooms": []})
+    built = client.post("/api/vision/build", json={"detection": detection, "storeys": 6}).json()
+    assert built["summary"]["storeys"] == 6
+    assert built["summary"]["nodes"].get("refuge") == 6
+    assert client.get(f"/api/buildings/{built['id']}").status_code == 200
+
+    bad = client.post("/api/vision/detect", json={"image": "data:image/png;base64,AAAA"})
+    assert bad.status_code == 422
+    assert client.get("/api/vision/sample", params={"template": "nope"}).status_code == 422
