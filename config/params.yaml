@@ -1,0 +1,392 @@
+# =============================================================================
+# TailSafe parameter registry
+# =============================================================================
+# Rules (enforced by tests/test_params.py):
+#   * Units are SI: metres, seconds, persons, persons/s, persons/m^2.
+#   * Every parameter leaf has a `source:`. If no source is known it says
+#     "ASSUMPTION — needs citation" so it can be filled in later.
+#   * Sources tagged "VERIFY" name the reference the value is believed to come
+#     from; check the figure against the edition you use before relying on it.
+#   * A leaf is a mapping with either `value:` or `dist:`. Distributions:
+#       constant      value
+#       truncnorm     mean, sd, min, max
+#       lognormal     median, sigma (sigma of the underlying normal), [min, max]
+#       uniform       min, max
+#       categorical   p: {outcome: probability, ...}
+#   * Keys starting with "_" are ignored by the loader (used for YAML anchors).
+# =============================================================================
+
+schema_version: 1
+
+_sources:
+  sfpe: &sfpe >-
+    SFPE Handbook of Fire Protection Engineering — hydraulic model of emergency
+    movement (Gwynne & Rosenbaum chapter, after Fruin / Pauls / Nelson & Mowrer).
+    VERIFY against the edition used.
+  sfpe_boundary: &sfpe_boundary >-
+    SFPE Handbook of Fire Protection Engineering — effective-width boundary layer
+    table (after Pauls). VERIFY against the edition used.
+  assumption: &assumption "ASSUMPTION — needs citation"
+  assumption_hk_code: &assumption_hk_code >-
+    ASSUMPTION — needs citation (check the Buildings Department Code of Practice
+    for Fire Safety in Buildings 2011, Part B means of escape)
+  assumption_behaviour: &assumption_behaviour >-
+    ASSUMPTION — needs citation (candidate references to check: PD 7974-6:2019,
+    SFPE Handbook chapters on human behaviour in fire)
+  assumption_mobility: &assumption_mobility >-
+    ASSUMPTION — needs citation (candidate references to check: SFPE Handbook
+    movement chapters; published stair-descent studies of older and mobility-
+    impaired people)
+  assumption_demography: &assumption_demography >-
+    ASSUMPTION — needs citation (check Census and Statistics Department
+    population and household statistics for Hong Kong)
+
+# -----------------------------------------------------------------------------
+# Crowd movement (hydraulic model). Used for edge capacities, density-speed
+# coupling and the analytical validation cases.
+# -----------------------------------------------------------------------------
+movement:
+  hydraulic:
+    speed_density_a:
+      value: 0.266
+      unit: m^2/person
+      note: "S = k (1 - a D) for D above the free-flow density"
+      source: *sfpe
+    free_flow_density:
+      value: 0.54
+      unit: persons/m^2
+      note: "Below this density speed is independent of density"
+      source: *sfpe
+    jam_density:
+      value: 3.8
+      unit: persons/m^2
+      note: "Upper end of the hydraulic model's validity range; speed ~0 near 1/a"
+      source: *sfpe
+    k_horizontal:
+      value: 1.40
+      unit: m/s
+      note: "Speed constant for corridors, aisles, ramps and doorways"
+      source: *sfpe
+    k_stair:
+      value: 1.08
+      unit: m/s
+      note: "Speed constant for 178 mm riser / 279 mm tread (7 in / 11 in) stairs"
+      source: *sfpe
+    max_specific_flow_horizontal:
+      value: 1.3
+      unit: persons/s/m
+      note: "Per metre of effective width; corridors and doorways"
+      source: *sfpe
+    max_specific_flow_stair:
+      value: 1.01
+      unit: persons/s/m
+      note: "Per metre of effective width; 7 in / 11 in stairs"
+      source: *sfpe
+  boundary_layer:
+    stair:
+      value: 0.15
+      unit: m
+      note: "Subtracted from each side of a stair to get effective width"
+      source: *sfpe_boundary
+    corridor:
+      value: 0.20
+      unit: m
+      note: "Subtracted from each side of a corridor wall"
+      source: *sfpe_boundary
+    door:
+      value: 0.15
+      unit: m
+      note: "Subtracted from each side of a doorway"
+      source: *sfpe_boundary
+  merge:
+    floor_deference_ratio:
+      value: 0.5
+      unit: fraction
+      note: >-
+        Share of a stair flight's inflow capacity given to people entering from
+        the floor when both the floor and the stair above are queueing. The rest
+        goes to people already in the stair. Unused share passes to the other stream.
+      source: *assumption
+  counterflow:
+    capacity_penalty:
+      value: 0.5
+      unit: fraction
+      note: >-
+        Fractional loss of an edge's capacity when the opposite direction is fully
+        occupied (scaled linearly by the opposite direction's share of occupants).
+      source: *assumption
+
+# -----------------------------------------------------------------------------
+# Default geometry used by the procedural Hong Kong typology generators.
+# -----------------------------------------------------------------------------
+building_defaults:
+  floor_to_floor_height:
+    value: 2.8
+    unit: m
+    source: *assumption
+  ground_floor_height:
+    value: 4.5
+    unit: m
+    source: *assumption
+  stair_clear_width:
+    value: 1.1
+    unit: m
+    source: *assumption_hk_code
+  stair_riser:
+    value: 0.175
+    unit: m
+    source: *assumption_hk_code
+  stair_going:
+    value: 0.25
+    unit: m
+    source: *assumption_hk_code
+  stair_landing_depth:
+    value: 1.2
+    unit: m
+    source: *assumption_hk_code
+  stair_door_width:
+    value: 0.85
+    unit: m
+    source: *assumption_hk_code
+  flat_door_width:
+    value: 0.85
+    unit: m
+    source: *assumption
+  final_exit_width:
+    value: 1.6
+    unit: m
+    source: *assumption_hk_code
+  corridor_width:
+    value: 1.5
+    unit: m
+    source: *assumption_hk_code
+  lobby_width:
+    value: 3.0
+    unit: m
+    source: *assumption
+  refuge_floor_interval:
+    value: 20
+    unit: storeys
+    note: "A refuge floor is placed every N storeys above ground for towers over the threshold"
+    source: *assumption_hk_code
+  refuge_floor_min_storeys:
+    value: 25
+    unit: storeys
+    note: "Buildings taller than this get refuge floors"
+    source: *assumption_hk_code
+
+# -----------------------------------------------------------------------------
+# Lifts used for evacuation (only when a scenario or intervention enables them).
+# -----------------------------------------------------------------------------
+lifts:
+  car_capacity:
+    value: 13
+    unit: persons
+    source: *assumption
+  rated_speed:
+    value: 2.5
+    unit: m/s
+    source: *assumption
+  door_cycle_time:
+    value: 8.0
+    unit: s
+    note: "Door open + close per stop"
+    source: *assumption
+  boarding_time_per_person:
+    value: 1.5
+    unit: s
+    source: *assumption
+  wheelchair_capacity_equivalent:
+    value: 4.0
+    unit: persons
+    note: "Car capacity consumed by one wheelchair user"
+    source: *assumption
+  evacuation_mode_delay:
+    value: 60.0
+    unit: s
+    note: "Time after alarm before lifts start evacuation service"
+    source: *assumption
+
+# -----------------------------------------------------------------------------
+# Occupant profiles. Stair speeds are measured along the line of travel.
+# -----------------------------------------------------------------------------
+profiles:
+  able_adult:
+    horizontal_speed: {dist: truncnorm, mean: 1.25, sd: 0.25, min: 0.6, max: 2.0, unit: m/s, source: *assumption_mobility}
+    stair_down_speed: {dist: truncnorm, mean: 0.75, sd: 0.20, min: 0.3, max: 1.3, unit: m/s, source: *assumption_mobility}
+    stair_up_speed: {dist: truncnorm, mean: 0.55, sd: 0.15, min: 0.2, max: 1.0, unit: m/s, source: *assumption_mobility}
+    fatigue_min_multiplier: {value: 0.80, unit: fraction, source: *assumption_mobility}
+    fatigue_efold_floors: {value: 60.0, unit: storeys, source: *assumption_mobility}
+    premovement_multiplier: {value: 1.0, unit: factor, source: *assumption_behaviour}
+    space_factor: {value: 1.0, unit: able-adult equivalents, source: *assumption}
+    needs_stair_assistance: {value: false, source: *assumption}
+  child:
+    horizontal_speed: {dist: truncnorm, mean: 1.10, sd: 0.25, min: 0.5, max: 1.8, unit: m/s, source: *assumption_mobility}
+    stair_down_speed: {dist: truncnorm, mean: 0.65, sd: 0.20, min: 0.25, max: 1.2, unit: m/s, source: *assumption_mobility}
+    stair_up_speed: {dist: truncnorm, mean: 0.50, sd: 0.15, min: 0.2, max: 0.9, unit: m/s, source: *assumption_mobility}
+    fatigue_min_multiplier: {value: 0.75, unit: fraction, source: *assumption_mobility}
+    fatigue_efold_floors: {value: 40.0, unit: storeys, source: *assumption_mobility}
+    premovement_multiplier: {value: 1.0, unit: factor, source: *assumption_behaviour}
+    space_factor: {value: 0.7, unit: able-adult equivalents, source: *assumption}
+    needs_stair_assistance: {value: false, source: *assumption}
+  older_adult:
+    horizontal_speed: {dist: truncnorm, mean: 1.00, sd: 0.25, min: 0.4, max: 1.6, unit: m/s, source: *assumption_mobility}
+    stair_down_speed: {dist: truncnorm, mean: 0.50, sd: 0.15, min: 0.2, max: 0.9, unit: m/s, source: *assumption_mobility}
+    stair_up_speed: {dist: truncnorm, mean: 0.35, sd: 0.10, min: 0.15, max: 0.7, unit: m/s, source: *assumption_mobility}
+    fatigue_min_multiplier: {value: 0.60, unit: fraction, source: *assumption_mobility}
+    fatigue_efold_floors: {value: 25.0, unit: storeys, source: *assumption_mobility}
+    premovement_multiplier: {value: 1.2, unit: factor, source: *assumption_behaviour}
+    space_factor: {value: 1.0, unit: able-adult equivalents, source: *assumption}
+    needs_stair_assistance: {value: false, source: *assumption}
+  frail_older_adult:
+    horizontal_speed: {dist: truncnorm, mean: 0.70, sd: 0.20, min: 0.3, max: 1.2, unit: m/s, source: *assumption_mobility}
+    stair_down_speed: {dist: truncnorm, mean: 0.30, sd: 0.10, min: 0.1, max: 0.6, unit: m/s, source: *assumption_mobility}
+    stair_up_speed: {dist: truncnorm, mean: 0.20, sd: 0.07, min: 0.08, max: 0.4, unit: m/s, source: *assumption_mobility}
+    fatigue_min_multiplier: {value: 0.40, unit: fraction, source: *assumption_mobility}
+    fatigue_efold_floors: {value: 12.0, unit: storeys, source: *assumption_mobility}
+    premovement_multiplier: {value: 1.5, unit: factor, source: *assumption_behaviour}
+    space_factor: {value: 1.2, unit: able-adult equivalents, source: *assumption}
+    needs_stair_assistance: {value: false, source: *assumption}
+  wheelchair_user:
+    horizontal_speed: {dist: truncnorm, mean: 0.90, sd: 0.20, min: 0.4, max: 1.5, unit: m/s, source: *assumption_mobility}
+    stair_down_speed:
+      dist: truncnorm
+      mean: 0.25
+      sd: 0.08
+      min: 0.1
+      max: 0.5
+      unit: m/s
+      note: "Only when carried down by able escorts (e.g. evacuation chair)"
+      source: *assumption_mobility
+    stair_up_speed: {dist: truncnorm, mean: 0.15, sd: 0.05, min: 0.05, max: 0.3, unit: m/s, source: *assumption_mobility}
+    fatigue_min_multiplier: {value: 0.50, unit: fraction, note: "Escort fatigue while carrying", source: *assumption_mobility}
+    fatigue_efold_floors: {value: 10.0, unit: storeys, source: *assumption_mobility}
+    premovement_multiplier: {value: 1.5, unit: factor, source: *assumption_behaviour}
+    space_factor: {value: 3.5, unit: able-adult equivalents, source: *assumption}
+    needs_stair_assistance: {value: true, source: *assumption}
+  domestic_helper:
+    horizontal_speed: {dist: truncnorm, mean: 1.20, sd: 0.25, min: 0.6, max: 1.9, unit: m/s, source: *assumption_mobility}
+    stair_down_speed: {dist: truncnorm, mean: 0.70, sd: 0.20, min: 0.3, max: 1.2, unit: m/s, source: *assumption_mobility}
+    stair_up_speed: {dist: truncnorm, mean: 0.50, sd: 0.15, min: 0.2, max: 0.9, unit: m/s, source: *assumption_mobility}
+    fatigue_min_multiplier: {value: 0.80, unit: fraction, source: *assumption_mobility}
+    fatigue_efold_floors: {value: 50.0, unit: storeys, source: *assumption_mobility}
+    premovement_multiplier: {value: 1.0, unit: factor, source: *assumption_behaviour}
+    space_factor: {value: 1.0, unit: able-adult equivalents, source: *assumption}
+    needs_stair_assistance: {value: false, source: *assumption}
+
+# -----------------------------------------------------------------------------
+# Pre-movement (alarm to start of purposeful movement), per household.
+# -----------------------------------------------------------------------------
+premovement:
+  awake: {dist: lognormal, median: 90.0, sigma: 0.6, min: 10.0, max: 1800.0, unit: s, source: *assumption_behaviour}
+  asleep: {dist: lognormal, median: 360.0, sigma: 0.7, min: 30.0, max: 3600.0, unit: s, source: *assumption_behaviour}
+
+# -----------------------------------------------------------------------------
+# Synthetic population. All occupants are synthetic; no personal data.
+# -----------------------------------------------------------------------------
+population:
+  vacancy_rate: {value: 0.03, unit: fraction of units, source: *assumption_demography}
+  household_size:
+    flat_small: {dist: categorical, p: {1: 0.35, 2: 0.40, 3: 0.20, 4: 0.05}, unit: persons, source: *assumption_demography}
+    flat_medium: {dist: categorical, p: {1: 0.15, 2: 0.30, 3: 0.30, 4: 0.20, 5: 0.05}, unit: persons, source: *assumption_demography}
+    flat_large: {dist: categorical, p: {2: 0.20, 3: 0.35, 4: 0.30, 5: 0.15}, unit: persons, source: *assumption_demography}
+    care_room: {dist: categorical, p: {2: 0.30, 3: 0.40, 4: 0.30}, unit: persons, source: *assumption}
+  age_mix:
+    residential:
+      dist: categorical
+      p: {child: 0.12, adult: 0.64, older: 0.16, frail: 0.08}
+      note: "child <18, adult 18-64, older 65-79, frail 80+. Scenarios usually override the 65+ share."
+      source: *assumption_demography
+    care_home:
+      dist: categorical
+      p: {older: 0.35, frail: 0.65}
+      source: *assumption
+  frail_share_of_65_plus:
+    value: 0.33
+    unit: fraction
+    note: "Share of residents aged 65+ who are 80+ (used when a scenario sets only the 65+ share)"
+    source: *assumption_demography
+  wheelchair_probability:
+    value: {child: 0.002, adult: 0.005, older: 0.02, frail: 0.12}
+    unit: probability by age class (residential)
+    source: *assumption
+  wheelchair_probability_care_home:
+    value: {older: 0.15, frail: 0.40}
+    unit: probability by age class (care home)
+    source: *assumption
+  helper_probability:
+    value: {with_dependant: 0.35, with_children: 0.25, other: 0.03}
+    unit: probability per household
+    note: "'dependant' = household with a frail older adult or wheelchair user"
+    source: *assumption_demography
+  care_staff_per_resident:
+    value: {day: 0.125, night: 0.05}
+    unit: staff per resident
+    source: *assumption
+  presence:
+    value:
+      weekday_day: {child: 0.35, adult: 0.35, older: 0.80, frail: 0.95, helper: 0.85}
+      weekday_night: {child: 0.97, adult: 0.93, older: 0.97, frail: 0.98, helper: 0.97}
+      weekend_day: {child: 0.60, adult: 0.55, older: 0.80, frail: 0.95, helper: 0.40}
+      weekend_night: {child: 0.97, adult: 0.90, older: 0.97, frail: 0.98, helper: 0.95}
+    unit: probability a resident is in the building
+    note: "Helpers' low weekend-day presence reflects a common Sunday rest day"
+    source: *assumption_demography
+  asleep_probability:
+    value: {weekday_day: 0.03, weekday_night: 0.90, weekend_day: 0.05, weekend_night: 0.90}
+    unit: probability per household
+    source: *assumption_behaviour
+
+# -----------------------------------------------------------------------------
+# Behaviour.
+# -----------------------------------------------------------------------------
+behaviour:
+  counter_flow_probability:
+    value: 0.05
+    unit: probability per household
+    note: "Household goes to another unit (own or a relative's) before leaving"
+    source: *assumption_behaviour
+  counter_flow_same_floor_probability:
+    value: 0.5
+    unit: probability
+    source: *assumption_behaviour
+  counter_flow_max_floors_up:
+    value: 3
+    unit: storeys
+    source: *assumption_behaviour
+  counter_flow_dwell: {dist: lognormal, median: 60.0, sigma: 0.5, min: 5.0, max: 600.0, unit: s, source: *assumption_behaviour}
+  use_evacuation_lift_probability:
+    value: 0.85
+    unit: probability
+    note: "Mobility-impaired household waits for an evacuation lift when lifts are in evacuation service"
+    source: *assumption_behaviour
+  carry_down_probability:
+    value: 0.6
+    unit: probability
+    note: "Household with a wheelchair user and at least one able escort carries them down the stairs"
+    source: *assumption_behaviour
+  refuge_rest_probability:
+    value: {able_adult: 0.0, child: 0.05, older_adult: 0.2, frail_older_adult: 0.5, wheelchair_user: 0.3, domestic_helper: 0.0}
+    unit: probability of resting at a refuge floor, by slowest household member
+    source: *assumption_behaviour
+  refuge_rest_duration: {dist: lognormal, median: 120.0, sigma: 0.5, min: 10.0, max: 900.0, unit: s, source: *assumption_behaviour}
+
+# -----------------------------------------------------------------------------
+# Fire service rescue of occupants who wait for assistance.
+# -----------------------------------------------------------------------------
+rescue:
+  operations_start:
+    dist: lognormal
+    median: 720.0
+    sigma: 0.3
+    min: 300.0
+    max: 3600.0
+    unit: s
+    note: "Alarm to start of rescue operations inside the building (travel + set-up)"
+    source: >-
+      ASSUMPTION — needs citation (Fire Services Department graded response time
+      pledge gives arrival targets for built-up areas — VERIFY; set-up time assumed)
+  teams: {value: 2, unit: teams, source: *assumption}
+  climb_time_per_floor: {value: 20.0, unit: s, source: *assumption}
+  carry_down_time_per_floor: {value: 25.0, unit: s, source: *assumption}
+  handling_time: {value: 120.0, unit: s, source: *assumption}
