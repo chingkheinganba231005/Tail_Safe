@@ -114,7 +114,7 @@ export function Stack3D({ building, stress, index, setIndex }: Props) {
     <div className="space-y-4">
       <section className="card flex flex-wrap items-center justify-between gap-2 p-4">
         <div>
-          <h2 className="text-lg font-semibold">3D stack view</h2>
+          <h2 className="page-title">3D stack view</h2>
           <p className="secondary text-sm">
             Scenario {idx} re-simulated with full time series (same random draws as in the stress test).
           </p>

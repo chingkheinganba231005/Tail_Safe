@@ -100,7 +100,7 @@ export function ReplayMicro({ building, stress, index, setIndex }: Props) {
     <div className="space-y-4">
       <section className="card flex flex-wrap items-center justify-between gap-2 p-4">
         <div>
-          <h2 className="text-lg font-semibold">Replay, person by person</h2>
+          <h2 className="page-title">Replay, person by person</h2>
           <p className="secondary max-w-3xl text-sm">
             The microscopic engine re-runs scenario {idx} with every person as a disc on the floor plan — same people,
             reaction times and route choices as the fast engine, but physical queues at doors and on stairs.

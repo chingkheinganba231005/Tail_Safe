@@ -1,3 +1,4 @@
+import { Callout, Icon } from "../components/Icon";
 import { useEffect, useMemo, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
@@ -31,13 +32,15 @@ function Verdict({ d }: { d: Estimate }) {
   if (d.hi < 0)
     return (
       <span style={{ color: "var(--success-text)" }}>
-        <span aria-hidden>✔ </span>better
+        <Icon name="check" size={13} className="mr-1 inline -translate-y-px" />
+        better
       </span>
     );
   if (d.lo > 0)
     return (
       <span style={{ color: "var(--critical)" }}>
-        <span aria-hidden>▲ </span>worse
+        <Icon name="alert" size={13} className="mr-1 inline -translate-y-px" />
+        worse
       </span>
     );
   return (
@@ -76,7 +79,7 @@ export function Optimize({ building, stress, result, setResult }: Props) {
     <div className="space-y-4">
       <section className="card space-y-3 p-4">
         <div>
-          <h2 className="text-lg font-semibold">Optimise</h2>
+          <h2 className="page-title">Optimise</h2>
           <p className="secondary max-w-3xl text-sm">
             Candidate plans are simulated on the same sampled scenarios (common random numbers), combined
             greedily, then the best plan is confirmed against the baseline on fresh scenarios. Only the
@@ -222,15 +225,10 @@ function OptimizeView({ building, result }: { building: BuildingView; result: Op
           </table>
         </div>
         {worse.length > 0 && (
-          <p className="mt-3 flex gap-2 rounded-md p-2 text-sm" style={{ border: "1px solid var(--border)" }} role="note">
-            <span aria-hidden style={{ color: "var(--warning)" }}>
-              ⚠
-            </span>
-            <span>
-              <strong>Trade-off:</strong> this plan makes {worse.join(" and ")} significantly worse. Try another
-              objective or restrict the levers before adopting it.
-            </span>
-          </p>
+          <Callout tone="warning" role="note" className="mt-3">
+            <strong className="font-medium">Trade-off:</strong> this plan makes {worse.join(" and ")} significantly
+            worse. Try another objective or restrict the levers before adopting it.
+          </Callout>
         )}
       </section>
       <section className="card p-4">

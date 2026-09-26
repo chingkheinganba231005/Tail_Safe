@@ -131,7 +131,7 @@ export function ScenarioBuilder({ building, spec, setSpec, onStress }: Props) {
       <section className="card p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold">Scenario</h2>
+            <h2 className="page-title">Scenario</h2>
             <p className="secondary text-sm">
               Fix what is known; everything else (who is home, reaction times, fire growth, when the fire
               service arrives…) is sampled from the parameter registry in every run.

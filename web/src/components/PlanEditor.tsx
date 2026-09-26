@@ -1,3 +1,4 @@
+import { Callout, Icon } from "./Icon";
 import { useRef, useState, type MouseEvent } from "react";
 import { get, post } from "../api";
 import type { BuildingView, PlanDetection, PlanDoor, PlanRoomType, PlanScale } from "../types";
@@ -382,9 +383,7 @@ export function PlanEditor({ onBuilding }: Props) {
                 <h4 className="font-semibold">3. Check and correct</h4>
                 {det.warnings.map((w) => (
                   <p key={w} className="flex gap-1.5 text-xs">
-                    <span aria-hidden style={{ color: "var(--warning)" }}>
-                      ⚠
-                    </span>
+                    <Icon name="alert" size={14} className="mt-px flex-none" style={{ color: "var(--warning)" }} />
                     <span className="secondary">{w}</span>
                   </p>
                 ))}
@@ -453,12 +452,7 @@ export function PlanEditor({ onBuilding }: Props) {
               </section>
             )}
             {error && (
-              <p className="text-sm" role="alert">
-                <span aria-hidden style={{ color: "var(--critical)" }}>
-                  ⛔{" "}
-                </span>
-                {error}
-              </p>
+              <Callout tone="critical">{error}</Callout>
             )}
           </aside>
         </div>

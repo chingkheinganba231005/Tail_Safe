@@ -1,3 +1,4 @@
+import { Callout } from "../components/Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { get, post } from "../api";
 import type { StressRun } from "../App";
@@ -96,7 +97,7 @@ export function WhatIf({ building, spec: initial, onStress }: Props) {
   return (
     <div className="space-y-4">
       <section className="card p-4">
-        <h2 className="text-lg font-semibold">What-if (live)</h2>
+        <h2 className="page-title">What-if (live)</h2>
         <p className="secondary max-w-3xl text-sm">
           A graph neural network trained on simulator runs estimates the evacuation-time distribution in milliseconds.
           Use it to explore; confirm anything you rely on with the full simulation.
@@ -216,11 +217,8 @@ export function WhatIf({ building, spec: initial, onStress }: Props) {
         </section>
         <div className="space-y-4">
           {pred && pred.coverage_notes.length > 0 && (
-            <section className="card p-4 text-sm" role="status">
-              <p className="font-semibold">
-                <span aria-hidden style={{ color: "var(--warning)" }}>
-                  ⚠{" "}
-                </span>
+            <Callout tone="warning">
+              <p className="font-medium">
                 Outside what the surrogate was trained on — treat the estimate as a rough guide and confirm it
               </p>
               <ul className="secondary mt-1 list-disc pl-5">
@@ -228,7 +226,7 @@ export function WhatIf({ building, spec: initial, onStress }: Props) {
                   <li key={n}>{n}</li>
                 ))}
               </ul>
-            </section>
+            </Callout>
           )}
           <ChartCard
             title="Evacuation time, instantly"
@@ -250,12 +248,7 @@ export function WhatIf({ building, spec: initial, onStress }: Props) {
             }
           >
             {error ? (
-              <p className="text-sm" role="alert">
-                <span aria-hidden style={{ color: "var(--critical)" }}>
-                  ⛔{" "}
-                </span>
-                {error}
-              </p>
+              <Callout tone="critical">{error}</Callout>
             ) : pred ? (
               <RangeChart rows={rows} unit="minutes" />
             ) : (

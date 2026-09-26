@@ -10,15 +10,15 @@ interface Props {
 /** A single headline number (a stat tile, not a chart). */
 export function StatTile({ label, value, sub, emphasis }: Props) {
   return (
-    <div className="card p-4">
-      <div className="secondary text-sm">{label}</div>
+    <div className="card p-4 sm:p-5" style={emphasis ? { borderTop: "2px solid var(--accent)" } : undefined}>
+      <div className="secondary text-[0.8rem] leading-snug">{label}</div>
       <div
-        className={`tabular font-semibold ${emphasis ? "text-4xl" : "text-2xl"}`}
-        style={{ letterSpacing: "-0.01em" }}
+        className={`tabular mt-1 font-semibold ${emphasis ? "text-[2.4rem] leading-none" : "text-[1.7rem] leading-tight"}`}
+        style={{ letterSpacing: "-0.02em" }}
       >
         {value}
       </div>
-      {sub && <div className="muted tabular text-xs">{sub}</div>}
+      {sub && <div className="muted tabular mt-1.5 text-xs">{sub}</div>}
     </div>
   );
 }

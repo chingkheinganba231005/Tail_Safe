@@ -1,3 +1,5 @@
+import { TypologyGlyph } from "../components/TypologyGlyph";
+import { Callout } from "../components/Icon";
 import { useEffect, useMemo, useState } from "react";
 import { get, post } from "../api";
 import { PlanEditor } from "../components/PlanEditor";
@@ -61,52 +63,58 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
 
   return (
     <div className="space-y-4">
-      <section className="card p-4">
-        <h2 className="text-lg font-semibold">Building</h2>
-        <p className="secondary mb-3 text-sm">
-          Start from a procedural Hong Kong typology, read a floor-plan image, or upload a building JSON that
-          follows <code>schemas/building.schema.json</code>.
+      <section className="card p-5 sm:p-6">
+        <h2 className="page-title">Which building?</h2>
+        <p className="secondary mb-4 max-w-2xl text-sm leading-relaxed">
+          Start from one of four Hong Kong building types, read a floor-plan image, or upload a building file
+          (<code className="text-[0.8em]">schemas/building.schema.json</code>). Every resident in it will be synthetic.
         </p>
-        <div role="group" aria-label="Source" className="mb-3 flex gap-1">
-          <button className="btn-ghost text-sm" aria-pressed={source === "template"} onClick={() => setSource("template")}>
-            Template
+        <div role="group" aria-label="Source" className="segmented mb-5 max-w-full overflow-x-auto">
+          <button aria-pressed={source === "template"} onClick={() => setSource("template")}>
+            <span className="sm:hidden">Type</span>
+            <span className="hidden sm:inline">Building type</span>
           </button>
-          <button className="btn-ghost text-sm" aria-pressed={source === "plan"} onClick={() => setSource("plan")}>
-            Floor plan image
+          <button aria-pressed={source === "plan"} onClick={() => setSource("plan")}>
+            <span className="sm:hidden">Plan image</span>
+            <span className="hidden sm:inline">Floor-plan image</span>
           </button>
-          <button className="btn-ghost text-sm" aria-pressed={source === "upload"} onClick={() => setSource("upload")}>
-            Upload JSON
+          <button aria-pressed={source === "upload"} onClick={() => setSource("upload")}>
+            Upload file
           </button>
         </div>
         {source === "template" ? (
           <div className="space-y-3">
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
               {templates.map((t) => (
                 <button
                   key={t.name}
-                  className="btn-ghost p-3 text-left"
+                  className="choice"
                   aria-pressed={name === t.name}
                   onClick={() => {
                     setName(t.name);
                     setOptions(t.options);
                   }}
                 >
-                  <div className="font-semibold">{titleCase(t.name)}</div>
-                  <div className="secondary text-xs">{t.description}</div>
+                  <TypologyGlyph name={t.name} />
+                  <span className="text-[1.05rem] font-bold">{titleCase(t.name)}</span>
+                  <span className="secondary text-sm leading-snug">{t.description}</span>
                 </button>
               ))}
             </div>
-            <div className="flex flex-wrap items-end gap-3">
-              {Object.entries(options).map(([k, v]) => (
-                <label key={k} className="text-sm">
-                  <span className="secondary block text-xs">{titleCase(k)}</span>
-                  {typeof v === "boolean" ? (
+            <div className="flex flex-wrap items-end gap-3 pt-1">
+              {Object.entries(options).map(([k, v]) =>
+                typeof v === "boolean" ? (
+                  <label key={k} className="flex h-9 items-center gap-2 text-sm">
                     <input
                       type="checkbox"
                       checked={v}
                       onChange={(e) => setOptions({ ...options, [k]: e.target.checked })}
                     />
-                  ) : (
+                    {titleCase(k)}
+                  </label>
+                ) : (
+                  <label key={k} className="text-sm">
+                    <span className="secondary mb-1 block text-xs">{titleCase(k)}</span>
                     <input
                       type="number"
                       className="w-24"
@@ -114,9 +122,9 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
                       step={Number.isInteger(v) ? 1 : 0.5}
                       onChange={(e) => setOptions({ ...options, [k]: Number(e.target.value) })}
                     />
-                  )}
-                </label>
-              ))}
+                  </label>
+                ),
+              )}
               <button className="btn" disabled={busy || !name} onClick={generate}>
                 {busy ? "Generating…" : "Generate building"}
               </button>
@@ -135,16 +143,42 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
           />
         )}
         {error && (
-          <p className="mt-2 text-sm" role="alert">
-            <span aria-hidden style={{ color: "var(--critical)" }}>
-              ⛔{" "}
-            </span>
-            {error}
-          </p>
+          <Callout tone="critical" className="mt-2">{error}</Callout>
         )}
       </section>
-      {building && <Review view={building} onBuilding={onBuilding} onConfirm={onConfirm} />}
+      {building ? <Review view={building} onBuilding={onBuilding} onConfirm={onConfirm} /> : <HowItWorks />}
     </div>
+  );
+}
+
+const STEPS_INTRO = [
+  {
+    title: "Hundreds of nights, not one",
+    text: "Each run draws who is at home, who moves slowly, where the fire starts and when a staircase fills with smoke.",
+  },
+  {
+    title: "Look hard at the worst 5%",
+    text: "Averages hide the nights that matter. TailSafe reports the average of the worst 5% (CVaR₉₅) and how often someone is caught by smoke.",
+  },
+  {
+    title: "Then test cheap fixes",
+    text: "Lifts for residents who need them, floor wardens, door and stair rules — each one checked on fresh scenarios, trade-offs included.",
+  },
+];
+
+function HowItWorks() {
+  return (
+    <section aria-label="How it works" className="grid gap-4 pt-2 sm:grid-cols-3 sm:gap-6">
+      {STEPS_INTRO.map((s, i) => (
+        <div key={s.title} className="border-t pt-3" style={{ borderColor: "var(--border-strong)" }}>
+          <p className="eyebrow">{String(i + 1).padStart(2, "0")}</p>
+          <h3 className="mt-1 text-lg font-semibold">
+            {s.title}
+          </h3>
+          <p className="secondary mt-1 text-sm leading-relaxed">{s.text}</p>
+        </div>
+      ))}
+    </section>
   );
 }
 
@@ -289,12 +323,7 @@ function Corrections({
         ))}
       </fieldset>
       {error && (
-        <p className="text-sm" role="alert">
-          <span aria-hidden style={{ color: "var(--critical)" }}>
-            ⛔{" "}
-          </span>
-          {error}
-        </p>
+        <Callout tone="critical">{error}</Callout>
       )}
       <div className="flex flex-wrap gap-2">
         <button className="btn-ghost text-sm" disabled={!changed || busy} onClick={apply}>

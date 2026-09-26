@@ -1,3 +1,4 @@
+import { Callout } from "../components/Icon";
 import { Fragment, type ReactNode, useState } from "react";
 import { post } from "../api";
 import type { StressRun } from "../App";
@@ -102,7 +103,7 @@ export function Report({ building, stress, bottlenecks, optimization }: Props) {
   return (
     <div className="space-y-4">
       <section className="card space-y-3 p-4">
-        <h2 className="text-lg font-semibold">Briefing</h2>
+        <h2 className="page-title">Briefing</h2>
         <p className="secondary max-w-3xl text-sm">
           A one-page summary for the building manager, written only from the numbers computed here. When an LLM is
           configured on the server it drafts the text, and every number in its draft is checked against the results;
@@ -128,32 +129,19 @@ export function Report({ building, stress, bottlenecks, optimization }: Props) {
         </div>
       </section>
       {error && (
-        <p className="card p-3 text-sm" role="alert">
-          <span aria-hidden style={{ color: "var(--critical)" }}>
-            ⛔{" "}
-          </span>
-          {error}
-        </p>
+        <Callout tone="critical">{error}</Callout>
       )}
       {brief && (
         <>
-          <section className="card flex flex-wrap items-center gap-3 p-3 text-sm" role="status">
-            <span>
-              <span aria-hidden style={{ color: "var(--good)" }}>
-                ✓{" "}
-              </span>
-              {brief.source === "llm" ? "Drafted by the LLM; " : "Template briefing; "}
-              every number checked against the results.
-            </span>
-            {brief.note && (
-              <span className="secondary">
-                <span aria-hidden style={{ color: "var(--warning)" }}>
-                  ⚠{" "}
-                </span>
-                {brief.note}
-              </span>
-            )}
-          </section>
+          <Callout tone="good">
+            {brief.source === "llm" ? "Drafted by the language model; " : "Written from the results; "}
+            every number checked against them.
+          </Callout>
+          {brief.note && (
+            <Callout tone="warning" role="note">
+              <span className="secondary">{brief.note}</span>
+            </Callout>
+          )}
           <section className="card p-6">
             <Markdown text={brief.markdown} />
           </section>
