@@ -93,7 +93,6 @@ ignore-names = ["A", "B", "C", "D", "E", "G", "H", "K", "L", "M", "N", "P", "Q",
 
 # --------------------------------------------------------------------------- mypy
 [tool.mypy]
-python_version = "3.11"
 packages = ["tailsafe"]
 strict = true
 warn_unreachable = true
