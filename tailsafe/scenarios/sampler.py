@@ -167,8 +167,19 @@ class ScenarioSampler:
                     doors.add(e.id)
         return tuple(sorted(doors))
 
-    def sample(self, seed: int, index: int, u: NDArray[np.float64]) -> SampledScenario:
-        """Draw scenario ``index`` using the scenario-level uniforms ``u``."""
+    def sample(
+        self,
+        seed: int,
+        index: int,
+        u: NDArray[np.float64],
+        *,
+        keep_hazard_fields: bool = False,
+    ) -> SampledScenario:
+        """Draw scenario ``index`` using the scenario-level uniforms ``u``.
+
+        ``keep_hazard_fields`` keeps visibility / temperature / CO fields of the
+        smoke model (for plots and replays; costs memory).
+        """
         spec = self.spec
         p = self.params
         info: dict[str, Any] = {}
@@ -218,7 +229,7 @@ class ScenarioSampler:
 
         hazard = None
         if self.hazard_model is not None and spec.hazard is not None:
-            hazard = self._sample_hazard(fire_level, u, info)
+            hazard = self._sample_hazard(fire_level, u, info, keep_hazard_fields)
         pop = sample_population(
             self.building,
             PopulationConfig(
@@ -255,7 +266,13 @@ class ScenarioSampler:
         )
         return SampledScenario(index=index, population=pop, sim=sim, info=info)
 
-    def _sample_hazard(self, fire_level: int, u: NDArray[np.float64], info: dict[str, Any]) -> Any:
+    def _sample_hazard(
+        self,
+        fire_level: int,
+        u: NDArray[np.float64],
+        info: dict[str, Any],
+        keep_fields: bool = False,
+    ) -> Any:
         """Draw the fire (flat, growth, peak, door) and run the smoke model."""
         assert self.hazard_model is not None and self.spec.hazard is not None
         hz = self.spec.hazard
@@ -285,4 +302,6 @@ class ScenarioSampler:
             "peak_kw": peak,
             "door_open": fire.door_open,
         }
-        return self.hazard_model.run(fire, horizon=hz.horizon, record_dt=hz.record_dt)
+        return self.hazard_model.run(
+            fire, horizon=hz.horizon, record_dt=hz.record_dt, keep_fields=keep_fields
+        )

@@ -325,3 +325,21 @@ escorts one household that would otherwise wait for rescue down the stairs.
 CLI: `tailsafe optimize cruciform --spec demo --scenarios 100 --confirm 400 --out out/opt`.
 The GNN surrogate (M10) will pre-screen candidates here; the simulator will
 still confirm finalists.
+
+## Web API (`tailsafe/api/`)
+
+| File | Role |
+|---|---|
+| `app.py` | FastAPI app: buildings, stress tests, bottlenecks, optimisation, replays; serves the built web UI from `web/dist` when present |
+| `jobs.py` | `JobManager`: one background job at a time (each uses a process pool), progress counters, results cached on disk by request key |
+| `views.py` | Compact JSON views for the browser: risk summary, histograms' raw losses, tail breakdowns, stair congestion by level, replay frames |
+
+Long work never blocks a request. `POST /api/stress`, `/api/bottlenecks`,
+`/api/optimize` and `/api/replay` return a job; the browser follows
+`GET /api/jobs/{id}/events` (server-sent events, one status message per
+change) and then fetches `GET /api/jobs/{id}/result`. The cache key combines
+the building digest, the request and the parameter-registry digest, so a
+repeated request is answered from `runs/cache/` (or `$TAILSAFE_CACHE_DIR`)
+without simulating. Non-finite floats are sent as `null` (strict JSON).
+Buildings are stored by digest; uploaded JSON is validated before use.
+Every result carries the responsible-use disclaimer.

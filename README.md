@@ -39,6 +39,10 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe validate                  # analytical checks of the simulator
 .venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
     --block-stair A@240 --plot out/run.png   # one scenario: JSON summary + plot
+.venv/bin/tailsafe stress run cruciform --spec demo --runs 1000 --out out/demo
+.venv/bin/tailsafe stress bottlenecks out/demo   # what drives the tail?
+.venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo  # which plan fixes it?
+.venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
@@ -70,7 +74,9 @@ scenarios (`make stress-demo`):
 | Scenario sampler, parallel Monte Carlo, CVaR₉₅ with CIs, tail breakdowns | `tailsafe/scenarios/`, `tailsafe/risk/` | ✅ |
 | Zone smoke model: visibility, FED, ASET, P(RSET > ASET) | `tailsafe/hazard/`, `tailsafe/risk/tenability.py` | ✅ |
 | Bottleneck attribution: recurrence, min-cut, counterfactual ΔCVaR₉₅ | `tailsafe/analysis/` | ✅ |
-| Optimiser, surrogate, vision, briefing, web UI | | planned |
+| Intervention optimiser (lifts, door hold-open, stair assignment, phasing, wardens) with paired confirmation | `tailsafe/optimize/` | ✅ |
+| Background-job API (FastAPI, SSE progress, result cache) | `tailsafe/api/` | ✅ |
+| Web UI, micro-simulation, surrogate, vision, briefing | | planned |
 
 ## Status
 
