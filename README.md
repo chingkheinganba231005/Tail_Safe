@@ -37,12 +37,17 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe params list --assumptions # values that still need a citation
 ```
 
+![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
+
+*A procedurally generated 40-storey cruciform public-housing block (`make demo`):
+typical-floor plan with the egress graph, and the 3D stack with the refuge floor.*
+
 ## What is in the box
 
 | Area | Module | Status |
 |---|---|---|
 | Parameter registry with sources | `config/params.yaml`, `tailsafe/config.py` | ✅ |
-| Building model, JSON schema, HK typologies | `tailsafe/building/` | see [status](#status) |
+| Building model, JSON schema, HK typologies | `tailsafe/building/` | ✅ |
 | Synthetic population and behaviour | `tailsafe/population/` | see [status](#status) |
 | Mesoscopic queue-network simulator | `tailsafe/sim/` | see [status](#status) |
 | Scenario sampler, Monte Carlo, risk metrics | `tailsafe/scenarios/`, `tailsafe/risk/` | see [status](#status) |

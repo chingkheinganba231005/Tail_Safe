@@ -63,8 +63,8 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | # | Milestone | State |
 |---|---|---|
 | M0 | Scaffolding: tooling, CI, CLAUDE.md, params.yaml | ✅ done |
-| M1 | Building model + JSON schema + procedural HK templates | ⏳ next |
-| M2 | Meso simulator + population model | ⏳ |
+| M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make demo`) |
+| M2 | Meso simulator + population model | ⏳ next |
 | M3 | Scenario sampler, Monte Carlo runner, risk metrics | ⏳ |
 | M4–M11 | Hazard, bottlenecks, optimiser, web, micro-sim, vision, surrogate, briefing | not started |
 
@@ -96,3 +96,7 @@ started and are easy to revisit while the codebase is small:
 - Should reaching a refuge floor count as "safe" for RSET, or only final exits?
   (Current default: final exits; refuge arrival is recorded separately.)
 - Is JuPedSim acceptable as an optional validation dependency for M8?
+- "Twin-core private tower" is implemented as one core with a scissor (twin)
+  staircase pair. Should it instead have two separate cores?
+- Refuge floors: should occupants be forced to transfer between stairs at a
+  refuge floor (stair discontinuity), as some codes require?

@@ -98,7 +98,7 @@ warn_unreachable = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["numba", "numba.*", "scipy", "scipy.*", "networkx", "networkx.*"]
+module = ["numba", "numba.*", "scipy", "scipy.*", "networkx", "networkx.*", "mpl_toolkits.*"]
 ignore_missing_imports = true
 
 # --------------------------------------------------------------------------- pytest

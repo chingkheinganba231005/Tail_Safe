@@ -14,8 +14,8 @@ help: ## Show this help
 
 $(STAMP): pyproject.toml
 	$(PYTHON) -m venv $(VENV)
-	$(BIN)/python -m pip install --upgrade pip
-	$(BIN)/python -m pip install -e ".[dev]"
+	$(BIN)/python -m pip install -q --upgrade pip
+	$(BIN)/python -m pip install -q -e ".[dev]"
 	@touch $(STAMP)
 
 install: $(STAMP) ## Create .venv and install tailsafe with dev dependencies
@@ -54,8 +54,8 @@ schema: $(STAMP) ## Regenerate schemas/*.json from the Pydantic models
 	$(BIN)/tailsafe schema export
 
 demo: $(STAMP) ## Generate and render the 40-storey cruciform demo building
-	$(BIN)/tailsafe building generate cruciform --floors 40 --out data/templates/cruciform_40.json
-	$(BIN)/tailsafe building render data/templates/cruciform_40.json --out out/cruciform_40.png
+	$(BIN)/tailsafe building generate cruciform --storeys 40 --out out/cruciform_40.json
+	$(BIN)/tailsafe building render out/cruciform_40.json --out out/cruciform_40.png
 
 clean: ## Remove caches and build outputs (keeps .venv)
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov build dist out
