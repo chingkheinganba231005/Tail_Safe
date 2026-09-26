@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# Numba on-disk cache
+*.nbi
+*.nbc
+
+# Outputs
+out/
+runs/
+*.log
+
+# Node / web
+node_modules/
+web/dist/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Secrets
+.env
