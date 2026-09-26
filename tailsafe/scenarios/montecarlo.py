@@ -10,6 +10,7 @@ runner stops once the bootstrap CI of CVaR₉₅ is narrow enough (after
 from __future__ import annotations
 
 import json
+import math
 import multiprocessing as mp
 import os
 import sys
@@ -531,10 +532,11 @@ def run_monte_carlo(
                 )
             else:
                 U = scenario_uniforms(cfg.seed, done, n, lhs=cfg.lhs, batch_size=cfg.batch_size)
-            chunks = [
-                (idx[k : k + cfg.chunk_size], U[k : k + cfg.chunk_size])
-                for k in range(0, n, cfg.chunk_size)
-            ]
+            # Enough chunks per worker to balance slow and fast scenarios (tail
+            # re-runs, small optimiser samples). Each scenario is seeded by its
+            # index, so chunking never changes results.
+            size = max(1, min(cfg.chunk_size, math.ceil(n / (4 * mc_pool.workers))))
+            chunks = [(idx[k : k + size], U[k : k + size]) for k in range(0, n, size)]
             offset = done
 
             def tick(k: int, offset: int = offset) -> None:

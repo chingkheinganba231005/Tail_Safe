@@ -17,7 +17,7 @@ from typing import Any
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -560,6 +560,60 @@ def surrogate_predict(req: SurrogateRequest) -> dict[str, Any]:
     out = _surrogate().predict(b, req.spec)
     out["disclaimer"] = DISCLAIMER
     return finite(out)  # type: ignore[no-any-return]
+
+
+# ============================================================================ briefing
+class BriefingRequest(_Req):
+    """Results already computed in the UI (stress test, optional bottlenecks and plan)."""
+
+    building_id: str
+    stress: dict[str, Any]
+    bottlenecks: dict[str, Any] | None = None
+    optimization: dict[str, Any] | None = None
+    llm: bool | None = Field(
+        default=None, description="None: use the LLM when configured; False: template only."
+    )
+
+
+@app.post("/api/briefing")
+def briefing(req: BriefingRequest) -> dict[str, Any]:
+    """One-page briefing whose every number is checked against the results."""
+    from tailsafe.report.briefing import briefing_facts, make_briefing
+
+    b = _building(req.building_id)
+    try:
+        facts = briefing_facts(req.stress, req.bottlenecks, req.optimization, building_name=b.name)
+    except (KeyError, TypeError, IndexError) as exc:
+        raise HTTPException(422, f"incomplete results for a briefing: {exc!r}") from exc
+    out = make_briefing(facts, use_llm=req.llm).as_dict()
+    out["disclaimer"] = DISCLAIMER
+    return finite(out)  # type: ignore[no-any-return]
+
+
+class BriefingPdfRequest(_Req):
+    """A briefing (as shown) and up to two outcome samples (seconds) to plot."""
+
+    markdown: str = Field(max_length=20_000)
+    distributions: dict[str, list[float | None]] = Field(default_factory=dict, max_length=2)
+
+
+@app.post("/api/briefing/pdf")
+def briefing_pdf_file(req: BriefingPdfRequest) -> Response:
+    """The briefing on one A4 page (PDF)."""
+    import tempfile
+
+    from tailsafe.report.briefing import briefing_pdf
+
+    dist = {k: [x for x in v if x is not None] for k, v in req.distributions.items()}
+    dist = {k: v for k, v in dist.items() if v}
+    with tempfile.TemporaryDirectory() as tmp:
+        path = briefing_pdf(req.markdown, Path(tmp) / "briefing.pdf", dist or None)
+        data = path.read_bytes()
+    return Response(
+        content=data,
+        media_type="application/pdf",
+        headers={"Content-Disposition": 'attachment; filename="tailsafe-briefing.pdf"'},
+    )
 
 
 @app.get("/api/jobs")

@@ -328,7 +328,28 @@ all 800 cases (10% held back for validation; 120 epochs with a cosine
 learning-rate schedule, keeping the weights with the lowest validation loss);
 their metadata stores the numbers above, which the what-if screen quotes.
 
-## 11. Parameter registry
+## 11. Briefing and demo (M11)
+
+| Check | Test | Status |
+|---|---|---|
+| The template briefing uses only numbers present in the facts (with and without bottlenecks and a plan) | `tests/report/test_briefing.py` | ✅ |
+| The number check accepts signs and trailing zeros, rejects invented numbers | `tests/report/test_briefing.py` | ✅ |
+| An LLM draft with a number not in the facts is rejected (template shown, with the number); API errors fall back | `tests/report/test_briefing.py` (model stubbed) | ✅ |
+| The scenario sentence comes from the settings, not from stale free text | `tests/report/test_briefing.py` | ✅ |
+| One-page PDF (and PNG preview) with the before/after distribution | `tests/report/test_briefing.py` | ✅ |
+| CLI `tailsafe brief` and the API (`/api/briefing`, `/api/briefing/pdf`) | `tests/report/test_briefing.py`, `tests/test_api.py` | ✅ |
+| `tailsafe demo` runs end to end | `tests/report/test_briefing.py` (slow) | ✅ |
+
+The number check reads digits only: a number written as a word ("three
+floors") is not checked, which is why the prompt asks for digits. It checks
+that each number *exists* in the facts, not that it is attached to the right
+quantity; the template is safe by construction, an LLM draft is only as
+faithful as its wording.
+
+`tailsafe demo` on a 4-core laptop: 238 s end to end, within the 5-minute
+target (step timings in [demo.md](demo.md)).
+
+## 12. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

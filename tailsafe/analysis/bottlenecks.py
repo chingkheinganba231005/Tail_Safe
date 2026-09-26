@@ -32,7 +32,7 @@ from tailsafe.analysis.structural import structural
 from tailsafe.building.model import Building, EdgeKind, NodeType
 from tailsafe.config import Params, get_params
 from tailsafe.risk.metrics import Estimate, cvar, paired_difference, var
-from tailsafe.scenarios.montecarlo import MCConfig, MCResult, run_monte_carlo
+from tailsafe.scenarios.montecarlo import MCConfig, MCResult, MonteCarloPool, run_monte_carlo
 from tailsafe.scenarios.spec import Dist, ScenarioSpec, StairBlockage
 from tailsafe.sim.network import SimNetwork, compile_network
 from tailsafe.sim.routing import Router
@@ -238,48 +238,54 @@ def attribute_bottlenecks(
 
     rows: list[BottleneckRow] = []
     reruns: dict[str, int] = {}
-    for cand in cands:
-        spec2 = _counterfactual_spec(result.spec, cand, factor)
-        new = base.copy()
-        done: set[int] = set()
-        todo = first
-        while todo:
-            rerun = run_monte_carlo(building, spec2, cfg, params=p, indices=sorted(todo))
-            for run in rerun.runs:
-                new[pos[run.index]] = min(getattr(run, loss), base[pos[run.index]])
-            done.update(todo)
-            threshold_now = var(new, alpha)
-            todo = [
-                int(r.index)
-                for j, r in enumerate(result.runs)
-                if r.index not in done and base[j] >= threshold_now
-            ]
-        reruns[cand.key] = len(done)
-        delta = paired_difference(base, new, alpha=alpha, seed=result.config.seed)
-        arcs = (
-            np.concatenate([edge_arcs[e] for e in cand.edges])
-            if cand.edges
-            else np.zeros(0, dtype=np.int64)
-        )
-        rec = float((maxq[tail][:, arcs] >= threshold).any(axis=1).mean()) if arcs.size else 0.0
-        rows.append(
-            BottleneckRow(
-                rank=0,
-                key=cand.key,
-                label=cand.label,
-                kind=cand.kind,
-                delta_cvar=delta,
-                relative_change=delta.value / base_cvar if base_cvar else None,
-                recurrence=rec,
-                tail_person_seconds=float(qint[tail][:, arcs].sum(axis=1).mean())
-                if arcs.size
-                else 0.0,
-                structural_clearance_s=float(st.clearance_time[arcs].max()) if arcs.size else 0.0,
-                in_min_cut=bool(set(arcs.tolist()) & set(st.min_cut_arcs)),
-                edges=cand.edges,
-                stair=cand.stair,
+    # One worker pool for every counterfactual (the building is the same).
+    with MonteCarloPool(building, p, cfg.resolved_workers()) as pool:
+        for cand in cands:
+            spec2 = _counterfactual_spec(result.spec, cand, factor)
+            new = base.copy()
+            done: set[int] = set()
+            todo = first
+            while todo:
+                rerun = run_monte_carlo(
+                    building, spec2, cfg, params=p, indices=sorted(todo), pool=pool
+                )
+                for run in rerun.runs:
+                    new[pos[run.index]] = min(getattr(run, loss), base[pos[run.index]])
+                done.update(todo)
+                threshold_now = var(new, alpha)
+                todo = [
+                    int(r.index)
+                    for j, r in enumerate(result.runs)
+                    if r.index not in done and base[j] >= threshold_now
+                ]
+            reruns[cand.key] = len(done)
+            delta = paired_difference(base, new, alpha=alpha, seed=result.config.seed)
+            arcs = (
+                np.concatenate([edge_arcs[e] for e in cand.edges])
+                if cand.edges
+                else np.zeros(0, dtype=np.int64)
             )
-        )
+            rec = float((maxq[tail][:, arcs] >= threshold).any(axis=1).mean()) if arcs.size else 0.0
+            rows.append(
+                BottleneckRow(
+                    rank=0,
+                    key=cand.key,
+                    label=cand.label,
+                    kind=cand.kind,
+                    delta_cvar=delta,
+                    relative_change=delta.value / base_cvar if base_cvar else None,
+                    recurrence=rec,
+                    tail_person_seconds=float(qint[tail][:, arcs].sum(axis=1).mean())
+                    if arcs.size
+                    else 0.0,
+                    structural_clearance_s=(
+                        float(st.clearance_time[arcs].max()) if arcs.size else 0.0
+                    ),
+                    in_min_cut=bool(set(arcs.tolist()) & set(st.min_cut_arcs)),
+                    edges=cand.edges,
+                    stair=cand.stair,
+                )
+            )
     rows.sort(key=lambda r: r.delta_cvar.value if r.delta_cvar else 0.0)
     for i, r in enumerate(rows):
         r.rank = i + 1

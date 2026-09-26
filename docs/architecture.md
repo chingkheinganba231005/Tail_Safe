@@ -209,8 +209,12 @@ floor band are compared with shares of all occupants (risk ratio), which gives
 a plain-language headline.
 
 Performance: 1,000 scenarios of the 40-storey demo block (~1,830 occupants)
-take ~41 s on 4 cores (`make stress-demo`; target < 120 s, checked by the slow
-test).
+take ~64 s on 4 cores as of M11 (~41 s when measured at M3, before the smoke
+model and later features; `make stress-demo`; target < 120 s, checked by the
+slow test). Scenarios are
+handed to workers in chunks of at most 10, and smaller for short runs (tail
+re-runs, optimiser samples) so every worker stays busy; each scenario is
+seeded by its index, so chunking never changes results.
 
 ## Hazard model (`tailsafe/hazard/`)
 
@@ -331,7 +335,7 @@ still confirm finalists.
 
 | File | Role |
 |---|---|
-| `app.py` | FastAPI app: buildings, stress tests, bottlenecks, optimisation, replays; serves the built web UI from `web/dist` when present |
+| `app.py` | FastAPI app: buildings, stress tests, bottlenecks, optimisation, replays, micro replays, floor plans, surrogate, briefing; serves the built web UI from `web/dist` when present |
 | `jobs.py` | `JobManager`: one background job at a time (each uses a process pool), progress counters, results cached on disk by request key |
 | `views.py` | Compact JSON views for the browser: risk summary, histograms' raw losses, tail breakdowns, stair congestion by level, replay frames |
 
@@ -477,6 +481,37 @@ development environment, so the same model class is written directly in JAX
 (`pip install 'tailsafe[surrogate]'` pulls `jax[cpu]` and `optax`). This is
 recorded as an open decision in `CLAUDE.md`.
 
+## Briefing (`tailsafe/report/`)
+
+| File | Role |
+|---|---|
+| `briefing.py` | Facts from saved results, the template briefing, the optional LLM briefing with its number check, the one-page PDF |
+| `pitch.py` | `docs/pitch_metrics.md`, the headline numbers for the pitch |
+
+`briefing_facts` turns a stress test (and, when available, the bottleneck
+table and the optimised plan) into a small JSON document with every number
+already rounded the way it may appear. Two writers use only that document:
+
+* **Template** (always available): fixed sentences filled from the facts.
+* **LLM** (optional): when `ANTHROPIC_API_KEY` and `TAILSAFE_BRIEFING_MODEL`
+  are set and `pip install 'tailsafe[briefing]'` is done, an Anthropic model
+  drafts the text. The prompt forbids any number that is not in the facts,
+  and `unknown_numbers` checks the draft: every number in it must appear in
+  the facts (signs and trailing zeros aside). A draft that fails, or an API
+  error, falls back to the template with a note saying why. The template is
+  checked the same way; a failure there is a bug and raises.
+
+`briefing_pdf` lays the Markdown out on one A4 page with Matplotlib (no extra
+dependency) and adds the distribution of the time until everyone is out —
+before and after the plan when there is one. The scenario sentence is built
+from the scenario's settings, never from its free-text description.
+
+CLI: `tailsafe brief` (Markdown, the facts as JSON, PDF). API:
+`POST /api/briefing` (results in, checked briefing out) and
+`POST /api/briefing/pdf`. `tailsafe demo` runs the pitch end to end —
+building, stress test, bottlenecks, plan, replay, briefing, pitch metrics —
+and times each step (see [demo.md](demo.md)).
+
 ## Web UI (`web/`)
 
 React + TypeScript (Vite), Tailwind, react-three-fiber. It talks only to the
@@ -493,6 +528,7 @@ job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
 | 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
 | 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
 | 8 What-if (live) | Scenario controls; the surrogate's P50–P95 range and CVaR₉₅ for each outcome as the controls move, where queues are expected, and *Confirm with full simulation* overlaying a 300-run stress test (M10) |
+| 9 Briefing | The checked briefing (template or LLM draft, with the reason when a draft was rejected) and *Download PDF* (M11) |
 
 Charts are small hand-written SVG components (`web/src/components/charts/`)
 following one set of rules: one hue per single-series chart, fixed categorical
@@ -504,4 +540,3 @@ one hue (blue for queues, orange for smoke) and reverse in dark mode so that
 icon and a label. Light and dark themes are both specified (`styles.css`);
 the header toggle overrides the OS setting.
 
-Screen 9 (briefing) belongs to milestone M11.

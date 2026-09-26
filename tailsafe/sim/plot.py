@@ -14,6 +14,7 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 
 from tailsafe import DISCLAIMER
+from tailsafe.building.builder import hk_level_label
 from tailsafe.sim.meso import MesoResult
 from tailsafe.sim.micro import MicroResult
 from tailsafe.sim.network import ARC_STAIR_DOWN
@@ -126,7 +127,8 @@ def plot_micro_frame(res: MicroResult, level: int, time: float, title: str | Non
     ax.autoscale_view()
     ax.set_xlabel("m")
     ax.legend(loc="upper right", fontsize=8, frameon=False)
-    ax.set_title(title or f"Level {level} at {res.frame_times[k] / 60:.1f} min", fontsize=10)
+    label = hk_level_label(level)
+    ax.set_title(title or f"{label} at {res.frame_times[k] / 60:.1f} min", fontsize=10)
     fig.text(0.01, 0.005, DISCLAIMER, fontsize=5.5, color="#666666", wrap=True)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     return fig

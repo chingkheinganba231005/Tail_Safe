@@ -49,6 +49,7 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe vision detect plan.png --scale 0,0,200,0,10 --out det.json --overlay out/det.png
 .venv/bin/tailsafe vision build det.json --storeys 30 --out out/plan_building.json
 .venv/bin/tailsafe surrogate data --cases 800 && .venv/bin/tailsafe surrogate eval  # retrain / re-evaluate the surrogate
+.venv/bin/tailsafe brief --stress out/demo --optimization out/opt-demo  # briefing (Markdown + PDF)
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
@@ -113,6 +114,21 @@ types it was not trained on, is in [validation](docs/validation.md#10-graph-surr
 
 ![What-if screen: the surrogate's instant estimate and a 300-run confirmation for the same settings, plus where queues are expected](docs/img/web_whatif.png)
 
+Finally, *Briefing* writes one page for the building manager from the numbers
+computed above — and only those: every number in the text is checked against
+the results (an optional LLM drafts the text when configured; a draft with
+any other number is rejected), with a PDF export.
+
+![One-page briefing: what we found, who is most at risk, why, what to do, limits, and the before/after distribution](docs/img/briefing.png)
+
+### The whole pitch in one command
+
+```bash
+.venv/bin/tailsafe demo --out out/pitch   # ~4 min on 4 cores: tail → causes → plan → replay → briefing
+```
+
+See [docs/demo.md](docs/demo.md) for the five-minute talk track.
+
 ## What is in the box
 
 | Area | Module | Status |
@@ -130,7 +146,7 @@ types it was not trained on, is in [validation](docs/validation.md#10-graph-surr
 | Microscopic replay engine (people as discs on the floor plan) with a meso–micro agreement study | `tailsafe/sim/micro.py`, `tailsafe/analysis/agreement.py` | ✅ |
 | Floor-plan reader (walls, doorways, rooms, stairs, scale) with a correction editor | `tailsafe/vision/`, web Building screen | ✅ |
 | Graph-neural-network surrogate (JAX) with leave-one-typology-out evaluation | `tailsafe/surrogate/` | ✅ |
-| Briefing, PDF export | | planned |
+| Grounded one-page briefing (template, or LLM with a number check) and PDF export; timed end-to-end demo | `tailsafe/report/`, web Briefing screen | ✅ |
 
 ## Status
 
@@ -154,3 +170,4 @@ tests/               pytest suite
 - [Architecture](docs/architecture.md) — modules, data flow and key design decisions
 - [Validation](docs/validation.md) — analytical checks and what they show
 - [Assumptions](docs/assumptions.md) — every simplification, stated plainly
+- [Demo](docs/demo.md) — the five-minute pitch, step by step

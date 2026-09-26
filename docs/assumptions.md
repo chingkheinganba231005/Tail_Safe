@@ -181,3 +181,14 @@ or pessimistic. Numeric values and their sources live in
   than 5% of residents are incapacitated) are censored at 4 hours for
   training; predictions are capped there.
 - A randomly timed staircase loss enters the features at its median time.
+
+## Briefing
+
+- The briefing summarises simulated results for a building manager; it
+  inherits every assumption above and says so in its "Limits" section.
+- The LLM writer is optional and off unless configured; the template briefing
+  is the default. An LLM draft is accepted only if every number in it appears
+  in the computed results, but its wording is not otherwise verified.
+- The demo run (`tailsafe demo`) uses smaller samples than the pitch numbers
+  (600 scenarios, 200 to confirm) to fit five minutes; its confidence
+  intervals are wider.

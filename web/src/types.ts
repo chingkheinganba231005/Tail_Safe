@@ -457,3 +457,12 @@ export interface SurrogatePrediction {
   };
   disclaimer: string;
 }
+
+export interface Briefing {
+  markdown: string;
+  source: "template" | "llm";
+  facts: Record<string, unknown>;
+  unknown_numbers: string[];
+  note: string | null;
+  disclaimer: string;
+}

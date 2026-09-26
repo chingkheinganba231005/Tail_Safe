@@ -8,7 +8,7 @@ PORT   ?= 8000
 WEB_STAMP := web/node_modules/.installed
 
 .DEFAULT_GOAL := help
-.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo stress-demo clean web web-install web-dev web-check
+.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo stress-demo pitch-demo clean web web-install web-dev web-check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -80,3 +80,6 @@ clean: ## Remove caches and build outputs (keeps .venv)
 
 stress-demo: $(STAMP) ## Monte Carlo stress test of the pitch scenario (1,000 runs)
 	$(BIN)/tailsafe stress run cruciform --spec demo --runs 1000 --out out/stress-demo
+
+pitch-demo: $(STAMP) ## The pitch end to end (stress, bottlenecks, plan, replay, briefing; ~4 min)
+	$(BIN)/tailsafe demo --out out/pitch

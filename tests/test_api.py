@@ -102,6 +102,26 @@ def test_stress_bottlenecks_replay_flow() -> None:
     assert stair_rows and all(r["edges"] and set(r["edges"]) <= edges for r in stair_rows)
     assert all(q["edge"] in edges for q in bn["queues"])
 
+    brief = client.post(
+        "/api/briefing",
+        json={"building_id": bid, "stress": stress, "bottlenecks": bn, "llm": False},
+    )
+    assert brief.status_code == 200, brief.text
+    body = brief.json()
+    assert body["source"] == "template" and body["unknown_numbers"] == []
+    assert "## Why" in body["markdown"] and "not a substitute" in body["disclaimer"]
+    bad = client.post("/api/briefing", json={"building_id": bid, "stress": {"runs": 1}})
+    assert bad.status_code == 422
+    pdf = client.post(
+        "/api/briefing/pdf",
+        json={
+            "markdown": body["markdown"],
+            "distributions": {"Baseline": stress["losses"]["total_time"] + [None]},
+        },
+    )
+    assert pdf.status_code == 200 and pdf.headers["content-type"] == "application/pdf"
+    assert pdf.content.startswith(b"%PDF")
+
     rp = wait(
         client.post(
             "/api/replay",
