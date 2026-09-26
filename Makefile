@@ -5,9 +5,10 @@ VENV   ?= .venv
 BIN    := $(VENV)/bin
 STAMP  := $(VENV)/.installed
 PORT   ?= 8000
+WEB_STAMP := web/node_modules/.installed
 
 .DEFAULT_GOAL := help
-.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo stress-demo clean
+.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo stress-demo clean web web-install web-dev web-check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -45,10 +46,26 @@ typecheck: $(STAMP) ## Static type checking
 
 check: lint typecheck test ## Everything CI runs
 
-dev: api ## Start the development server(s)
+dev: $(STAMP) $(WEB_STAMP) ## Start the API (:8000) and the web UI with hot reload (:5173)
+	$(MAKE) -j2 api web-dev
 
 api: $(STAMP) ## Start the FastAPI backend with auto-reload on http://localhost:$(PORT)
 	$(BIN)/uvicorn tailsafe.api.app:app --reload --port $(PORT)
+
+$(WEB_STAMP): web/package-lock.json
+	cd web && npm ci --no-audit --no-fund
+	@touch $(WEB_STAMP)
+
+web-install: $(WEB_STAMP) ## Install the web UI's npm dependencies
+
+web-dev: $(WEB_STAMP) ## Start the Vite dev server (proxies /api to the backend)
+	cd web && npm run dev
+
+web: $(WEB_STAMP) ## Build the web UI into web/dist (then `make api` serves it on :8000)
+	cd web && npm run build
+
+web-check: $(WEB_STAMP) ## Type-check and unit-test the web UI (what CI runs for web/)
+	cd web && npm run typecheck && npm test
 
 schema: $(STAMP) ## Regenerate schemas/*.json from the Pydantic models
 	$(BIN)/tailsafe schema export

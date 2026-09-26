@@ -101,7 +101,37 @@ walking line around each dog-leg turn (π·W/2), so for uncongested scenarios a
 wider stair can be slightly slower. The monotonicity test therefore widens
 doors and exits, which add capacity without changing path lengths.
 
-## 5. Parameter registry
+## 5. Bottleneck attribution (M5)
+
+| Check | Test | Status |
+|---|---|---|
+| Single-stair tower: max flow equals the stair capacity; the min cut is the bottom flight; every unit's route loads it | `tests/analysis/test_bottlenecks.py` | ✅ |
+| With Stair A blocked, tail queues are on Stair B and the top candidates are "keep Stair A usable" or "widen Stair B" with negative ΔCVaR | `tests/analysis/test_bottlenecks.py` | ✅ |
+| Adaptive re-running gives exactly the CVaR of re-running every scenario | `tests/analysis/test_bottlenecks.py` | ✅ |
+| "Unblocking" keeps random-number slots aligned (common random numbers) | `tests/analysis/test_bottlenecks.py` | ✅ |
+
+## 6. Optimiser (M6)
+
+| Check | Test | Status |
+|---|---|---|
+| CMA-ES finds the minimum of a box-constrained quadratic, deterministically | `tests/optimize/test_optimize.py` | ✅ |
+| Plans map exactly onto scenario fields and leave the baseline spec untouched | `tests/optimize/test_optimize.py` | ✅ |
+| Wardens change only the covered floors' pre-movement; every other draw is identical (common random numbers) | `tests/optimize/test_optimize.py` | ✅ |
+| An escorted household switches from waiting for rescue to being carried down | `tests/optimize/test_optimize.py` | ✅ |
+| Comparing a result with itself gives ΔCVaR = 0 and "not significant" | `tests/optimize/test_optimize.py` | ✅ |
+| The optimiser never returns a plan worse than the baseline in-sample, and confirms on fresh scenarios | `tests/optimize/test_optimize.py` | ✅ |
+
+## 7. Web API and UI (M7)
+
+| Check | Test | Status |
+|---|---|---|
+| A 3D replay re-simulates exactly the stress-test scenario it claims to (same total time) | `tests/test_api.py` | ✅ |
+| The worst confirmation scenario replays exactly with and without the plan (side-by-side animation shows the same draws) | `tests/test_api.py` | ✅ |
+| Results are strict JSON (no NaN / ∞), repeated requests come from the cache, progress events end in the final state | `tests/test_api.py` | ✅ |
+| Bottleneck rows point at real building edges (for highlighting) | `tests/test_api.py` | ✅ |
+| Chart helpers: histogram keeps every value on shared bins, quantiles match NumPy, ramps and floor labels | `web/test/lib.test.ts` | ✅ |
+
+## 8. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

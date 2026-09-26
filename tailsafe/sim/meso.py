@@ -102,6 +102,7 @@ class SimScenario:
     rescue_teams: int | None = None
     hazard: HazardField | None = None
     held_open_doors: tuple[str, ...] = ()
+    capacity_multipliers: tuple[tuple[str, float], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -417,6 +418,13 @@ def prepare(
         for eid in scenario.held_open_doors:
             held[net.arcs_of_edge(eid)] = True
         arc_cap = np.where(held & net.arc_self_closing, net.arc_cap / factor, net.arc_cap)
+    arc_store = net.arc_store
+    if scenario.capacity_multipliers:
+        mult = np.ones(net.n_arcs)
+        for eid, f in scenario.capacity_multipliers:
+            mult[net.arcs_of_edge(eid)] *= f
+        arc_cap = arc_cap * mult
+        arc_store = arc_store * mult
     hyd = "movement.hydraulic."
     args = (
         net.arc_src,
@@ -424,7 +432,7 @@ def prepare(
         net.arc_kind,
         net.arc_len,
         net.arc_area,
-        net.arc_store,
+        arc_store,
         arc_cap,
         net.arc_rev,
         arc_mw,

@@ -14,7 +14,9 @@ make test        # fast tests (pytest -m "not slow")
 make test-slow   # performance / large Monte Carlo tests
 make check       # ruff lint + format check + mypy --strict + tests  (= CI)
 make format      # ruff format + safe autofixes
-make dev         # FastAPI backend on :8000 with reload
+make dev         # FastAPI backend on :8000 + Vite UI on :5173 (hot reload)
+make web         # build web/dist (served by the API at /)
+make web-check   # web type-check + vitest (CI job "Web UI")
 make schema      # regenerate schemas/*.json from the Pydantic models
 make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe validate --markdown        # analytical checks of the simulator
@@ -23,6 +25,9 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe sim run cruciform --fire L14.unit.N3 --fire-door-open --plot out/fire.png
 .venv/bin/tailsafe stress run cruciform --spec demo --runs 1000 --out out/demo
 .venv/bin/tailsafe stress report out/demo --loss self_evacuation_time
+.venv/bin/tailsafe stress bottlenecks out/demo       # counterfactual ranking (re-runs)
+.venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo   # plan search + confirmation
+.venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo # regenerate pitch_metrics.md
 .venv/bin/tailsafe --help
 ```
 
@@ -59,9 +64,13 @@ tailsafe/rng.py        named random streams (common random numbers)
 tailsafe/sim/          mesoscopic queue-network engine (Numba kernel in _kernel.py)
 tailsafe/scenarios/    ScenarioSpec, sampler (16 fixed uniform slots, LHS), Monte Carlo runner
 tailsafe/hazard/       zone smoke network, tenability (visibility, FED), ASET, CFD import
+tailsafe/analysis/     bottlenecks: queue recurrence, min-cut/load, counterfactual ΔCVaR
 tailsafe/risk/         VaR/CVaR with bootstrap CIs, paired differences, tail breakdowns,
                        RSET vs ASET, plots
-tailsafe/api/          FastAPI app
+tailsafe/optimize/     InterventionPlan levers, SAA search with CRN, CMA-ES, paired confirmation
+tailsafe/report/       pitch_metrics.md generator (numbers only from saved results)
+tailsafe/api/          FastAPI app: jobs (progress over SSE, disk cache), views for the UI
+web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–4, 6, 7)
 config/params.yaml     parameter registry
 schemas/               generated JSON schemas (do not edit by hand; `make schema`)
 docs/                  architecture, validation, assumptions, pitch metrics
@@ -76,8 +85,11 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | M2 | Meso simulator + population model | ✅ done (`tailsafe validate`, `tailsafe sim run`) |
 | M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-demo`: 1,000 runs ≈ 41 s on 4 cores) |
 | M4 | Hazard model (smoke, visibility, FED, ASET) | ✅ done (P(RSET>ASET) in `stress run`; `sim run --fire`) |
-| M5 | Bottleneck attribution | ⏳ next |
-| M6–M11 | Optimiser, web, micro-sim, vision, surrogate, briefing | not started |
+| M5 | Bottleneck attribution | ✅ done (`tailsafe stress bottlenecks DIR`) |
+| M6 | Intervention optimiser | ✅ done (`tailsafe optimize`, `tailsafe pitch`) |
+| M7 | Web app (job API + React UI) | ✅ done (`make dev`, screens 1–4, 6, 7) |
+| M8 | Micro simulator + replay screen | ⏳ next |
+| M9–M11 | Vision, surrogate, briefing | not started |
 
 ## Decisions taken (open for review)
 
@@ -120,5 +132,9 @@ started and are easy to revisit while the codebase is small:
 - The Numba kernel is compiled on first use (~10 s) and cached on disk
   (`__pycache__`). After editing `tailsafe/sim/_kernel.py` the next run
   recompiles. `NUMBA_DISABLE_JIT=1` runs it as plain Python for debugging (slow).
+- Web charts are hand-written SVG in `web/src/components/charts/`; follow the rules in
+  `docs/architecture.md` (Web UI) — text never in series colours, a table view per chart.
+- The 3D view needs WebGL; headless Chromium renders it with
+  `--use-angle=swiftshader --enable-unsafe-swiftshader`.
 - `Building` caches lookups (`node_by_id` ...). Treat it as immutable; use
   `model_copy(update=...)`, which drops the caches.

@@ -123,6 +123,7 @@ def uniform_population(
         group_h_speed=ones * h_speed,
         group_down_speed=ones * down_speed,
         group_up_speed=ones * up_speed,
+        group_assisted_down_speed=ones * down_speed,
         group_fatigue_min=ones,
         group_fatigue_efold=ones * 1e9,
         group_key_profile=np.full(G, Profile.ABLE_ADULT, dtype=np.int8),

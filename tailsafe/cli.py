@@ -408,6 +408,155 @@ def stress_report(
         typer.echo("\n" + bd["headline"])
 
 
+@stress_app.command("bottlenecks")
+def stress_bottlenecks(
+    directory: Annotated[Path, typer.Argument(help="Directory written by `stress run --out`.")],
+    loss: Annotated[str, typer.Option(help="Loss whose CVaR is attributed.")] = "p95_occupant_time",
+    factor: Annotated[
+        float, typer.Option(help="Capacity multiplier for what-if relaxations.")
+    ] = 1.5,
+    rerun_fraction: Annotated[
+        float, typer.Option(help="Initial share of worst scenarios to re-run.")
+    ] = 0.2,
+    workers: Annotated[int | None, typer.Option(help="Processes (default: all CPUs).")] = None,
+) -> None:
+    """Rank bottlenecks by counterfactual change in CVaR (re-runs the tail scenarios)."""
+    from tailsafe.analysis.bottlenecks import attribute_bottlenecks
+    from tailsafe.analysis.plot import save_bottleneck_plot
+    from tailsafe.scenarios.montecarlo import MCResult
+
+    result = MCResult.load(directory)
+    table = attribute_bottlenecks(
+        result, loss=loss, factor=factor, rerun_fraction=rerun_fraction, workers=workers
+    )
+    typer.echo(
+        f"Max egress flow {table['max_flow_persons_per_s']:.2f} persons/s; "
+        f"min cut: {', '.join(table['min_cut'])}"
+    )
+    typer.echo(f"\nWorst queues in the tail ({loss}):")
+    for q in table["queues"][:6]:
+        typer.echo(
+            f"  {q['where']:<45} in {100 * q['recurrence']:5.1f}% of tail scenarios, "
+            f"{q['tail_person_seconds'] / 60:7.0f} person-min"
+        )
+    typer.echo(f"\nCounterfactual ranking (ΔCVaR{int(100 * table['alpha'])}, min, 95% CI):")
+    for r in table["ranking"]:
+        d = r["delta_cvar"]
+        typer.echo(
+            f"  {r['rank']:>2}. {r['label']:<45} {d['value'] / 60:7.2f}  "
+            f"[{d['lo'] / 60:6.2f}, {d['hi'] / 60:6.2f}]"
+        )
+    if table["headline"]:
+        typer.echo("\n" + table["headline"])
+    (directory / "bottlenecks.json").write_text(
+        json.dumps(table, indent=2, default=float, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    save_bottleneck_plot(table, directory / "bottlenecks.png")
+    typer.echo(f"\nWrote {directory}/bottlenecks.json and bottlenecks.png")
+
+
+@app.command("optimize")
+def optimize_cmd(
+    building: Annotated[str, typer.Argument(help="Building JSON path or a template name.")],
+    spec: Annotated[str, typer.Option(help="'demo' or a JSON/YAML ScenarioSpec file.")] = "demo",
+    storeys: Annotated[int | None, typer.Option(help="Storeys, when using a template.")] = None,
+    objective: Annotated[str, typer.Option(help="cvar, p_rset or weighted.")] = "cvar",
+    loss: Annotated[str, typer.Option(help="Loss for cvar / weighted objectives.")] = "total_time",
+    scenarios: Annotated[int, typer.Option(help="Scenarios per evaluation (SAA sample).")] = 100,
+    confirm: Annotated[int, typer.Option(help="Fresh scenarios for confirmation.")] = 400,
+    max_wardens: Annotated[int, typer.Option(help="Maximum number of floor wardens.")] = 2,
+    levers: Annotated[
+        str, typer.Option(help="Comma-separated: lifts,hold_open,stair_assignment,phasing,wardens")
+    ] = "lifts,hold_open,stair_assignment,phasing,wardens",
+    cmaes_iterations: Annotated[int, typer.Option(help="CMA-ES iterations for phasing.")] = 4,
+    seed: Annotated[int, typer.Option(help="Seed of the optimisation sample.")] = 1,
+    workers: Annotated[int | None, typer.Option(help="Processes (default: all CPUs).")] = None,
+    out: Annotated[Path | None, typer.Option(help="Directory for the plan and plots.")] = None,
+) -> None:
+    """Search for the operational plan that shrinks the tail most, then confirm it."""
+    from tailsafe.optimize.plot import save_before_after
+    from tailsafe.optimize.search import Objective, OptimizeConfig, optimize
+
+    b = _load_or_generate(building, storeys)
+    sc = _load_spec(spec)
+    obj = Objective.model_validate({"kind": objective, "loss": loss})
+    cfg = OptimizeConfig(
+        n_scenarios=scenarios,
+        confirm_scenarios=confirm,
+        max_wardens=max_wardens,
+        levers=tuple(x.strip() for x in levers.split(",") if x.strip()),
+        cmaes_iterations=cmaes_iterations,
+        seed=seed,
+        workers=workers,
+    )
+    typer.echo(f"Minimising {obj.label()} over {scenarios} scenarios per plan…", err=True)
+    result = optimize(b, sc, obj, cfg, log=lambda m: typer.echo(m, err=True))
+    summary = result.summary(b)
+    typer.echo(f"\n{summary['evaluations']} plans evaluated. Best plan:")
+    for line in summary["plan_description"]:
+        typer.echo(f"  • {line}")
+    conf = result.confirmation
+    typer.echo(f"\nConfirmed on {conf['scenarios']} fresh scenarios (seed {conf['seed']}):")
+    for name, row in conf["losses"].items():
+        d = row["delta_cvar"]
+        before, after = row["before_cvar"] / 60, row["after_cvar"] / 60
+        typer.echo(
+            f"  CVaR95 {name:<22} {before:7.1f} → {after:7.1f} min"
+            f"   Δ {d['value'] / 60:+.1f} [{d['lo'] / 60:+.1f}, {d['hi'] / 60:+.1f}]"
+            f"{'  (significant)' if row['significant'] else ''}"
+        )
+    pr = conf["p_rset_exceeds_aset"]
+    typer.echo(
+        f"  P(RSET > ASET)              {pr['before']:.3f} → {pr['after']:.3f}"
+        f"   Δ {pr['delta']['value']:+.3f} [{pr['delta']['lo']:+.3f}, {pr['delta']['hi']:+.3f}]"
+    )
+    if out:
+        out.mkdir(parents=True, exist_ok=True)
+        (out / "optimization.json").write_text(
+            json.dumps(summary, indent=2, default=float, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        (out / "plan.json").write_text(result.best.plan.model_dump_json(indent=2) + "\n")
+        save_before_after(
+            result.confirm_baseline,
+            result.confirm_best,
+            summary["plan_description"],
+            out / "before_after.png",
+        )
+        result.confirm_baseline.save(out / "confirm_baseline")
+        result.confirm_best.save(out / "confirm_plan")
+        typer.echo(f"\nWrote {out}/optimization.json, plan.json, before_after.png")
+
+
+@app.command()
+def pitch(
+    stress: Annotated[Path, typer.Option(help="Directory from `stress run --out`.")] = Path(
+        "out/demo1000"
+    ),
+    optimization: Annotated[
+        Path | None, typer.Option(help="Directory from `optimize --out`.")
+    ] = Path("out/opt-demo"),
+    out: Annotated[Path, typer.Option(help="Markdown file to write.")] = Path(
+        "docs/pitch_metrics.md"
+    ),
+) -> None:
+    """Regenerate docs/pitch_metrics.md from the latest saved results."""
+    from tailsafe.report.pitch import load_json, pitch_markdown
+
+    metrics = load_json(stress / "metrics.json")
+    if metrics is None:
+        raise typer.BadParameter(f"{stress}/metrics.json not found; run `stress run --out` first")
+    bottlenecks = load_json(stress / "bottlenecks.json")
+    opt = load_json(optimization / "optimization.json") if optimization else None
+    sources = {"stress test": str(stress / "metrics.json")}
+    if bottlenecks:
+        sources["bottlenecks"] = str(stress / "bottlenecks.json")
+    if opt and optimization:
+        sources["optimisation"] = str(optimization / "optimization.json")
+    out.write_text(pitch_markdown(metrics, bottlenecks, opt, sources=sources), encoding="utf-8")
+    typer.echo(f"Wrote {out}")
+
+
 @app.command()
 def validate(
     markdown: Annotated[bool, typer.Option(help="Print a Markdown table.")] = False,

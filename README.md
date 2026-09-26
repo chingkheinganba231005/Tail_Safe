@@ -25,7 +25,8 @@ Requires Python 3.11+ and `make`.
 make install     # create .venv and install tailsafe + dev tools
 make test        # fast test suite
 make check       # lint + format check + mypy + tests (what CI runs)
-make dev         # start the API on http://localhost:8000 (docs at /docs)
+make dev         # API on :8000 + web UI with hot reload on http://localhost:5173 (needs Node 20+)
+make web         # or: build the UI once; `make api` then serves it on http://localhost:8000
 make demo        # generate and render a 40-storey cruciform public-housing block
 make stress-demo # 1,000-scenario stress test of the pitch scenario (~1 min on 4 cores)
 ```
@@ -39,6 +40,10 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe validate                  # analytical checks of the simulator
 .venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
     --block-stair A@240 --plot out/run.png   # one scenario: JSON summary + plot
+.venv/bin/tailsafe stress run cruciform --spec demo --runs 1000 --out out/demo
+.venv/bin/tailsafe stress bottlenecks out/demo   # what drives the tail?
+.venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo  # which plan fixes it?
+.venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
@@ -59,6 +64,31 @@ scenarios (`make stress-demo`):
 > rescue logistics). Treat them as a demonstration of the method until the
 > registry is calibrated.
 
+### Example: the fix, and its trade-off
+
+`tailsafe optimize` searches cheap operational plans with common random numbers
+and confirms the best one on 400 fresh scenarios. For the pitch scenario it
+proposes evacuation lifts for mobility-impaired residents plus two floor
+wardens. The tail of the total evacuation time roughly halves, because
+wheelchair users no longer wait for fire-service rescue, and P(RSET > ASET)
+falls slightly. But the tail of the time for 95% of occupants to get out gets
+*worse*: frail residents who would otherwise walk wait for the lifts. When the
+lift out of service is an evacuation lift, the one that remains cannot keep up
+and that group gets out later than on foot; when it is the firefighting lift,
+both evacuation lifts run and almost everyone gains (the left-hand cluster in
+the right panel). The numbers are in
+[`docs/pitch_metrics.md`](docs/pitch_metrics.md), generated from the saved results.
+
+![Before/after distributions on the same 400 scenarios](docs/img/opt_demo.png)
+
+### The web UI
+
+`make dev` and open http://localhost:5173: pick a building, describe the
+scenario, run the stress test, then follow the tail through the 3D stack view,
+the bottleneck ranking and the optimiser's before/after comparison.
+
+![Stress-test results in the web UI: CVaR95 and P(RSET > ASET) with confidence intervals, the distribution with mean, P95 and CVaR95 markers](docs/img/web_results.png)
+
 ## What is in the box
 
 | Area | Module | Status |
@@ -69,7 +99,11 @@ scenarios (`make stress-demo`):
 | Mesoscopic queue-network simulator (validated against hydraulic calculations) | `tailsafe/sim/` | ✅ |
 | Scenario sampler, parallel Monte Carlo, CVaR₉₅ with CIs, tail breakdowns | `tailsafe/scenarios/`, `tailsafe/risk/` | ✅ |
 | Zone smoke model: visibility, FED, ASET, P(RSET > ASET) | `tailsafe/hazard/`, `tailsafe/risk/tenability.py` | ✅ |
-| Bottlenecks, optimiser, surrogate, vision, briefing, web UI | | planned |
+| Bottleneck attribution: recurrence, min-cut, counterfactual ΔCVaR₉₅ | `tailsafe/analysis/` | ✅ |
+| Intervention optimiser (lifts, door hold-open, stair assignment, phasing, wardens) with paired confirmation | `tailsafe/optimize/` | ✅ |
+| Background-job API (FastAPI, SSE progress, result cache) | `tailsafe/api/` | ✅ |
+| Web UI: building setup, scenario builder, results, 3D stack, bottlenecks, optimise (before/after) | `web/` | ✅ |
+| Micro-simulation, surrogate, vision, briefing | | planned |
 
 ## Status
 

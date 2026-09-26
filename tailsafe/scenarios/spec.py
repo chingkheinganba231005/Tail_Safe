@@ -119,6 +119,11 @@ class ScenarioSpec(_Model):
     )
     lifts_out_of_service: int = Field(default=0, ge=0, description="Random lifts unavailable.")
     lift_priority: Literal["top_down", "nearest", "bottom_up"] = "top_down"
+    lift_eligibility: Literal["mobility_impaired", "wheelchair_users"] = Field(
+        default="mobility_impaired",
+        description="Who may wait for an evacuation lift: households with a wheelchair "
+        "user or a frail older adult, or wheelchair users' households only.",
+    )
     phased_release: dict[int, float] = Field(
         default_factory=dict, description="Level -> earliest time its occupants may leave (s)."
     )
@@ -130,6 +135,15 @@ class ScenarioSpec(_Model):
     )
     rescue_teams: int | None = Field(default=None, ge=0)
     hazard: HazardSpec | None = Field(default=None, description="Fire and smoke (M4).")
+    warden_levels: list[int] = Field(
+        default_factory=list,
+        description="Floors where a warden is stationed (knocks on doors, escorts one "
+        "household that cannot use the stairs alone).",
+    )
+    capacity_multipliers: dict[str, float] = Field(
+        default_factory=dict,
+        description="Edge id -> factor on its flow and storage capacity (what-if widening).",
+    )
 
     def digest_payload(self) -> dict[str, Any]:
         """Canonical content for cache keys (name and description excluded)."""

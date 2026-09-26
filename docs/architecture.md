@@ -254,3 +254,122 @@ engineering approximation rather than fire engineering:
 
 Cost: ~45 ms per fire (1,500 zones, 2 h at 10 s records), so a 1,000-scenario
 stress test with smoke takes about a minute on 4 cores.
+
+## Bottleneck attribution (`tailsafe/analysis/`)
+
+`attribute_bottlenecks(result)` (CLI: `tailsafe stress bottlenecks DIR`)
+combines three views into one ranked table with plain-English labels:
+
+1. **Recurrence** (`queue_recurrence`). In tail scenarios (loss ≥ VaR₉₅), the
+   share where each arc's queue reaches a threshold (default 10 people), and the
+   mean person-seconds of queueing there ("Stair B, 18/F → 17/F").
+2. **Structure** (`structural.py`). Max-flow / min-cut from all flats to all
+   exits with arc capacities in persons/s gives the building's best egress rate
+   and the arcs that limit it. The flow-weighted load of each arc (expected
+   users along the simulator's routes, split between stairs by the same logit)
+   divided by its capacity is a structural clearance time.
+3. **Counterfactual criticality.** Candidates: each staircase (all flights),
+   each staircase's doors, each final exit, the element each worst queue is
+   waiting for, and each staircase the spec blocks. For each, the scenarios are
+   re-run with common random numbers with capacity × `factor` (default 1.5,
+   via `capacity_multipliers`) or the stair kept usable (blockage moved to
+   "never", so random-number slots stay aligned). The paired-bootstrap
+   ΔCVaR₉₅ ranks the candidates.
+
+   *Exactness.* Relaxing never slows a scenario (tested), so a scenario not
+   re-run is bounded by its baseline loss. The runner starts with the worst 20%
+   and keeps re-running any scenario whose baseline could still be in the new
+   tail; when none can, the counterfactual CVaR equals that of a full re-run
+   (tested). A capacity improvement shifts every scenario, so most get re-run.
+   Re-running only the old tail would cap the estimated benefit at the
+   80th-percentile baseline, a trap the first version fell into.
+
+## Intervention optimiser (`tailsafe/optimize/`)
+
+| File | Role |
+|---|---|
+| `plan.py` | `InterventionPlan`: evacuation lifts + dispatch rule + eligibility, stair-door hold-open, stair assignment by floor band, phased release by band, floor wardens; `apply()` to a `ScenarioSpec`, `describe()` in plain English |
+| `search.py` | `Objective` (CVaR, P(RSET > ASET), or weighted mean + CVaR), `optimize()`, paired confirmation |
+| `cmaes.py` | Small deterministic CMA-ES for the continuous phasing delays |
+| `plot.py` | Before/after distributions on the same scenarios |
+
+**Sample-average approximation with common random numbers.** Every candidate
+plan is simulated on the same `n_scenarios` draws (seed fixed), through one
+reusable `MonteCarloPool`, so differences between plans are not swamped by
+scenario noise. The search:
+
+1. *Screen* single levers: three lift dispatch rules × two eligibility rules
+   (all mobility-impaired residents, or wheelchair users only), door hold-open, stair
+   assignments (split level × stair order), three phasing presets (upper floors
+   first, lower floors first, fire floor and the floor above first), and a
+   warden on each of a few candidate floors (the fire floor, floors whose
+   residents most often wait for rescue, slowest-clearing floors).
+2. *Combine* greedily: start from the best lever, add each other improving
+   lever's best setting while the objective improves.
+3. *Wardens*: add more, greedily, up to `max_wardens`.
+4. *Refine* phasing delays with CMA-ES (delays rounded to 30 s so repeated
+   points hit the cache) — only when a phasing preset beat the baseline during
+   screening. Otherwise CMA-ES tends to "find" tiny in-sample gains from
+   holding floors back that do not survive confirmation and raise
+   P(RSET > ASET), because held residents wait in their flats while smoke
+   spreads.
+5. *Confirm* baseline vs best plan on **fresh** scenarios (a different seed):
+   paired-bootstrap CIs for ΔCVaR₉₅ of each loss and for ΔP(RSET > ASET). The
+   in-sample optimum is biased low (winner's curse); the confirmation is what
+   `optimize` reports as significant or not.
+
+**Wardens** (`scenarios/sampler.apply_wardens`) are a deterministic transform
+of the sampled population, so common random numbers are kept. Households on
+covered floors react no later than the warden's sweep time, and each warden
+escorts one household that would otherwise wait for rescue down the stairs.
+
+CLI: `tailsafe optimize cruciform --spec demo --scenarios 100 --confirm 400 --out out/opt`.
+The GNN surrogate (M10) will pre-screen candidates here; the simulator will
+still confirm finalists.
+
+## Web API (`tailsafe/api/`)
+
+| File | Role |
+|---|---|
+| `app.py` | FastAPI app: buildings, stress tests, bottlenecks, optimisation, replays; serves the built web UI from `web/dist` when present |
+| `jobs.py` | `JobManager`: one background job at a time (each uses a process pool), progress counters, results cached on disk by request key |
+| `views.py` | Compact JSON views for the browser: risk summary, histograms' raw losses, tail breakdowns, stair congestion by level, replay frames |
+
+Long work never blocks a request. `POST /api/stress`, `/api/bottlenecks`,
+`/api/optimize` and `/api/replay` return a job; the browser follows
+`GET /api/jobs/{id}/events` (server-sent events, one status message per
+change) and then fetches `GET /api/jobs/{id}/result`. The cache key combines
+the building digest, the request and the parameter-registry digest, so a
+repeated request is answered from `runs/cache/` (or `$TAILSAFE_CACHE_DIR`)
+without simulating. Non-finite floats are sent as `null` (strict JSON).
+Buildings are stored by digest; uploaded JSON is validated before use.
+Every result carries the responsible-use disclaimer.
+
+## Web UI (`web/`)
+
+React + TypeScript (Vite), Tailwind, react-three-fiber. It talks only to the
+job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
+`web/dist`, which the FastAPI app serves at `/`.
+
+| Screen | What it shows |
+|---|---|
+| 1 Building | Template gallery with options, or JSON upload; plan of any floor; a small correction editor (stair and exit widths, re-validated by the server); confirm |
+| 2 Scenario | Time of day, age mix, vacancy, counter-flow, fire floor, smoke on/off, stair blockages (fixed or random time), random stair loss, lifts out, evacuation lifts, rescue teams; runs and seed |
+| 3 Stress results | Histogram with mean / P95 / CVaR₉₅ markers, stat tiles with CIs, P(RSET > ASET) meter, who is in the tail (risk ratios), floors that fail, stair queues by floor |
+| 4 3D stack | One scenario re-simulated with time series: translucent floors coloured by smoke, stair columns by queue length, blocked stairs, scrubber, people still on each floor, evacuation curve |
+| 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
+| 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
+
+Charts are small hand-written SVG components (`web/src/components/charts/`)
+following one set of rules: one hue per single-series chart, fixed categorical
+order when there are two series, a legend for two or more series, text in ink
+colours only, thin bars with 4 px rounded data ends, hairline grids, a hover
+tooltip on every mark, and a table view for every chart. Sequential ramps are
+one hue (blue for queues, orange for smoke) and reverse in dark mode so that
+"near zero" recedes into the background. Status colours appear only with an
+icon and a label. Light and dark themes are both specified (`styles.css`);
+the header toggle overrides the OS setting.
+
+Screens 5 (micro-simulation replay), 8 (surrogate what-if) and 9 (briefing)
+belong to milestones M8, M10 and M11. The full geometry editor (walls, doors,
+refuge tagging) comes with floor-plan vision in M9.

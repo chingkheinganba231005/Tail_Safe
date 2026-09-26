@@ -70,6 +70,7 @@ class PopulationConfig:
     share_65_plus: float | None = None
     share_80_plus_of_65_plus: float | None = None
     evacuation_lifts: bool = False
+    lift_for_frail: bool = True  # frail older adults may wait for a lift too (else wheelchair only)
     counter_flow_probability: float | None = None
     vacancy_rate: float | None = None
 
@@ -104,6 +105,7 @@ class Population:
     group_h_speed: NDArray[np.float64]
     group_down_speed: NDArray[np.float64]
     group_up_speed: NDArray[np.float64]
+    group_assisted_down_speed: NDArray[np.float64]
     group_fatigue_min: NDArray[np.float64]
     group_fatigue_efold: NDArray[np.float64]
     group_key_profile: NDArray[np.int8]
@@ -412,7 +414,8 @@ def _build_groups(
     um = u_mode[g_units]
     upstairs = level > 0
     mode = np.full(G, Mode.WALK, dtype=np.int8)
-    lift = upstairs & (has_wheel | has_frail) & cfg.evacuation_lifts & (um[:, 0] < p_lift)
+    eligible = has_wheel | (has_frail & cfg.lift_for_frail)
+    lift = upstairs & eligible & cfg.evacuation_lifts & (um[:, 0] < p_lift)
     mode[lift] = Mode.WAIT_LIFT
     wheel_up = upstairs & has_wheel & ~lift
     carry = wheel_up & (escorts > 0) & (um[:, 1] < p_carry)
@@ -430,6 +433,8 @@ def _build_groups(
     h_speed = masked(hh, pres, np.inf).min(axis=1)
     down_speed = masked(dd, stair_users, np.inf).min(axis=1)
     up_speed = masked(uu, stair_users, np.inf).min(axis=1)
+    # Stair speed if everyone, including wheelchair users, is taken down the stairs.
+    assisted_down = masked(dd, pres, np.inf).min(axis=1)
 
     # Fatigue parameters of the member who will be slowest over the full descent.
     floors = np.maximum(level, 1)[:, None].astype(np.float64)
@@ -508,6 +513,7 @@ def _build_groups(
         group_h_speed=h_speed,
         group_down_speed=down_speed,
         group_up_speed=up_speed,
+        group_assisted_down_speed=assisted_down,
         group_fatigue_min=fatigue_min,
         group_fatigue_efold=fatigue_efold,
         group_key_profile=key,
