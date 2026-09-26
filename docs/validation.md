@@ -101,7 +101,16 @@ walking line around each dog-leg turn (π·W/2), so for uncongested scenarios a
 wider stair can be slightly slower. The monotonicity test therefore widens
 doors and exits, which add capacity without changing path lengths.
 
-## 5. Parameter registry
+## 5. Bottleneck attribution (M5)
+
+| Check | Test | Status |
+|---|---|---|
+| Single-stair tower: max flow equals the stair capacity; the min cut is the bottom flight; every unit's route loads it | `tests/analysis/test_bottlenecks.py` | ✅ |
+| With Stair A blocked, tail queues are on Stair B and the top candidates are "keep Stair A usable" or "widen Stair B" with negative ΔCVaR | `tests/analysis/test_bottlenecks.py` | ✅ |
+| Adaptive re-running gives exactly the CVaR of re-running every scenario | `tests/analysis/test_bottlenecks.py` | ✅ |
+| "Unblocking" keeps random-number slots aligned (common random numbers) | `tests/analysis/test_bottlenecks.py` | ✅ |
+
+## 6. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

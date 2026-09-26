@@ -21,7 +21,7 @@ from scipy.stats import qmc
 from tailsafe.building.model import Building, EdgeKind, LevelKind, NodeType
 from tailsafe.config import Params, get_params
 from tailsafe.hazard.model import FireSpec, HazardModel
-from tailsafe.population.synth import Population, PopulationConfig, sample_population
+from tailsafe.population.synth import Mode, Population, PopulationConfig, sample_population
 from tailsafe.rng import stream, stream_id
 from tailsafe.scenarios.spec import ScenarioSpec
 from tailsafe.sim.meso import Blockage, SimScenario, stair_blockage
@@ -62,6 +62,41 @@ def scenario_uniforms(
     return out
 
 
+def apply_wardens(pop: Population, levels: list[int], params: Params) -> int:
+    """Apply floor wardens to a sampled population (in place); returns escorts made.
+
+    Households on floors a warden covers react no later than the warden's sweep
+    time. Each warden also escorts down up to ``escorts_per_warden`` households
+    that would otherwise wait for rescue (nearest floor first). This is a
+    deterministic transform of the sampled population, so common random
+    numbers are preserved.
+    """
+    span = int(params.value("behaviour.wardens.floor_span"))
+    sweep = params.scalar("behaviour.wardens.sweep_time")
+    per = int(params.value("behaviour.wardens.escorts_per_warden"))
+    covered = np.zeros(pop.n_groups, dtype=bool)
+    for lv in levels:
+        covered |= np.abs(pop.group_level - lv) <= span
+    pop.group_premovement[covered] = np.minimum(pop.group_premovement[covered], sweep)
+    escorts = 0
+    taken: set[int] = set()
+    for lv in levels:
+        waiting = [
+            g
+            for g in np.flatnonzero(
+                (np.abs(pop.group_level - lv) <= span) & (pop.group_mode == Mode.WAIT_RESCUE)
+            )
+            if int(g) not in taken
+        ]
+        waiting.sort(key=lambda g: (abs(int(pop.group_level[g]) - lv), int(g)))
+        for g in waiting[:per]:
+            taken.add(int(g))
+            pop.group_mode[g] = Mode.ASSISTED_STAIR
+            pop.group_down_speed[g] = pop.group_assisted_down_speed[g]
+            escorts += 1
+    return escorts
+
+
 @dataclass
 class SampledScenario:
     """One concrete scenario: who is where, and what goes wrong when."""
@@ -90,6 +125,10 @@ class ScenarioSampler:
                 raise ValueError(f"level {lv} assigned to unknown stair {sid!r}")
         if len(spec.stair_blockages) > MAX_NAMED_BLOCKAGES:
             raise ValueError(f"at most {MAX_NAMED_BLOCKAGES} named stair blockages")
+        edges = {e.id for e in building.edges}
+        unknown = sorted(set(spec.capacity_multipliers) - edges)
+        if unknown:
+            raise ValueError(f"capacity_multipliers name unknown edges {unknown[:3]}")
         if spec.lifts_out_of_service > MAX_LIFTS_OUT:
             raise ValueError(f"at most {MAX_LIFTS_OUT} lifts out of service")
         self._stairs = [s.id for s in building.stairs]
@@ -194,6 +233,8 @@ class ScenarioSampler:
             index=index,
             params=p,
         )
+        if spec.warden_levels:
+            info["warden_escorts"] = apply_wardens(pop, spec.warden_levels, p)
         if hazard is not None:
             # The household of the fire flat discovers the fire and reacts quickly.
             fire_groups = [g for g, uid in enumerate(pop.group_unit) if uid == hazard.fire.node]
@@ -210,6 +251,7 @@ class ScenarioSampler:
             rescue_teams=spec.rescue_teams,
             hazard=hazard,
             held_open_doors=self.held_open,
+            capacity_multipliers=tuple(sorted(spec.capacity_multipliers.items())),
         )
         return SampledScenario(index=index, population=pop, sim=sim, info=info)
 

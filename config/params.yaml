@@ -404,6 +404,22 @@ behaviour:
     unit: probability of resting at a refuge floor, by slowest household member
     source: *assumption_behaviour
   refuge_rest_duration: {dist: lognormal, median: 120.0, sigma: 0.5, min: 10.0, max: 900.0, unit: s, source: *assumption_behaviour}
+  wardens:
+    floor_span:
+      value: 1
+      unit: storeys
+      note: "A warden stationed on floor L covers floors L - span .. L + span"
+      source: *assumption_behaviour
+    sweep_time:
+      value: 180.0
+      unit: s
+      note: "A warden knocks on every door of the covered floors within this time; households react no later"
+      source: *assumption_behaviour
+    escorts_per_warden:
+      value: 1
+      unit: households
+      note: "Households needing stair assistance that one warden can escort down"
+      source: *assumption_behaviour
   route_choice:
     nominal_speed_flat:
       value: 1.2

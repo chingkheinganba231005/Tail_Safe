@@ -142,10 +142,7 @@ _WORKER: dict[str, Any] = {}
 
 def _init_worker(
     building_json: str,
-    spec_json: str,
     params_tree: dict[str, Any],
-    sim_config: SimConfig,
-    keep_groups: bool,
 ) -> None:
     params = Params(params_tree)
     building = Building.model_validate_json(building_json)
@@ -153,26 +150,112 @@ def _init_worker(
     _WORKER.clear()
     _WORKER.update(
         params=params,
+        building=building,
         net=net,
         router=Router(net, params),
-        sampler=ScenarioSampler(building, ScenarioSpec.model_validate_json(spec_json), params),
-        sim_config=sim_config,
-        keep_groups=keep_groups,
+        samplers={},
     )
 
 
+def _sampler(spec_json: str) -> ScenarioSampler:
+    """Per-worker cache of scenario samplers (one per distinct spec)."""
+    cache: dict[str, ScenarioSampler] = _WORKER["samplers"]
+    if spec_json not in cache:
+        if len(cache) >= 8:
+            cache.pop(next(iter(cache)))
+        cache[spec_json] = ScenarioSampler(
+            _WORKER["building"], ScenarioSpec.model_validate_json(spec_json), _WORKER["params"]
+        )
+    return cache[spec_json]
+
+
 def _simulate_chunk(
-    seed: int, indices: list[int], uniforms: NDArray[np.float64]
+    spec_json: str,
+    sim_config: SimConfig,
+    keep_groups: bool,
+    seed: int,
+    indices: list[int],
+    uniforms: NDArray[np.float64],
 ) -> list[RunOutput]:
     w = _WORKER
+    sampler = _sampler(spec_json)
     out = []
     for i, u in zip(indices, uniforms, strict=True):
-        sc = w["sampler"].sample(seed, i, u)
+        sc = sampler.sample(seed, i, u)
         res = run_meso(
-            w["net"], sc.population, sc.sim, w["sim_config"], params=w["params"], router=w["router"]
+            w["net"], sc.population, sc.sim, sim_config, params=w["params"], router=w["router"]
         )
-        out.append(compress(i, res, sc.info, w["keep_groups"], w["params"]))
+        out.append(compress(i, res, sc.info, keep_groups, w["params"]))
     return out
+
+
+class MonteCarloPool:
+    """Worker processes bound to one building, reusable across specs.
+
+    Use as a context manager and pass to :func:`run_monte_carlo` to avoid
+    starting a new pool for every evaluation (e.g. inside an optimiser).
+    """
+
+    def __init__(
+        self, building: Building, params: Params | None = None, workers: int | None = None
+    ) -> None:
+        self.building = building
+        self.params = params or get_params()
+        self.workers = max(1, workers if workers is not None else (os.cpu_count() or 1))
+        self._init_args = (building.model_dump_json(), self.params.as_dict())
+        self.executor: ProcessPoolExecutor | None = None
+        if self.workers > 1:
+            _warm_up()
+            method = "fork" if "fork" in mp.get_all_start_methods() else "spawn"
+            self.executor = ProcessPoolExecutor(
+                max_workers=self.workers,
+                mp_context=mp.get_context(method),
+                initializer=_init_worker,
+                initargs=self._init_args,
+            )
+        else:
+            _init_worker(*self._init_args)
+
+    def run_chunks(
+        self,
+        spec_json: str,
+        cfg: MCConfig,
+        chunks: list[tuple[list[int], NDArray[np.float64]]],
+        progress: Callable[[int], None] | None = None,
+    ) -> list[RunOutput]:
+        """Simulate chunks of scenario indices; results in completion-independent order."""
+        out: list[RunOutput] = []
+        if self.executor is not None:
+            futures: list[Future[list[RunOutput]]] = [
+                self.executor.submit(
+                    _simulate_chunk, spec_json, cfg.sim, cfg.keep_groups, cfg.seed, ci, cu
+                )
+                for ci, cu in chunks
+            ]
+            for fut in futures:
+                out.extend(fut.result())
+                if progress:
+                    progress(len(out))
+        else:
+            if _WORKER.get("building") is not self.building:
+                _init_worker(*self._init_args)
+            for ci, cu in chunks:
+                out.extend(_simulate_chunk(spec_json, cfg.sim, cfg.keep_groups, cfg.seed, ci, cu))
+                if progress:
+                    progress(len(out))
+        return out
+
+    def close(self) -> None:
+        """Shut the worker processes down."""
+        if self.executor is not None:
+            self.executor.shutdown()
+            self.executor = None
+
+    def __enter__(self) -> MonteCarloPool:
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        self.close()
 
 
 def _warm_up() -> None:
@@ -199,6 +282,7 @@ class MCResult:
     arc_edge_ids: list[str]
     elapsed: float
     converged: bool | None = None
+    building: Building | None = field(default=None, repr=False)
 
     @property
     def n(self) -> int:
@@ -330,6 +414,10 @@ class MCResult:
                 )
         savez: Any = np.savez_compressed
         savez(directory / "arrays.npz", **arrays)
+        if self.building is not None:
+            (directory / "building.json").write_text(
+                self.building.model_dump_json(exclude_none=True) + "\n", encoding="utf-8"
+            )
         return directory
 
     @classmethod
@@ -358,7 +446,10 @@ class MCResult:
                     arc_qint=data["arc_qint"][k],
                 )
             )
+        bpath = directory / "building.json"
+        building = Building.model_validate_json(bpath.read_text()) if bpath.exists() else None
         return cls(
+            building=building,
             building_id=meta["building_id"],
             building_name=meta["building_name"],
             building_digest=meta["building_digest"],
@@ -391,72 +482,66 @@ def run_monte_carlo(
     *,
     params: Params | None = None,
     progress: Progress | None = None,
+    indices: list[int] | None = None,
+    pool: MonteCarloPool | None = None,
 ) -> MCResult:
-    """Run the stress test and return every scenario's outcome."""
+    """Run the stress test and return every scenario's outcome.
+
+    With ``indices``, only those scenario indices are run (same draws as in a
+    full run with the same seed and batch size) — used to re-run the tail
+    scenarios under a counterfactual. Pass a :class:`MonteCarloPool` (built for
+    the same building and parameters) to reuse worker processes.
+    """
     cfg = config or MCConfig()
-    p = params or get_params()
+    p = params or (pool.params if pool is not None else get_params())
     ScenarioSampler(building, spec, p)  # validate the spec against the building early
     net: SimNetwork = compile_network(building, p)
-    init_args = (
-        building.model_dump_json(),
-        spec.model_dump_json(),
-        p.as_dict(),
-        cfg.sim,
-        cfg.keep_groups,
-    )
-    workers = cfg.resolved_workers()
     t0 = time.perf_counter()
     runs: list[RunOutput] = []
     converged: bool | None = None if cfg.target_halfwidth is None else False
-
-    executor: ProcessPoolExecutor | None = None
-    if workers > 1:
-        _warm_up()
-        method = "fork" if "fork" in mp.get_all_start_methods() else "spawn"
-        executor = ProcessPoolExecutor(
-            max_workers=workers,
-            mp_context=mp.get_context(method),
-            initializer=_init_worker,
-            initargs=init_args,
-        )
-    else:
-        _init_worker(*init_args)
+    own_pool = pool is None
+    mc_pool = pool if pool is not None else MonteCarloPool(building, p, cfg.resolved_workers())
+    spec_json = spec.model_dump_json()
+    order = list(indices) if indices is not None else list(range(cfg.n_runs))
+    total = len(order)
     try:
         done = 0
-        while done < cfg.n_runs:
-            n = min(cfg.batch_size, cfg.n_runs - done)
-            U = scenario_uniforms(cfg.seed, done, n, lhs=cfg.lhs, batch_size=cfg.batch_size)
-            idx = list(range(done, done + n))
+        while done < total:
+            n = min(cfg.batch_size, total - done)
+            idx = order[done : done + n]
+            if indices is not None:
+                U = np.concatenate(
+                    [
+                        scenario_uniforms(cfg.seed, i, 1, lhs=cfg.lhs, batch_size=cfg.batch_size)
+                        for i in idx
+                    ]
+                )
+            else:
+                U = scenario_uniforms(cfg.seed, done, n, lhs=cfg.lhs, batch_size=cfg.batch_size)
             chunks = [
                 (idx[k : k + cfg.chunk_size], U[k : k + cfg.chunk_size])
                 for k in range(0, n, cfg.chunk_size)
             ]
-            batch: list[RunOutput] = []
-            if executor is not None:
-                futures: list[Future[list[RunOutput]]] = [
-                    executor.submit(_simulate_chunk, cfg.seed, ci, cu) for ci, cu in chunks
-                ]
-                for fut in futures:
-                    batch.extend(fut.result())
-                    if progress:
-                        progress(done + len(batch), cfg.n_runs)
-            else:
-                for ci, cu in chunks:
-                    batch.extend(_simulate_chunk(cfg.seed, ci, cu))
-                    if progress:
-                        progress(done + len(batch), cfg.n_runs)
+            offset = done
+
+            def tick(k: int, offset: int = offset) -> None:
+                if progress:
+                    progress(offset + k, total)
+
+            batch = mc_pool.run_chunks(spec_json, cfg, chunks, tick)
             runs.extend(sorted(batch, key=lambda r: r.index))
             done += n
-            if cfg.target_halfwidth is not None and done >= cfg.min_runs:
+            if cfg.target_halfwidth is not None and indices is None and done >= cfg.min_runs:
                 losses = np.array([r.total_time for r in runs])
                 hw = cvar_halfwidth(losses, alpha=cfg.alpha, seed=cfg.seed)
                 if hw <= cfg.target_halfwidth:
                     converged = True
                     break
     finally:
-        if executor is not None:
-            executor.shutdown()
+        if own_pool:
+            mc_pool.close()
     return MCResult(
+        building=building,
         building_id=building.id,
         building_name=building.name,
         building_digest=building.digest(),

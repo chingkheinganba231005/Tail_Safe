@@ -69,7 +69,8 @@ scenarios (`make stress-demo`):
 | Mesoscopic queue-network simulator (validated against hydraulic calculations) | `tailsafe/sim/` | ✅ |
 | Scenario sampler, parallel Monte Carlo, CVaR₉₅ with CIs, tail breakdowns | `tailsafe/scenarios/`, `tailsafe/risk/` | ✅ |
 | Zone smoke model: visibility, FED, ASET, P(RSET > ASET) | `tailsafe/hazard/`, `tailsafe/risk/tenability.py` | ✅ |
-| Bottlenecks, optimiser, surrogate, vision, briefing, web UI | | planned |
+| Bottleneck attribution: recurrence, min-cut, counterfactual ΔCVaR₉₅ | `tailsafe/analysis/` | ✅ |
+| Optimiser, surrogate, vision, briefing, web UI | | planned |
 
 ## Status
 

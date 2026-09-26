@@ -254,3 +254,32 @@ engineering approximation rather than fire engineering:
 
 Cost: ~45 ms per fire (1,500 zones, 2 h at 10 s records), so a 1,000-scenario
 stress test with smoke takes about a minute on 4 cores.
+
+## Bottleneck attribution (`tailsafe/analysis/`)
+
+`attribute_bottlenecks(result)` (CLI: `tailsafe stress bottlenecks DIR`)
+combines three views into one ranked table with plain-English labels:
+
+1. **Recurrence** (`queue_recurrence`). In tail scenarios (loss ≥ VaR₉₅), the
+   share where each arc's queue reaches a threshold (default 10 people), and the
+   mean person-seconds of queueing there ("Stair B, 18/F → 17/F").
+2. **Structure** (`structural.py`). Max-flow / min-cut from all flats to all
+   exits with arc capacities in persons/s gives the building's best egress rate
+   and the arcs that limit it. The flow-weighted load of each arc (expected
+   users along the simulator's routes, split between stairs by the same logit)
+   divided by its capacity is a structural clearance time.
+3. **Counterfactual criticality.** Candidates: each staircase (all flights),
+   each staircase's doors, each final exit, the element each worst queue is
+   waiting for, and each staircase the spec blocks. For each, the scenarios are
+   re-run with common random numbers with capacity × `factor` (default 1.5,
+   via `capacity_multipliers`) or the stair kept usable (blockage moved to
+   "never", so random-number slots stay aligned). The paired-bootstrap
+   ΔCVaR₉₅ ranks the candidates.
+
+   *Exactness.* Relaxing never slows a scenario (tested), so a scenario not
+   re-run is bounded by its baseline loss. The runner starts with the worst 20%
+   and keeps re-running any scenario whose baseline could still be in the new
+   tail; when none can, the counterfactual CVaR equals that of a full re-run
+   (tested). A capacity improvement shifts every scenario, so most get re-run.
+   Re-running only the old tail would cap the estimated benefit at the
+   80th-percentile baseline, a trap the first version fell into.

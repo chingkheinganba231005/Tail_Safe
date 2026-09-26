@@ -130,6 +130,15 @@ class ScenarioSpec(_Model):
     )
     rescue_teams: int | None = Field(default=None, ge=0)
     hazard: HazardSpec | None = Field(default=None, description="Fire and smoke (M4).")
+    warden_levels: list[int] = Field(
+        default_factory=list,
+        description="Floors where a warden is stationed (knocks on doors, escorts one "
+        "household that cannot use the stairs alone).",
+    )
+    capacity_multipliers: dict[str, float] = Field(
+        default_factory=dict,
+        description="Edge id -> factor on its flow and storage capacity (what-if widening).",
+    )
 
     def digest_payload(self) -> dict[str, Any]:
         """Canonical content for cache keys (name and description excluded)."""
