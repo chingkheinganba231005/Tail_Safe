@@ -31,6 +31,10 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe micro run cruciform --index 3 --plot out/floor.png --level 14 --time 420
 .venv/bin/tailsafe micro compare cruciform --runs 20      # meso–micro agreement table
 .venv/bin/tailsafe micro fd                              # micro speed–density vs hydraulic
+.venv/bin/tailsafe vision synth slab --out out/plan.png  # rendered plan + truth JSON
+.venv/bin/tailsafe vision detect out/plan.png --scale 0,0,200,0,10 --out out/det.json --overlay out/det.png
+.venv/bin/tailsafe vision build out/det.json --storeys 20   # stacked, validated building JSON
+.venv/bin/tailsafe vision eval                           # precision/recall on rendered plans
 .venv/bin/tailsafe --help
 ```
 
@@ -74,6 +78,9 @@ tailsafe/risk/         VaR/CVaR with bootstrap CIs, paired differences, tail bre
                        RSET vs ASET, plots
 tailsafe/optimize/     InterventionPlan levers, SAA search with CRN, CMA-ES, paired confirmation
 tailsafe/report/       pitch_metrics.md generator (numbers only from saved results)
+tailsafe/vision/       floor-plan reader (detect.py), plan → building (graph.py),
+                       rendered plans with truth (synth.py), evaluation
+tailsafe/building/geometry.py  rectangle helpers shared by vision and micro
 tailsafe/api/          FastAPI app: jobs (progress over SSE, disk cache), views for the UI
 web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–4, 6, 7)
 config/params.yaml     parameter registry
@@ -94,8 +101,9 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | M6 | Intervention optimiser | ✅ done (`tailsafe optimize`, `tailsafe pitch`) |
 | M7 | Web app (job API + React UI) | ✅ done (`make dev`, screens 1–4, 6, 7) |
 | M8 | Micro simulator + replay screen | ✅ done (`tailsafe micro`, web screen 5) |
-| M9 | Floor-plan vision + correction editor | ⏳ next |
-| M10–M11 | Surrogate, briefing | not started |
+| M9 | Floor-plan ingestion + correction editor | ✅ done (`tailsafe vision`, Building → Floor plan image) |
+| M10 | GNN surrogate + live what-if | ⏳ next |
+| M11 | Briefing, PDF export, polish | not started |
 
 ## Decisions taken (open for review)
 
@@ -148,5 +156,8 @@ started and are easy to revisit while the codebase is small:
   squeezing past in doorways/stand-offs) exist because pure collision-free
   speed models gridlock in head-on encounters; change them with the
   20/40-storey agreement runs (`tailsafe micro compare`) as the regression check.
+- The plan reader assumes axis-aligned plans with walls thicker than other lines.
+  Its evaluation is on *rendered* plans (`vision/synth.py`); never present those
+  numbers as results on real drawings.
 - `Building` caches lookups (`node_by_id` ...). Treat it as immutable; use
   `model_copy(update=...)`, which drops the caches.

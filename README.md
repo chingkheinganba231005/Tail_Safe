@@ -46,6 +46,8 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo
 .venv/bin/tailsafe micro run cruciform --index 3 --plot out/floor.png --level 14  # one scenario, person by person
 .venv/bin/tailsafe micro compare cruciform --runs 20   # how far the two engines agree
+.venv/bin/tailsafe vision detect plan.png --scale 0,0,200,0,10 --out det.json --overlay out/det.png
+.venv/bin/tailsafe vision build det.json --storeys 30 --out out/plan_building.json
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
@@ -91,6 +93,12 @@ the bottleneck ranking and the optimiser's before/after comparison.
 
 ![Stress-test results in the web UI: CVaR95 and P(RSET > ASET) with confidence intervals, the distribution with mean, P95 and CVaR95 markers](docs/img/web_results.png)
 
+No building model? On the Building screen, *Floor plan image* reads a plan
+(PNG, JPEG or PDF): draw a reference line, let TailSafe find rooms, doorways
+and stairs, correct what it got wrong, and stack the floor into a tower:
+
+![Floor-plan editor: rooms by type, doorways in orange, the reference line and the correction panel](docs/img/web_plan_editor.png)
+
 The *Replay (people)* screen re-runs one scenario person by person with the
 microscopic engine and compares it with the fast engine:
 
@@ -111,7 +119,8 @@ microscopic engine and compares it with the fast engine:
 | Background-job API (FastAPI, SSE progress, result cache) | `tailsafe/api/` | ✅ |
 | Web UI: building setup, scenario builder, results, 3D stack, person-by-person replay, bottlenecks, optimise (before/after) | `web/` | ✅ |
 | Microscopic replay engine (people as discs on the floor plan) with a meso–micro agreement study | `tailsafe/sim/micro.py`, `tailsafe/analysis/agreement.py` | ✅ |
-| Surrogate, vision, briefing | | planned |
+| Floor-plan reader (walls, doorways, rooms, stairs, scale) with a correction editor | `tailsafe/vision/`, web Building screen | ✅ |
+| Surrogate, briefing | | planned |
 
 ## Status
 

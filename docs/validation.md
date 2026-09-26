@@ -202,7 +202,55 @@ sooner than the meso engine's hydraulic stair capacity. Tail results in the
 pitch come from the meso engine; the micro engine is for replay and for
 this cross-check.
 
-## 9. Parameter registry
+## 9. Floor-plan reader (M9)
+
+| Check | Test | Status |
+|---|---|---|
+| Otsu threshold and wall thickness from line crossings | `tests/vision/test_vision.py` | ✅ |
+| Largest-rectangle cover of an L-shaped room | `tests/vision/test_vision.py` | ✅ |
+| Typical cruciform floor: every door found, precision ≥ 0.9, both stairs, all room types | `tests/vision/test_vision.py` | ✅ |
+| Scale from wall thickness within 5%; entrances at corridor ends found as exits | `tests/vision/test_vision.py` | ✅ |
+| Noisy, blurred slab floor: both stairs, ≥ 90% of doors | `tests/vision/test_vision.py` | ✅ |
+| Detected floor → validated 8-storey building that the meso engine evacuates and the micro engine can replay | `tests/vision/test_vision.py` | ✅ |
+| Doorways drawn in the editor get their rooms | `tests/vision/test_vision.py` | ✅ |
+| API and CLI round trips (sample → detect → edit → build) | `tests/test_api.py`, `tests/test_cli.py` | ✅ |
+
+### Precision and recall on rendered plans
+
+`tailsafe vision eval`: the ground floor and an upper floor of each template
+(cruciform, slab, twin-core, care home), rendered at three qualities. A
+detected doorway is correct if it lies within 0.5 m of a true door or open
+passage with the same orientation; recall is over true doors. Stairs match
+when their boxes overlap by at least 30% of the smaller one.
+
+**These plans are synthetic** — rendered from the same geometry the reader
+was designed around, with furniture and text-like clutter, noise and blur,
+but no hatching, dimension lines, columns, curved walls or scanning
+artefacts. They are not a hand-labelled set of real drawings; the numbers
+are an upper bound for real plans, and the correction editor is part of the
+intended workflow.
+
+With a reference line (the editor's normal workflow):
+
+| Plan quality | Plans | Door precision | Door recall | Stair precision | Stair recall | Largest scale error |
+|---|---:|---:|---:|---:|---:|---:|
+| clean, 20 px/m | 7 | 0.98 | 1.00 | 1.00 | 1.00 | 0% |
+| noisy and blurred, 20 px/m | 7 | 0.93 | 0.96 | 1.00 | 1.00 | 0% |
+| low resolution, 12 px/m | 7 | 0.84 | 0.99 | 0.93 | 1.00 | 0% |
+
+Scale guessed from wall thickness (no reference line):
+
+| Plan quality | Plans | Door precision | Door recall | Stair precision | Stair recall | Largest scale error |
+|---|---:|---:|---:|---:|---:|---:|
+| clean, 20 px/m | 7 | 0.98 | 1.00 | 1.00 | 1.00 | 0% |
+| noisy and blurred, 20 px/m | 7 | 0.93 | 0.96 | 1.00 | 1.00 | 0% |
+| low resolution, 12 px/m | 7 | 0.86 | 0.97 | 0.93 | 1.00 | 40% |
+
+At 12 px/m a 0.2 m wall rasterises to three or four pixels, so the guessed
+scale is 40% off; door and stair finding still works, but widths and areas
+are wrong until a reference line is drawn.
+
+## 10. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

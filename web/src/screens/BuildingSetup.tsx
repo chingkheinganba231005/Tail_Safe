@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { get, post } from "../api";
+import { PlanEditor } from "../components/PlanEditor";
 import { PlanView } from "../components/PlanView";
 import { StatTile } from "../components/StatTile";
 import { levelLabel, titleCase } from "../lib/format";
@@ -14,7 +15,7 @@ interface Props {
 /** Screen 1: pick a template (or upload JSON), review the plan, correct widths, confirm. */
 export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [source, setSource] = useState<"template" | "upload">("template");
+  const [source, setSource] = useState<"template" | "plan" | "upload">("template");
   const [name, setName] = useState("cruciform");
   const [options, setOptions] = useState<Record<string, number | boolean>>({});
   const [busy, setBusy] = useState(false);
@@ -63,12 +64,15 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
       <section className="card p-4">
         <h2 className="text-lg font-semibold">Building</h2>
         <p className="secondary mb-3 text-sm">
-          Start from a procedural Hong Kong typology, or upload a building JSON that follows{" "}
-          <code>schemas/building.schema.json</code>.
+          Start from a procedural Hong Kong typology, read a floor-plan image, or upload a building JSON that
+          follows <code>schemas/building.schema.json</code>.
         </p>
         <div role="group" aria-label="Source" className="mb-3 flex gap-1">
           <button className="btn-ghost text-sm" aria-pressed={source === "template"} onClick={() => setSource("template")}>
             Template
+          </button>
+          <button className="btn-ghost text-sm" aria-pressed={source === "plan"} onClick={() => setSource("plan")}>
+            Floor plan image
           </button>
           <button className="btn-ghost text-sm" aria-pressed={source === "upload"} onClick={() => setSource("upload")}>
             Upload JSON
@@ -118,6 +122,8 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
               </button>
             </div>
           </div>
+        ) : source === "plan" ? (
+          <PlanEditor onBuilding={onBuilding} />
         ) : (
           <input
             type="file"
@@ -270,7 +276,7 @@ function Corrections({
         <legend className="secondary text-xs">Final exits</legend>
         {exitEdges.map((e) => (
           <label key={e.id} className="flex items-center justify-between gap-2 text-sm">
-            <span className="truncate">{e.label ?? e.id}</span>
+            <span className="min-w-0 truncate" title={e.label ?? e.id}>{e.label ?? e.id}</span>
             <input
               type="number"
               step={0.05}

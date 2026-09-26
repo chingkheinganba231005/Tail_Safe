@@ -393,3 +393,42 @@ export interface MicroLevel {
   scale: number;
   states: Record<string, number>;
 }
+
+export type PlanRoomType = "unit" | "corridor" | "lobby" | "stair" | "refuge" | "void";
+
+export interface PlanRoom {
+  id: string;
+  type: PlanRoomType;
+  rects: number[][]; // [x0, y0, x1, y1] image pixels, y down
+  area_m2: number;
+  doors: number;
+  stair_score: number;
+  unit_type?: string | null;
+}
+
+export interface PlanDoor {
+  id: string;
+  a: number[];
+  b: number[];
+  width_m: number;
+  rooms: string[];
+}
+
+export interface PlanDetection {
+  width: number;
+  height: number;
+  m_per_px: number;
+  scale_source: "reference" | "walls";
+  wall_px: number;
+  rooms: PlanRoom[];
+  doors: PlanDoor[];
+  warnings: string[];
+}
+
+export interface PlanScale {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  metres: number;
+}

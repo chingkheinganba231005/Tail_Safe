@@ -143,3 +143,19 @@ or pessimistic. Numeric values and their sources live in
 - Lift trips, fire-service rescues and toxic dose come from the meso run of
   the same scenario.
 - All `movement.micro.*` values are assumptions (no calibration yet).
+
+## Floor-plan ingestion
+
+- Plans are read as axis-aligned: walls must run horizontally and
+  vertically in the image (rotate scans first). Curved or diagonal walls are
+  not read.
+- Walls must be drawn thicker than other lines. Plans where walls are thin
+  outlines or hatched need correcting by hand.
+- Doorways are gaps of 0.6–2.0 m (`vision.door_width_*`); wider openings join
+  the spaces on either side into one room.
+- The same plan is used for every storey; G/F usually differs (shops, lobby,
+  entrances) and should be checked. Refuge floors and lifts are not detected.
+- Without doorways to the outside, exits are assumed at the foot of every
+  staircase, and the building says so (`metadata.exits_assumed`).
+- Flat sizes map to household-size priors by area
+  (`vision.unit_area_small_max`, `vision.unit_area_medium_max`) — assumptions.

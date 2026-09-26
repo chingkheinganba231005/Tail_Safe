@@ -478,7 +478,16 @@ def vision_detect(req: VisionDetectRequest) -> dict[str, Any]:
         det = detect_plan(img, req.scale)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
-    return {"detection": det.model_dump(mode="json"), "summary": detection_summary(det)}
+    out: dict[str, Any] = {
+        "detection": det.model_dump(mode="json"),
+        "summary": detection_summary(det),
+    }
+    if req.image.startswith("data:application/pdf"):
+        from tailsafe.vision.raster import to_data_url
+        from tailsafe.vision.synth import to_png_bytes
+
+        out["preview"] = to_data_url(to_png_bytes(img))  # browsers can't draw PDF pages in <img>
+    return out
 
 
 @app.post("/api/vision/build")
