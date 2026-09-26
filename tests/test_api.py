@@ -227,3 +227,31 @@ def test_vision_detect_edit_build() -> None:
     bad = client.post("/api/vision/detect", json={"image": "data:image/png;base64,AAAA"})
     assert bad.status_code == 422
     assert client.get("/api/vision/sample", params={"template": "nope"}).status_code == 422
+
+
+def test_surrogate_predict_or_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    bid = building_id()
+    monkeypatch.setattr(api, "_SURROGATE", {})
+    try:
+        from tailsafe.surrogate.predictor import DEFAULT_WEIGHTS
+
+        available = DEFAULT_WEIGHTS.exists()
+    except ImportError:
+        available = False
+    res = client.post("/api/surrogate/predict", json={"building_id": bid, "spec": SPEC})
+    if not available:
+        assert res.status_code == 503
+        return
+    assert res.status_code == 200, res.text
+    body = res.json()
+    for q in body["losses"].values():
+        assert 0 < q["p50"] <= q["p75"] <= q["p90"] <= q["p95"] <= q["cvar95"] + 1e-6
+    assert body["edges"] and body["edges"][0]["label"]
+    assert body["model"]["trained_on"]
+    assert body["coverage_notes"] == []
+    assert "not a substitute" in body["disclaimer"]
+    bad = {**SPEC, "stair_blockages": [{"stair": "Z", "time": {"dist": "constant", "value": 1}}]}
+    assert (
+        client.post("/api/surrogate/predict", json={"building_id": bid, "spec": bad}).status_code
+        == 422
+    )

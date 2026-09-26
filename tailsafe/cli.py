@@ -31,6 +31,8 @@ micro_app = typer.Typer(help="Microscopic replays and meso–micro cross-checks.
 app.add_typer(micro_app, name="micro")
 vision_app = typer.Typer(help="Read floor-plan images into buildings.")
 app.add_typer(vision_app, name="vision")
+surrogate_app = typer.Typer(help="Graph surrogate: training data, training, evaluation.")
+app.add_typer(surrogate_app, name="surrogate")
 
 
 @app.command()
@@ -731,6 +733,125 @@ def vision_eval(
     from tailsafe.vision.evaluate import evaluate, evaluation_markdown
 
     typer.echo(evaluation_markdown(evaluate(reference_scale=reference_scale)))
+
+
+@surrogate_app.command("data")
+def surrogate_data(
+    cases: Annotated[int, typer.Option(help="Number of (building, scenario) cases.")] = 800,
+    runs: Annotated[int, typer.Option(help="Monte Carlo runs per case.")] = 64,
+    seed: Annotated[int, typer.Option(help="Seed of the case draw and the runs.")] = 0,
+    start: Annotated[int, typer.Option(help="First case index (to extend a data set).")] = 0,
+    workers: Annotated[int | None, typer.Option(help="Processes (default: all CPUs).")] = None,
+    out: Annotated[Path, typer.Option(help="JSON-lines file.")] = Path("out/surrogate/cases.jsonl"),
+) -> None:
+    """Simulate random buildings and scenarios as training data."""
+    from tailsafe.surrogate.data import generate_dataset, save_dataset
+
+    def progress(done: int, total: int) -> None:
+        if done % 25 == 0 or done == total:
+            typer.echo(f"  {done}/{total} cases", err=True)
+
+    recs = generate_dataset(
+        cases, n_runs=runs, seed=seed, start=start, workers=workers, progress=progress
+    )
+    save_dataset(recs, out)
+    typer.echo(f"Wrote {len(recs)} cases to {out}")
+
+
+@surrogate_app.command("eval")
+def surrogate_eval(
+    data: Annotated[Path, typer.Option(help="Data set from `surrogate data`.")] = Path(
+        "out/surrogate/cases.jsonl"
+    ),
+    epochs: Annotated[int, typer.Option(help="Training epochs per split.")] = 120,
+    out: Annotated[Path | None, typer.Option(help="Write the full result JSON here.")] = Path(
+        "out/surrogate/eval.json"
+    ),
+) -> None:
+    """Random split and leave-one-typology-out evaluation (accuracy, calibration, speed)."""
+    from tailsafe.surrogate.data import load_dataset
+    from tailsafe.surrogate.evaluate import evaluate, evaluation_markdown
+    from tailsafe.surrogate.model import TrainConfig
+
+    res = evaluate(
+        load_dataset(data),
+        tcfg=TrainConfig(epochs=epochs),
+        log=lambda m: typer.echo(m, err=True),
+    )
+    typer.echo(evaluation_markdown(res))
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(res, indent=1, default=float) + "\n", encoding="utf-8")
+
+
+@surrogate_app.command("train")
+def surrogate_train(
+    data: Annotated[Path, typer.Option(help="Data set from `surrogate data`.")] = Path(
+        "out/surrogate/cases.jsonl"
+    ),
+    epochs: Annotated[int, typer.Option(help="Training epochs.")] = 120,
+    evaluation: Annotated[
+        Path | None, typer.Option(help="Result of `surrogate eval`, stored with the weights.")
+    ] = Path("out/surrogate/eval.json"),
+    out: Annotated[
+        Path | None, typer.Option(help="Weights file (default: the shipped model).")
+    ] = None,
+) -> None:
+    """Train on every case and save the weights used by the API and the what-if screen."""
+    from collections import Counter
+    from datetime import UTC, datetime
+
+    import numpy as np
+
+    from tailsafe.surrogate.data import load_dataset
+    from tailsafe.surrogate.evaluate import prepare
+    from tailsafe.surrogate.model import ModelConfig, TrainConfig, save_model, train
+    from tailsafe.surrogate.predictor import DEFAULT_WEIGHTS
+
+    records = load_dataset(data)
+    graphs, targets, meta = prepare(records)
+    order = np.random.default_rng(0).permutation(len(graphs))
+    n_val = max(1, len(order) // 10)
+    val, tr = order[:n_val], order[n_val:]
+    mcfg = ModelConfig()
+    net, stats, hist = train(
+        [graphs[i] for i in tr],
+        [targets[i] for i in tr],
+        [graphs[i] for i in val],
+        [targets[i] for i in val],
+        mcfg=mcfg,
+        tcfg=TrainConfig(epochs=epochs),
+        log=lambda m: typer.echo(m, err=True),
+    )
+    summary = None
+    if evaluation and evaluation.exists():
+        ev = json.loads(evaluation.read_text(encoding="utf-8"))
+        summary = {
+            "random_p95_relative_error": {
+                k: v["relative_error_p95"] for k, v in ev["random"]["losses"].items()
+            },
+            "holdout_p95_relative_error": {
+                typ: {k: v["relative_error_p95"] for k, v in m["losses"].items()}
+                for typ, m in ev["holdout"].items()
+            },
+            "speedup_single_core": ev.get("speed", {}).get("speedup_single_core"),
+        }
+    target = out or DEFAULT_WEIGHTS
+    save_model(
+        target,
+        net,
+        stats,
+        mcfg,
+        {
+            "trained_on": dict(Counter(m["template"] for m in meta)),
+            "cases": len(records),
+            "runs_per_case": int(records[0].get("n_runs", 64)) if records else 0,
+            "epochs": len(hist),
+            "created": datetime.now(UTC).strftime("%Y-%m-%d"),
+            "evaluation": summary,
+        },
+    )
+    typer.echo(f"Wrote {target} ({target.stat().st_size / 1024:.0f} KiB)")
 
 
 @app.command()

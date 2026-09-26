@@ -159,3 +159,25 @@ or pessimistic. Numeric values and their sources live in
   staircase, and the building says so (`metadata.exits_assumed`).
 - Flat sizes map to household-size priors by area
   (`vision.unit_area_small_max`, `vision.unit_area_medium_max`) — assumptions.
+
+## Graph surrogate
+
+- The surrogate learns the simulator, not reality: every assumption above is
+  inherited, and its errors add to them.
+- Training buildings come from the four procedural templates within the
+  option ranges of `tailsafe/surrogate/data.py` (`TYPOLOGIES`: 8–40 storeys
+  cruciform, 6–30 slab, 10–40 twin core, 2–6 care homes). Buildings outside
+  those ranges, or read from floor plans, are extrapolation; the what-if
+  screen always offers the full simulation.
+- Scenario settings in the training draw: time slot, share aged 65+ (5–45%),
+  fire floor, at most one staircase lost (1–15 min), at most one lift out of
+  service, evacuation lifts in 30% of cases, wardens on one or two floors in
+  25%, smoke modelled in 60%. Phased release, counter-flow, rescue teams and
+  random stair loss were not varied; the network sees them only through the
+  features that exist and should not be trusted for them.
+- Each case has 64 Monte Carlo runs, so the targets' own P95 and CVaR₉₅ carry
+  sampling error (a CVaR₉₅ from 64 runs averages the worst 3–4).
+- Outcomes that never happen within the 4-hour horizon ("95% out" when more
+  than 5% of residents are incapacitated) are censored at 4 hours for
+  training; predictions are capped there.
+- A randomly timed staircase loss enters the features at its median time.

@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import multiprocessing as mp
 import os
+import sys
 import time
 from collections.abc import Callable
 from concurrent.futures import Future, ProcessPoolExecutor
@@ -189,6 +190,18 @@ def _simulate_chunk(
     return out
 
 
+def _start_method() -> str:
+    """``fork`` (fast: workers inherit the compiled kernel) unless that is unsafe.
+
+    Forking a process that has started JAX's threads (the API after a surrogate
+    prediction) can deadlock the child, so a fork server is used then.
+    """
+    methods = mp.get_all_start_methods()
+    if "jax" in sys.modules and "forkserver" in methods:
+        return "forkserver"
+    return "fork" if "fork" in methods else "spawn"
+
+
 class MonteCarloPool:
     """Worker processes bound to one building, reusable across specs.
 
@@ -206,7 +219,7 @@ class MonteCarloPool:
         self.executor: ProcessPoolExecutor | None = None
         if self.workers > 1:
             _warm_up()
-            method = "fork" if "fork" in mp.get_all_start_methods() else "spawn"
+            method = _start_method()
             self.executor = ProcessPoolExecutor(
                 max_workers=self.workers,
                 mp_context=mp.get_context(method),

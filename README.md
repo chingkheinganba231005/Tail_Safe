@@ -22,7 +22,7 @@ scenarios) instead of a single "design" average.
 Requires Python 3.11+ and `make`.
 
 ```bash
-make install     # create .venv and install tailsafe + dev tools
+make install     # create .venv and install tailsafe + dev tools (+ JAX for the surrogate)
 make test        # fast test suite
 make check       # lint + format check + mypy + tests (what CI runs)
 make dev         # API on :8000 + web UI with hot reload on http://localhost:5173 (needs Node 20+)
@@ -48,6 +48,7 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe micro compare cruciform --runs 20   # how far the two engines agree
 .venv/bin/tailsafe vision detect plan.png --scale 0,0,200,0,10 --out det.json --overlay out/det.png
 .venv/bin/tailsafe vision build det.json --storeys 30 --out out/plan_building.json
+.venv/bin/tailsafe surrogate data --cases 800 && .venv/bin/tailsafe surrogate eval  # retrain / re-evaluate the surrogate
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
@@ -104,6 +105,14 @@ microscopic engine and compares it with the fast engine:
 
 ![Person-by-person replay of the fire floor in the worst scenario, with the fast and microscopic engines' times side by side](docs/img/web_replay.png)
 
+The *What-if (live)* screen answers as you move the controls: a graph neural
+network trained on simulator runs estimates the median-to-P95 range and CVaR₉₅
+of each outcome in milliseconds, and *Confirm with full simulation* runs the
+real stress test and plots it alongside. Its accuracy, including on building
+types it was not trained on, is in [validation](docs/validation.md#10-graph-surrogate-m10).
+
+![What-if screen: the surrogate's instant estimate and a 300-run confirmation for the same settings, plus where queues are expected](docs/img/web_whatif.png)
+
 ## What is in the box
 
 | Area | Module | Status |
@@ -117,10 +126,11 @@ microscopic engine and compares it with the fast engine:
 | Bottleneck attribution: recurrence, min-cut, counterfactual ΔCVaR₉₅ | `tailsafe/analysis/` | ✅ |
 | Intervention optimiser (lifts, door hold-open, stair assignment, phasing, wardens) with paired confirmation | `tailsafe/optimize/` | ✅ |
 | Background-job API (FastAPI, SSE progress, result cache) | `tailsafe/api/` | ✅ |
-| Web UI: building setup, scenario builder, results, 3D stack, person-by-person replay, bottlenecks, optimise (before/after) | `web/` | ✅ |
+| Web UI: building setup, scenario builder, results, 3D stack, person-by-person replay, bottlenecks, optimise (before/after), live what-if | `web/` | ✅ |
 | Microscopic replay engine (people as discs on the floor plan) with a meso–micro agreement study | `tailsafe/sim/micro.py`, `tailsafe/analysis/agreement.py` | ✅ |
 | Floor-plan reader (walls, doorways, rooms, stairs, scale) with a correction editor | `tailsafe/vision/`, web Building screen | ✅ |
-| Surrogate, briefing | | planned |
+| Graph-neural-network surrogate (JAX) with leave-one-typology-out evaluation | `tailsafe/surrogate/` | ✅ |
+| Briefing, PDF export | | planned |
 
 ## Status
 

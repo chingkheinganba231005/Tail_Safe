@@ -445,6 +445,38 @@ API: `POST /api/vision/detect` (base64 image, optional scale),
 `POST /api/vision/build`, `GET /api/vision/sample`. CLI:
 `tailsafe vision synth | detect | build | eval`.
 
+## Graph surrogate (`tailsafe/surrogate/`)
+
+| File | Role |
+|---|---|
+| `data.py` | Random (building, scenario) cases — template and options drawn from `TYPOLOGIES`, scenario settings drawn at random — each simulated with 64 Latin-Hypercube Monte Carlo runs; keeps every loss sample and the mean queueing per edge (JSON lines) |
+| `features.py` | The circulation graph: corridors, lobbies, landings, refuges and exits as nodes (flats folded in as counts and expected occupants), walkways, doors and flights as directed edges with widths, lengths and compiled capacities; scenario settings as node / edge flags and a global vector |
+| `model.py` | Message-passing graph network in JAX (encoders, 5 rounds with a global context, monotone quantile head, edge head), pinball-loss training with optax, save / load (`.npz` weights + `.json` config, feature statistics and metadata) |
+| `evaluate.py` | Random 80/20 split and leave-one-typology-out: quantile errors, CVaR₉₅ error, R², coverage, edge rank correlation, speed |
+| `predictor.py` | `Surrogate`: loads the shipped weights (`weights/surrogate.npz`), caches building graphs, predicts in milliseconds |
+
+The network predicts, for each loss, P50 / P75 / P90 / P95 (built as a
+positive base plus positive increments, so they never cross) and CVaR₉₅
+(P95 plus a positive increment), and the mean queueing on every edge. It is
+trained against **all** 64 simulated outcomes of a case with the pinball
+(quantile) loss rather than against the case's own noisy quantile estimates,
+plus a squared error on the sample CVaR₉₅ and on log edge queueing. A
+global context vector (mean and max over nodes) feeds every node update, so
+information crosses a 40-storey building in five layers. Outcomes that never
+happen within the 4-hour horizon are censored at the horizon, as in the
+stress-test report.
+
+The simulator stays the source of truth: the what-if screen (screen 8) shows
+the surrogate's estimate instantly and offers *Confirm with full simulation*,
+which runs a real stress test and plots both. API:
+`POST /api/surrogate/predict` (503 when the optional extra or the weights are
+missing). CLI: `tailsafe surrogate data | eval | train`.
+
+The spec named PyTorch Geometric. Its wheels could not be downloaded in the
+development environment, so the same model class is written directly in JAX
+(`pip install 'tailsafe[surrogate]'` pulls `jax[cpu]` and `optax`). This is
+recorded as an open decision in `CLAUDE.md`.
+
 ## Web UI (`web/`)
 
 React + TypeScript (Vite), Tailwind, react-three-fiber. It talks only to the
@@ -460,6 +492,7 @@ job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
 | 5 Replay (people) | The micro engine's replay of one scenario, top-down, one floor at a time, with the meso/micro comparison for that scenario and people on each floor over time (M8) |
 | 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
 | 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
+| 8 What-if (live) | Scenario controls; the surrogate's P50–P95 range and CVaR₉₅ for each outcome as the controls move, where queues are expected, and *Confirm with full simulation* overlaying a 300-run stress test (M10) |
 
 Charts are small hand-written SVG components (`web/src/components/charts/`)
 following one set of rules: one hue per single-series chart, fixed categorical
@@ -471,5 +504,4 @@ one hue (blue for queues, orange for smoke) and reverse in dark mode so that
 icon and a label. Light and dark themes are both specified (`styles.css`);
 the header toggle overrides the OS setting.
 
-Screens 8 (surrogate what-if) and 9 (briefing) belong to milestones M10 and
-M11.
+Screen 9 (briefing) belongs to milestone M11.

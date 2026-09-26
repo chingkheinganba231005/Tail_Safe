@@ -9,7 +9,7 @@ and current status.
 ## Commands
 
 ```bash
-make install     # .venv + editable install with dev extras
+make install     # .venv + editable install with dev + surrogate extras
 make test        # fast tests (pytest -m "not slow")
 make test-slow   # performance / large Monte Carlo tests
 make check       # ruff lint + format check + mypy --strict + tests  (= CI)
@@ -35,6 +35,9 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe vision detect out/plan.png --scale 0,0,200,0,10 --out out/det.json --overlay out/det.png
 .venv/bin/tailsafe vision build out/det.json --storeys 20   # stacked, validated building JSON
 .venv/bin/tailsafe vision eval                           # precision/recall on rendered plans
+.venv/bin/tailsafe surrogate data --cases 800            # simulated training cases (~7 min, 4 cores)
+.venv/bin/tailsafe surrogate eval                        # random + leave-one-typology-out (~35 min)
+.venv/bin/tailsafe surrogate train                       # ship weights to tailsafe/surrogate/weights/
 .venv/bin/tailsafe --help
 ```
 
@@ -81,8 +84,10 @@ tailsafe/report/       pitch_metrics.md generator (numbers only from saved resul
 tailsafe/vision/       floor-plan reader (detect.py), plan → building (graph.py),
                        rendered plans with truth (synth.py), evaluation
 tailsafe/building/geometry.py  rectangle helpers shared by vision and micro
+tailsafe/surrogate/    graph surrogate: training data, features, JAX GNN, evaluation,
+                       predictor + shipped weights (weights/surrogate.npz)
 tailsafe/api/          FastAPI app: jobs (progress over SSE, disk cache), views for the UI
-web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–4, 6, 7)
+web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–8)
 config/params.yaml     parameter registry
 schemas/               generated JSON schemas (do not edit by hand; `make schema`)
 docs/                  architecture, validation, assumptions, pitch metrics
@@ -102,8 +107,8 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | M7 | Web app (job API + React UI) | ✅ done (`make dev`, screens 1–4, 6, 7) |
 | M8 | Micro simulator + replay screen | ✅ done (`tailsafe micro`, web screen 5) |
 | M9 | Floor-plan ingestion + correction editor | ✅ done (`tailsafe vision`, Building → Floor plan image) |
-| M10 | GNN surrogate + live what-if | ⏳ next |
-| M11 | Briefing, PDF export, polish | not started |
+| M10 | GNN surrogate + live what-if | ✅ done (`tailsafe surrogate`, web screen 8) |
+| M11 | Briefing, PDF export, polish | ⏳ next |
 
 ## Decisions taken (open for review)
 
@@ -128,6 +133,12 @@ started and are easy to revisit while the codebase is small:
 5. **Walking density** excludes people standing in queues and is capped at the
    flow-maximising density 1/(2a); denser states are represented by queues.
    Without this, slow walkers cause a runaway density–speed collapse.
+6. **Surrogate in JAX, not PyTorch Geometric** (M10). The spec named PyG; its
+   wheels (download.pytorch.org) were blocked by the development environment's
+   network policy, so the message-passing network is written in JAX + optax
+   (optional extra `tailsafe[surrogate]`). Same model class; switching back is
+   a rewrite of `tailsafe/surrogate/model.py` only (features and data are
+   framework-free).
 
 ## Open questions for the project owner
 
@@ -159,5 +170,12 @@ started and are easy to revisit while the codebase is small:
 - The plan reader assumes axis-aligned plans with walls thicker than other lines.
   Its evaluation is on *rendered* plans (`vision/synth.py`); never present those
   numbers as results on real drawings.
+- The surrogate's weights (`tailsafe/surrogate/weights/`) are tied to the feature
+  layout in `surrogate/features.py` and to the simulator. Changing either means
+  regenerating data, re-running `surrogate eval`, retraining, and updating the
+  numbers in `docs/validation.md` §10.
+- Monte Carlo worker pools fork (workers inherit the compiled kernel) unless JAX is
+  loaded in the process — forking JAX's threads can deadlock — then they use a fork
+  server (`scenarios/montecarlo.py:_start_method`). Keep JAX imports lazy.
 - `Building` caches lookups (`node_by_id` ...). Treat it as immutable; use
   `model_copy(update=...)`, which drops the caches.

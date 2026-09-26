@@ -526,6 +526,42 @@ def vision_sample(template: str = "cruciform", level: int = 1) -> dict[str, Any]
     }
 
 
+# ============================================================================ surrogate
+class SurrogateRequest(_Req):
+    """Instant estimate for a building and scenario."""
+
+    building_id: str
+    spec: ScenarioSpec = Field(default_factory=demo_spec)
+
+
+_SURROGATE: dict[str, Any] = {}
+
+
+def _surrogate() -> Any:
+    if "model" not in _SURROGATE:
+        try:
+            from tailsafe.surrogate.predictor import Surrogate
+
+            _SURROGATE["model"] = Surrogate()
+        except (ImportError, FileNotFoundError) as exc:
+            raise HTTPException(
+                503,
+                "the surrogate is not available here: "
+                f"{exc}. Install the optional extra with pip install 'tailsafe[surrogate]'.",
+            ) from exc
+    return _SURROGATE["model"]
+
+
+@app.post("/api/surrogate/predict")
+def surrogate_predict(req: SurrogateRequest) -> dict[str, Any]:
+    """Evacuation-time quantiles from the graph surrogate (milliseconds, not minutes)."""
+    b = _building(req.building_id)
+    _check_spec(b, req.spec)
+    out = _surrogate().predict(b, req.spec)
+    out["disclaimer"] = DISCLAIMER
+    return finite(out)  # type: ignore[no-any-return]
+
+
 @app.get("/api/jobs")
 def list_jobs() -> list[dict[str, Any]]:
     """Recent jobs (without results)."""

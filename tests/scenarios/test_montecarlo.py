@@ -97,3 +97,18 @@ def test_performance_target() -> None:
     res = run_monte_carlo(b, demo_spec(), MCConfig(n_runs=1000, keep_groups=False))
     assert res.array("n_agents").mean() > 1700
     assert res.elapsed < 120.0, f"{res.elapsed:.1f} s"
+
+
+def test_worker_start_method_avoids_forking_jax(monkeypatch: pytest.MonkeyPatch) -> None:
+    import multiprocessing as mp
+    import sys
+    import types
+
+    from tailsafe.scenarios.montecarlo import _start_method
+
+    monkeypatch.delitem(sys.modules, "jax", raising=False)
+    if "fork" in mp.get_all_start_methods():
+        assert _start_method() == "fork"
+    monkeypatch.setitem(sys.modules, "jax", types.ModuleType("jax"))
+    if "forkserver" in mp.get_all_start_methods():
+        assert _start_method() == "forkserver"
