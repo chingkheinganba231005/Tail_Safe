@@ -9,7 +9,7 @@ and current status.
 ## Commands
 
 ```bash
-make install     # .venv + editable install with dev extras
+make install     # .venv + editable install with dev + surrogate extras
 make test        # fast tests (pytest -m "not slow")
 make test-slow   # performance / large Monte Carlo tests
 make check       # ruff lint + format check + mypy --strict + tests  (= CI)
@@ -19,6 +19,7 @@ make web         # build web/dist (served by the API at /)
 make web-check   # web type-check + vitest (CI job "Web UI")
 make schema      # regenerate schemas/*.json from the Pydantic models
 make demo        # generate + render the 40-storey cruciform block
+make pitch-demo  # the whole pitch, timed (= tailsafe demo --out out/pitch, ~4 min on 4 cores)
 .venv/bin/tailsafe validate --markdown        # analytical checks of the simulator
 .venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
     --block-stair A@240 --plot out/run.png  # one scenario, summary JSON + plot
@@ -28,6 +29,7 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe stress bottlenecks out/demo       # counterfactual ranking (re-runs)
 .venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo   # plan search + confirmation
 .venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo # regenerate pitch_metrics.md
+.venv/bin/tailsafe brief --stress out/demo --optimization out/opt-demo # briefing .md + .pdf (checked)
 .venv/bin/tailsafe micro run cruciform --index 3 --plot out/floor.png --level 14 --time 420
 .venv/bin/tailsafe micro compare cruciform --runs 20      # meso–micro agreement table
 .venv/bin/tailsafe micro fd                              # micro speed–density vs hydraulic
@@ -35,6 +37,9 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe vision detect out/plan.png --scale 0,0,200,0,10 --out out/det.json --overlay out/det.png
 .venv/bin/tailsafe vision build out/det.json --storeys 20   # stacked, validated building JSON
 .venv/bin/tailsafe vision eval                           # precision/recall on rendered plans
+.venv/bin/tailsafe surrogate data --cases 800            # simulated training cases (~7 min, 4 cores)
+.venv/bin/tailsafe surrogate eval                        # random + leave-one-typology-out (~35 min)
+.venv/bin/tailsafe surrogate train                       # ship weights to tailsafe/surrogate/weights/
 .venv/bin/tailsafe --help
 ```
 
@@ -77,12 +82,15 @@ tailsafe/analysis/     bottlenecks: queue recurrence, min-cut/load, counterfactu
 tailsafe/risk/         VaR/CVaR with bootstrap CIs, paired differences, tail breakdowns,
                        RSET vs ASET, plots
 tailsafe/optimize/     InterventionPlan levers, SAA search with CRN, CMA-ES, paired confirmation
-tailsafe/report/       pitch_metrics.md generator (numbers only from saved results)
+tailsafe/report/       pitch_metrics.md generator and the briefing (facts → template or LLM,
+                       number check, one-page PDF); numbers only from saved results
 tailsafe/vision/       floor-plan reader (detect.py), plan → building (graph.py),
                        rendered plans with truth (synth.py), evaluation
 tailsafe/building/geometry.py  rectangle helpers shared by vision and micro
+tailsafe/surrogate/    graph surrogate: training data, features, JAX GNN, evaluation,
+                       predictor + shipped weights (weights/surrogate.npz)
 tailsafe/api/          FastAPI app: jobs (progress over SSE, disk cache), views for the UI
-web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–4, 6, 7)
+web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–9)
 config/params.yaml     parameter registry
 schemas/               generated JSON schemas (do not edit by hand; `make schema`)
 docs/                  architecture, validation, assumptions, pitch metrics
@@ -95,15 +103,15 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | M0 | Scaffolding: tooling, CI, CLAUDE.md, params.yaml | ✅ done |
 | M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make demo`) |
 | M2 | Meso simulator + population model | ✅ done (`tailsafe validate`, `tailsafe sim run`) |
-| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-demo`: 1,000 runs ≈ 41 s on 4 cores) |
+| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-demo`: 1,000 runs ≈ 1 min on 4 cores) |
 | M4 | Hazard model (smoke, visibility, FED, ASET) | ✅ done (P(RSET>ASET) in `stress run`; `sim run --fire`) |
 | M5 | Bottleneck attribution | ✅ done (`tailsafe stress bottlenecks DIR`) |
 | M6 | Intervention optimiser | ✅ done (`tailsafe optimize`, `tailsafe pitch`) |
 | M7 | Web app (job API + React UI) | ✅ done (`make dev`, screens 1–4, 6, 7) |
 | M8 | Micro simulator + replay screen | ✅ done (`tailsafe micro`, web screen 5) |
 | M9 | Floor-plan ingestion + correction editor | ✅ done (`tailsafe vision`, Building → Floor plan image) |
-| M10 | GNN surrogate + live what-if | ⏳ next |
-| M11 | Briefing, PDF export, polish | not started |
+| M10 | GNN surrogate + live what-if | ✅ done (`tailsafe surrogate`, web screen 8) |
+| M11 | Briefing, PDF export, polish | ✅ done (`tailsafe brief`, `tailsafe demo` in 238 s, web screen 9) |
 
 ## Decisions taken (open for review)
 
@@ -128,6 +136,16 @@ started and are easy to revisit while the codebase is small:
 5. **Walking density** excludes people standing in queues and is capped at the
    flow-maximising density 1/(2a); denser states are represented by queues.
    Without this, slow walkers cause a runaway density–speed collapse.
+6. **Surrogate in JAX, not PyTorch Geometric** (M10). The spec named PyG; its
+   wheels (download.pytorch.org) were blocked by the development environment's
+   network policy, so the message-passing network is written in JAX + optax
+   (optional extra `tailsafe[surrogate]`). Same model class; switching back is
+   a rewrite of `tailsafe/surrogate/model.py` only (features and data are
+   framework-free).
+7. **LLM briefing is opt-in** (M11): it runs only when `ANTHROPIC_API_KEY` and
+   `TAILSAFE_BRIEFING_MODEL` are set (no model is hard-coded) and the
+   `briefing` extra is installed; otherwise the template briefing is used.
+   Either way every number is checked against the facts JSON.
 
 ## Open questions for the project owner
 
@@ -159,5 +177,15 @@ started and are easy to revisit while the codebase is small:
 - The plan reader assumes axis-aligned plans with walls thicker than other lines.
   Its evaluation is on *rendered* plans (`vision/synth.py`); never present those
   numbers as results on real drawings.
+- The surrogate's weights (`tailsafe/surrogate/weights/`) are tied to the feature
+  layout in `surrogate/features.py` and to the simulator. Changing either means
+  regenerating data, re-running `surrogate eval`, retraining, and updating the
+  numbers in `docs/validation.md` §10.
+- Monte Carlo worker pools fork (workers inherit the compiled kernel) unless JAX is
+  loaded in the process — forking JAX's threads can deadlock — then they use a fork
+  server (`scenarios/montecarlo.py:_start_method`). Keep JAX imports lazy.
+- Briefing text must only contain numbers present in `briefing_facts(...)`.
+  When adding a sentence to `template_briefing`, put any new number in the facts
+  first; `make_briefing` raises if the template breaks the rule.
 - `Building` caches lookups (`node_by_id` ...). Treat it as immutable; use
   `model_copy(update=...)`, which drops the caches.

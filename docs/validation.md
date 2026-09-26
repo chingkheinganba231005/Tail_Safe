@@ -250,7 +250,106 @@ At 12 px/m a 0.2 m wall rasterises to three or four pixels, so the guessed
 scale is 40% off; door and stair finding still works, but widths and areas
 are wrong until a reference line is drawn.
 
-## 10. Parameter registry
+## 10. Graph surrogate (M10)
+
+| Check | Test | Status |
+|---|---|---|
+| Training cases are deterministic and stay within the typology ranges | `tests/surrogate/test_surrogate.py` | ✅ |
+| Graph features: flats folded into their corridor, scenario flags set, building part unchanged | `tests/surrogate/test_surrogate.py` | ✅ |
+| Quantiles never cross, CVaR₉₅ ≥ P95; weights reload to identical predictions | `tests/surrogate/test_surrogate.py` | ✅ |
+| Cases outside the training draw are flagged (`coverage_notes`) | `tests/surrogate/test_surrogate.py` | ✅ |
+| API returns an estimate (or 503 without the optional extra) | `tests/test_api.py` | ✅ |
+
+### Accuracy and calibration
+
+`tailsafe surrogate eval` on 800 cases (197 slab, 199 cruciform, 209 care
+home, 195 twin core), each simulated with 64 Latin-Hypercube runs. Two test
+sets: a random 20% of cases, and *leave one typology out* (train on three
+building types, test on the fourth). Errors are against the held-out cases'
+own 64-run estimates, which carry sampling error themselves. *Coverage* is the
+share of simulated outcomes below the predicted quantile: a calibrated model
+has coverage close to 0.50 / 0.75 / 0.90 / 0.95.
+
+| Test set | Cases | Loss | P95 error (min) | P95 relative error | R² of P95 | CVaR₉₅ error (min) | Coverage P50 / P75 / P90 / P95 |
+|---|---:|---|---:|---:|---:|---:|---|
+| Random 20% | 160 | everyone out | 6.4 | 9% | 0.92 | 7.2 | 0.49 / 0.72 / 0.87 / 0.93 |
+| Random 20% | 160 | last self-evacuee | 4.4 | 10% | 0.93 | 5.7 | 0.50 / 0.73 / 0.89 / 0.95 |
+| Random 20% | 160 | 95% out | 11.0 | 19% | 0.65 | 11.8 | 0.49 / 0.71 / 0.87 / 0.91 |
+| Unseen: care_home | 209 | everyone out | 21.1 | 33% | -0.29 | 21.1 | 0.06 / 0.17 / 0.31 / 0.42 |
+| Unseen: care_home | 209 | last self-evacuee | 6.4 | 44% | 0.67 | 7.9 | 0.53 / 0.73 / 0.87 / 0.95 |
+| Unseen: care_home | 209 | 95% out | 78.1 | 59% | -0.82 | 91.8 | 0.03 / 0.07 / 0.17 / 0.29 |
+| Unseen: cruciform | 199 | everyone out | 12.6 | 16% | 0.81 | 13.6 | 0.58 / 0.77 / 0.90 / 0.95 |
+| Unseen: cruciform | 199 | last self-evacuee | 6.5 | 12% | 0.82 | 7.5 | 0.31 / 0.61 / 0.84 / 0.93 |
+| Unseen: cruciform | 199 | 95% out | 13.1 | 44% | -1.01 | 12.6 | 0.82 / 0.92 / 0.96 / 0.97 |
+| Unseen: slab | 197 | everyone out | 14.9 | 23% | 0.57 | 12.0 | 0.77 / 0.88 / 0.97 / 0.98 |
+| Unseen: slab | 197 | last self-evacuee | 6.6 | 12% | 0.81 | 6.8 | 0.39 / 0.79 / 0.83 / 0.90 |
+| Unseen: slab | 197 | 95% out | 8.0 | 28% | -0.15 | 7.8 | 0.69 / 0.90 / 0.97 / 0.98 |
+| Unseen: twin_core | 195 | everyone out | 5.5 | 9% | 0.89 | 7.2 | 0.44 / 0.71 / 0.88 / 0.93 |
+| Unseen: twin_core | 195 | last self-evacuee | 5.7 | 12% | 0.84 | 7.2 | 0.53 / 0.78 / 0.91 / 0.95 |
+| Unseen: twin_core | 195 | 95% out | 2.9 | 10% | 0.84 | 5.3 | 0.44 / 0.64 / 0.84 / 0.91 |
+
+| Test set | Edge queueing rank correlation | Top-5 congested edges recovered |
+|---|---:|---:|
+| Random 20% | 0.82 | 82% |
+| Unseen: care_home | 0.59 | 62% |
+| Unseen: cruciform | 0.39 | 82% |
+| Unseen: slab | 0.69 | 81% |
+| Unseen: twin_core | 0.75 | 83% |
+
+How to read this:
+
+- **Buildings like the training set** (random split): P95 of "everyone out"
+  and "last self-evacuee" within about 10% (R² 0.92–0.93), coverage within
+  0.04 of nominal — the tails are slightly too narrow at P90 / P95.
+- **"95% out" is harder** (19%, R² 0.65). In care homes with smoke more than
+  5% of residents can be incapacitated, so the outcome jumps between about
+  20 minutes and the 4-hour censoring horizon.
+- **A building type it has never seen** degrades: a held-out twin core is
+  predicted about as well as the random split (it resembles the others), a
+  held-out cruciform or slab is 16–23% off for "everyone out", and held-out
+  care homes are badly wrong (33–59%, coverage far from nominal) — their
+  non-ambulant residents and staff assistance are unlike anything in the
+  towers. The shipped model is trained on all four types; buildings and
+  settings outside the training draw are flagged on the what-if screen,
+  which always offers the full simulation.
+- **Where queues form**: the rank correlation of predicted and simulated
+  queueing per edge is 0.82 on the random split, and 82% of the five most
+  congested edges are recovered.
+
+### Speed
+
+A prediction takes about 37 ms on one CPU core (including building the graph
+features); a 1,000-run stress test of the same buildings takes about 31 s on
+one core — about 835× faster, and still about 200× against a perfectly
+parallel 4-core run. The milestone target was ≥ 100×.
+
+The shipped weights (`tailsafe/surrogate/weights/`, 614 KiB) are trained on
+all 800 cases (10% held back for validation; 120 epochs with a cosine
+learning-rate schedule, keeping the weights with the lowest validation loss);
+their metadata stores the numbers above, which the what-if screen quotes.
+
+## 11. Briefing and demo (M11)
+
+| Check | Test | Status |
+|---|---|---|
+| The template briefing uses only numbers present in the facts (with and without bottlenecks and a plan) | `tests/report/test_briefing.py` | ✅ |
+| The number check accepts signs and trailing zeros, rejects invented numbers | `tests/report/test_briefing.py` | ✅ |
+| An LLM draft with a number not in the facts is rejected (template shown, with the number); API errors fall back | `tests/report/test_briefing.py` (model stubbed) | ✅ |
+| The scenario sentence comes from the settings, not from stale free text | `tests/report/test_briefing.py` | ✅ |
+| One-page PDF (and PNG preview) with the before/after distribution | `tests/report/test_briefing.py` | ✅ |
+| CLI `tailsafe brief` and the API (`/api/briefing`, `/api/briefing/pdf`) | `tests/report/test_briefing.py`, `tests/test_api.py` | ✅ |
+| `tailsafe demo` runs end to end | `tests/report/test_briefing.py` (slow) | ✅ |
+
+The number check reads digits only: a number written as a word ("three
+floors") is not checked, which is why the prompt asks for digits. It checks
+that each number *exists* in the facts, not that it is attached to the right
+quantity; the template is safe by construction, an LLM draft is only as
+faithful as its wording.
+
+`tailsafe demo` on a 4-core laptop: 238 s end to end, within the 5-minute
+target (step timings in [demo.md](demo.md)).
+
+## 12. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

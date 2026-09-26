@@ -432,3 +432,37 @@ export interface PlanScale {
   y2: number;
   metres: number;
 }
+
+export interface QuantileSet {
+  p50: number;
+  p75: number;
+  p90: number;
+  p95: number;
+  cvar95: number;
+}
+
+export interface SurrogatePrediction {
+  losses: Record<Loss, QuantileSet>;
+  edges: { edge: string; label: string; person_minutes: number }[];
+  elapsed_ms: number;
+  horizon_s: number;
+  coverage_notes: string[];
+  model: {
+    trained_on?: Record<string, number> | null;
+    evaluation?: {
+      holdout_p95_relative_error?: Record<string, Record<string, number>>;
+      random_p95_relative_error?: Record<string, number>;
+      speedup_single_core?: number;
+    } | null;
+  };
+  disclaimer: string;
+}
+
+export interface Briefing {
+  markdown: string;
+  source: "template" | "llm";
+  facts: Record<string, unknown>;
+  unknown_numbers: string[];
+  note: string | null;
+  disclaimer: string;
+}

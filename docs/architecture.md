@@ -209,8 +209,12 @@ floor band are compared with shares of all occupants (risk ratio), which gives
 a plain-language headline.
 
 Performance: 1,000 scenarios of the 40-storey demo block (~1,830 occupants)
-take ~41 s on 4 cores (`make stress-demo`; target < 120 s, checked by the slow
-test).
+take ~64 s on 4 cores as of M11 (~41 s when measured at M3, before the smoke
+model and later features; `make stress-demo`; target < 120 s, checked by the
+slow test). Scenarios are
+handed to workers in chunks of at most 10, and smaller for short runs (tail
+re-runs, optimiser samples) so every worker stays busy; each scenario is
+seeded by its index, so chunking never changes results.
 
 ## Hazard model (`tailsafe/hazard/`)
 
@@ -331,7 +335,7 @@ still confirm finalists.
 
 | File | Role |
 |---|---|
-| `app.py` | FastAPI app: buildings, stress tests, bottlenecks, optimisation, replays; serves the built web UI from `web/dist` when present |
+| `app.py` | FastAPI app: buildings, stress tests, bottlenecks, optimisation, replays, micro replays, floor plans, surrogate, briefing; serves the built web UI from `web/dist` when present |
 | `jobs.py` | `JobManager`: one background job at a time (each uses a process pool), progress counters, results cached on disk by request key |
 | `views.py` | Compact JSON views for the browser: risk summary, histograms' raw losses, tail breakdowns, stair congestion by level, replay frames |
 
@@ -445,6 +449,69 @@ API: `POST /api/vision/detect` (base64 image, optional scale),
 `POST /api/vision/build`, `GET /api/vision/sample`. CLI:
 `tailsafe vision synth | detect | build | eval`.
 
+## Graph surrogate (`tailsafe/surrogate/`)
+
+| File | Role |
+|---|---|
+| `data.py` | Random (building, scenario) cases — template and options drawn from `TYPOLOGIES`, scenario settings drawn at random — each simulated with 64 Latin-Hypercube Monte Carlo runs; keeps every loss sample and the mean queueing per edge (JSON lines) |
+| `features.py` | The circulation graph: corridors, lobbies, landings, refuges and exits as nodes (flats folded in as counts and expected occupants), walkways, doors and flights as directed edges with widths, lengths and compiled capacities; scenario settings as node / edge flags and a global vector |
+| `model.py` | Message-passing graph network in JAX (encoders, 5 rounds with a global context, monotone quantile head, edge head), pinball-loss training with optax, save / load (`.npz` weights + `.json` config, feature statistics and metadata) |
+| `evaluate.py` | Random 80/20 split and leave-one-typology-out: quantile errors, CVaR₉₅ error, R², coverage, edge rank correlation, speed |
+| `predictor.py` | `Surrogate`: loads the shipped weights (`weights/surrogate.npz`), caches building graphs, predicts in milliseconds |
+
+The network predicts, for each loss, P50 / P75 / P90 / P95 (built as a
+positive base plus positive increments, so they never cross) and CVaR₉₅
+(P95 plus a positive increment), and the mean queueing on every edge. It is
+trained against **all** 64 simulated outcomes of a case with the pinball
+(quantile) loss rather than against the case's own noisy quantile estimates,
+plus a squared error on the sample CVaR₉₅ and on log edge queueing. A
+global context vector (mean and max over nodes) feeds every node update, so
+information crosses a 40-storey building in five layers. Outcomes that never
+happen within the 4-hour horizon are censored at the horizon, as in the
+stress-test report.
+
+The simulator stays the source of truth: the what-if screen (screen 8) shows
+the surrogate's estimate instantly and offers *Confirm with full simulation*,
+which runs a real stress test and plots both. API:
+`POST /api/surrogate/predict` (503 when the optional extra or the weights are
+missing). CLI: `tailsafe surrogate data | eval | train`.
+
+The spec named PyTorch Geometric. Its wheels could not be downloaded in the
+development environment, so the same model class is written directly in JAX
+(`pip install 'tailsafe[surrogate]'` pulls `jax[cpu]` and `optax`). This is
+recorded as an open decision in `CLAUDE.md`.
+
+## Briefing (`tailsafe/report/`)
+
+| File | Role |
+|---|---|
+| `briefing.py` | Facts from saved results, the template briefing, the optional LLM briefing with its number check, the one-page PDF |
+| `pitch.py` | `docs/pitch_metrics.md`, the headline numbers for the pitch |
+
+`briefing_facts` turns a stress test (and, when available, the bottleneck
+table and the optimised plan) into a small JSON document with every number
+already rounded the way it may appear. Two writers use only that document:
+
+* **Template** (always available): fixed sentences filled from the facts.
+* **LLM** (optional): when `ANTHROPIC_API_KEY` and `TAILSAFE_BRIEFING_MODEL`
+  are set and `pip install 'tailsafe[briefing]'` is done, an Anthropic model
+  drafts the text. The prompt forbids any number that is not in the facts,
+  and `unknown_numbers` checks the draft: every number in it must appear in
+  the facts (signs and trailing zeros aside). A draft that fails, or an API
+  error, falls back to the template with a note saying why. The template is
+  checked the same way; a failure there is a bug and raises.
+
+`briefing_pdf` lays the Markdown out on one A4 page with Matplotlib (no extra
+dependency) and adds the distribution of the time until everyone is out —
+before and after the plan when there is one. The scenario sentence is built
+from the scenario's settings, never from its free-text description.
+
+CLI: `tailsafe brief` (Markdown, the facts as JSON, PDF). API:
+`POST /api/briefing` (results in, checked briefing out) and
+`POST /api/briefing/pdf`. `tailsafe demo` runs the pitch end to end —
+building, stress test, bottlenecks, plan, replay, briefing, pitch metrics —
+and times each step (see [demo.md](demo.md)).
+
 ## Web UI (`web/`)
 
 React + TypeScript (Vite), Tailwind, react-three-fiber. It talks only to the
@@ -460,6 +527,8 @@ job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
 | 5 Replay (people) | The micro engine's replay of one scenario, top-down, one floor at a time, with the meso/micro comparison for that scenario and people on each floor over time (M8) |
 | 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
 | 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
+| 8 What-if (live) | Scenario controls; the surrogate's P50–P95 range and CVaR₉₅ for each outcome as the controls move, where queues are expected, and *Confirm with full simulation* overlaying a 300-run stress test (M10) |
+| 9 Briefing | The checked briefing (template or LLM draft, with the reason when a draft was rejected) and *Download PDF* (M11) |
 
 Charts are small hand-written SVG components (`web/src/components/charts/`)
 following one set of rules: one hue per single-series chart, fixed categorical
@@ -471,5 +540,3 @@ one hue (blue for queues, orange for smoke) and reverse in dark mode so that
 icon and a label. Light and dark themes are both specified (`styles.css`);
 the header toggle overrides the OS setting.
 
-Screens 8 (surrogate what-if) and 9 (briefing) belong to milestones M10 and
-M11.

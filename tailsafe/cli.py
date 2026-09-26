@@ -31,6 +31,8 @@ micro_app = typer.Typer(help="Microscopic replays and meso–micro cross-checks.
 app.add_typer(micro_app, name="micro")
 vision_app = typer.Typer(help="Read floor-plan images into buildings.")
 app.add_typer(vision_app, name="vision")
+surrogate_app = typer.Typer(help="Graph surrogate: training data, training, evaluation.")
+app.add_typer(surrogate_app, name="surrogate")
 
 
 @app.command()
@@ -561,6 +563,174 @@ def pitch(
     typer.echo(f"Wrote {out}")
 
 
+def _briefing_distributions(stress: Path, optimization: Path | None) -> dict[str, Any]:
+    from tailsafe.scenarios.montecarlo import MCResult
+
+    if optimization and (optimization / "confirm_plan").exists():
+        return {
+            "Baseline": MCResult.load(optimization / "confirm_baseline").loss("total_time"),
+            "With plan": MCResult.load(optimization / "confirm_plan").loss("total_time"),
+        }
+    if (stress / "result.json").exists():
+        return {"Baseline": MCResult.load(stress).loss("total_time")}
+    return {}
+
+
+@app.command()
+def brief(
+    stress: Annotated[Path, typer.Option(help="Directory from `stress run --out`.")] = Path(
+        "out/demo1000"
+    ),
+    optimization: Annotated[
+        Path | None, typer.Option(help="Directory from `optimize --out`.")
+    ] = Path("out/opt-demo"),
+    writer: Annotated[
+        str, typer.Option(help="auto (LLM when configured), template or llm.")
+    ] = "auto",
+    out: Annotated[Path, typer.Option(help="Markdown file.")] = Path("out/briefing.md"),
+    pdf: Annotated[Path | None, typer.Option(help="One-page PDF (or .png).")] = Path(
+        "out/briefing.pdf"
+    ),
+) -> None:
+    """One-page briefing for the building manager; every number checked against the results."""
+    from tailsafe.report.briefing import briefing_facts, briefing_pdf, make_briefing
+    from tailsafe.report.pitch import load_json
+
+    if writer not in ("auto", "template", "llm"):
+        raise typer.BadParameter("--writer must be auto, template or llm")
+    metrics = load_json(stress / "metrics.json")
+    if metrics is None:
+        raise typer.BadParameter(f"{stress}/metrics.json not found; run `stress run --out` first")
+    opt = load_json(optimization / "optimization.json") if optimization else None
+    facts = briefing_facts(metrics, load_json(stress / "bottlenecks.json"), opt)
+    result = make_briefing(facts, use_llm={"auto": None, "template": False, "llm": True}[writer])
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(result.markdown, encoding="utf-8")
+    out.with_suffix(".facts.json").write_text(
+        json.dumps(facts, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    typer.echo(result.markdown)
+    typer.echo(f"Source: {result.source}. Wrote {out}", err=True)
+    if result.note:
+        typer.echo(f"Note: {result.note}", err=True)
+    if pdf:
+        briefing_pdf(result.markdown, pdf, _briefing_distributions(stress, optimization) or None)
+        typer.echo(f"Wrote {pdf}", err=True)
+
+
+@app.command()
+def demo(
+    out: Annotated[Path, typer.Option(help="Directory for everything the pitch shows.")] = Path(
+        "out/pitch"
+    ),
+    runs: Annotated[int, typer.Option(help="Stress-test scenarios.")] = 600,
+    rerun_fraction: Annotated[
+        float, typer.Option(help="Share of worst scenarios re-run per bottleneck.")
+    ] = 0.1,
+    scenarios: Annotated[int, typer.Option(help="Scenarios per optimiser evaluation.")] = 50,
+    confirm: Annotated[int, typer.Option(help="Fresh scenarios to confirm the plan.")] = 200,
+    replay: Annotated[bool, typer.Option(help="Person-by-person replay of the worst run.")] = True,
+    workers: Annotated[int | None, typer.Option(help="Processes (default: all CPUs).")] = None,
+    budget: Annotated[float, typer.Option(help="Target wall time (s) for the whole run.")] = 300.0,
+) -> None:
+    """The pitch end to end: tail → causes → plan → replay → briefing (timed).
+
+    Sunday 3 a.m., 40-storey public housing block (the demo scenario): a
+    stress test, bottleneck attribution, the optimised plan with its paired
+    confirmation, a person-by-person snapshot of the worst scenario on the
+    fire floor, the briefing (Markdown + PDF) and the pitch metrics page.
+    The default sample sizes fit the 5-minute budget on a 4-core laptop; the
+    headline numbers in docs/pitch_metrics.md use larger samples
+    (--runs 1000 --rerun-fraction 0.2 --scenarios 100 --confirm 400, ~8 min).
+    """
+    import time as _time
+
+    import numpy as np
+
+    from tailsafe.building.builder import hk_level_label
+    from tailsafe.building.io import save_building
+    from tailsafe.building.render import save_render
+    from tailsafe.building.templates import generate
+    from tailsafe.scenarios.montecarlo import MCResult
+    from tailsafe.scenarios.sampler import ScenarioSampler, scenario_uniforms
+    from tailsafe.scenarios.spec import demo_spec
+    from tailsafe.sim.meso import run_meso
+    from tailsafe.sim.micro import run_micro
+    from tailsafe.sim.network import compile_network
+    from tailsafe.sim.plot import save_micro_frame
+
+    out.mkdir(parents=True, exist_ok=True)
+    times: dict[str, float] = {}
+    t_all = _time.perf_counter()
+
+    def step(name: str) -> float:
+        typer.echo(f"\n== {name} ==", err=True)
+        return _time.perf_counter()
+
+    t = step("1/6 Building: 40-storey cruciform public housing block")
+    b = generate("cruciform", storeys=40)
+    save_building(b, out / "building.json")
+    save_render(b, out / "building.png", level=14)
+    times["building"] = _time.perf_counter() - t
+
+    t = step(f"2/6 Stress test: {runs} scenarios")
+    stress_run(
+        str(out / "building.json"), spec="demo", runs=runs, workers=workers, out=out / "stress"
+    )
+    times["stress test"] = _time.perf_counter() - t
+
+    t = step("3/6 Where the tail comes from: counterfactual bottlenecks")
+    stress_bottlenecks(out / "stress", rerun_fraction=rerun_fraction, workers=workers)
+    times["bottlenecks"] = _time.perf_counter() - t
+
+    t = step("4/6 The fix: optimised operational plan, confirmed on fresh scenarios")
+    optimize_cmd(
+        str(out / "building.json"),
+        scenarios=scenarios,
+        confirm=confirm,
+        workers=workers,
+        out=out / "plan",
+    )
+    times["optimisation"] = _time.perf_counter() - t
+
+    if replay:
+        t = step("5/6 Replay: the worst scenario, person by person, on the fire floor")
+        res = MCResult.load(out / "stress")
+        worst = res.runs[int(np.argmax(res.loss("total_time")))].index
+        sc_spec = demo_spec()
+        u = scenario_uniforms(0, worst, 1)[0]
+        sc = ScenarioSampler(b, sc_spec).sample(0, worst, u)
+        net = compile_network(b)
+        me = run_meso(net, sc.population, sc.sim)
+        mi = run_micro(net, sc.population, sc.sim, meso=me, seed=0, index=worst)
+        fire = sc_spec.fire_level or 1
+        save_micro_frame(mi, fire, 420.0, out / "replay.png")
+        typer.echo(f"Scenario {worst}: wrote {out}/replay.png ({hk_level_label(fire)}, t = 7 min)")
+        times["replay"] = _time.perf_counter() - t
+
+    t = step("6/6 Briefing and pitch metrics")
+    brief(
+        stress=out / "stress",
+        optimization=out / "plan",
+        writer="auto",
+        out=out / "briefing.md",
+        pdf=out / "briefing.pdf",
+    )
+    pitch(stress=out / "stress", optimization=out / "plan", out=out / "pitch_metrics.md")
+    times["briefing"] = _time.perf_counter() - t
+
+    total = _time.perf_counter() - t_all
+    typer.echo("\nStep timings:")
+    for name, sec in times.items():
+        typer.echo(f"  {name:<14} {sec:6.1f} s")
+    verdict = "within" if total <= budget else "OVER"
+    typer.echo(f"  {'total':<14} {total:6.1f} s ({verdict} the {budget:.0f} s budget)")
+    (out / "timings.json").write_text(
+        json.dumps({**times, "total": total, "budget": budget}, indent=1) + "\n",
+        encoding="utf-8",
+    )
+
+
 @micro_app.command("run")
 def micro_run(
     building: Annotated[str, typer.Argument(help="Building JSON path or a template name.")],
@@ -731,6 +901,125 @@ def vision_eval(
     from tailsafe.vision.evaluate import evaluate, evaluation_markdown
 
     typer.echo(evaluation_markdown(evaluate(reference_scale=reference_scale)))
+
+
+@surrogate_app.command("data")
+def surrogate_data(
+    cases: Annotated[int, typer.Option(help="Number of (building, scenario) cases.")] = 800,
+    runs: Annotated[int, typer.Option(help="Monte Carlo runs per case.")] = 64,
+    seed: Annotated[int, typer.Option(help="Seed of the case draw and the runs.")] = 0,
+    start: Annotated[int, typer.Option(help="First case index (to extend a data set).")] = 0,
+    workers: Annotated[int | None, typer.Option(help="Processes (default: all CPUs).")] = None,
+    out: Annotated[Path, typer.Option(help="JSON-lines file.")] = Path("out/surrogate/cases.jsonl"),
+) -> None:
+    """Simulate random buildings and scenarios as training data."""
+    from tailsafe.surrogate.data import generate_dataset, save_dataset
+
+    def progress(done: int, total: int) -> None:
+        if done % 25 == 0 or done == total:
+            typer.echo(f"  {done}/{total} cases", err=True)
+
+    recs = generate_dataset(
+        cases, n_runs=runs, seed=seed, start=start, workers=workers, progress=progress
+    )
+    save_dataset(recs, out)
+    typer.echo(f"Wrote {len(recs)} cases to {out}")
+
+
+@surrogate_app.command("eval")
+def surrogate_eval(
+    data: Annotated[Path, typer.Option(help="Data set from `surrogate data`.")] = Path(
+        "out/surrogate/cases.jsonl"
+    ),
+    epochs: Annotated[int, typer.Option(help="Training epochs per split.")] = 120,
+    out: Annotated[Path | None, typer.Option(help="Write the full result JSON here.")] = Path(
+        "out/surrogate/eval.json"
+    ),
+) -> None:
+    """Random split and leave-one-typology-out evaluation (accuracy, calibration, speed)."""
+    from tailsafe.surrogate.data import load_dataset
+    from tailsafe.surrogate.evaluate import evaluate, evaluation_markdown
+    from tailsafe.surrogate.model import TrainConfig
+
+    res = evaluate(
+        load_dataset(data),
+        tcfg=TrainConfig(epochs=epochs),
+        log=lambda m: typer.echo(m, err=True),
+    )
+    typer.echo(evaluation_markdown(res))
+    if out:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(res, indent=1, default=float) + "\n", encoding="utf-8")
+
+
+@surrogate_app.command("train")
+def surrogate_train(
+    data: Annotated[Path, typer.Option(help="Data set from `surrogate data`.")] = Path(
+        "out/surrogate/cases.jsonl"
+    ),
+    epochs: Annotated[int, typer.Option(help="Training epochs.")] = 120,
+    evaluation: Annotated[
+        Path | None, typer.Option(help="Result of `surrogate eval`, stored with the weights.")
+    ] = Path("out/surrogate/eval.json"),
+    out: Annotated[
+        Path | None, typer.Option(help="Weights file (default: the shipped model).")
+    ] = None,
+) -> None:
+    """Train on every case and save the weights used by the API and the what-if screen."""
+    from collections import Counter
+    from datetime import UTC, datetime
+
+    import numpy as np
+
+    from tailsafe.surrogate.data import load_dataset
+    from tailsafe.surrogate.evaluate import prepare
+    from tailsafe.surrogate.model import ModelConfig, TrainConfig, save_model, train
+    from tailsafe.surrogate.predictor import DEFAULT_WEIGHTS
+
+    records = load_dataset(data)
+    graphs, targets, meta = prepare(records)
+    order = np.random.default_rng(0).permutation(len(graphs))
+    n_val = max(1, len(order) // 10)
+    val, tr = order[:n_val], order[n_val:]
+    mcfg = ModelConfig()
+    net, stats, hist = train(
+        [graphs[i] for i in tr],
+        [targets[i] for i in tr],
+        [graphs[i] for i in val],
+        [targets[i] for i in val],
+        mcfg=mcfg,
+        tcfg=TrainConfig(epochs=epochs),
+        log=lambda m: typer.echo(m, err=True),
+    )
+    summary = None
+    if evaluation and evaluation.exists():
+        ev = json.loads(evaluation.read_text(encoding="utf-8"))
+        summary = {
+            "random_p95_relative_error": {
+                k: v["relative_error_p95"] for k, v in ev["random"]["losses"].items()
+            },
+            "holdout_p95_relative_error": {
+                typ: {k: v["relative_error_p95"] for k, v in m["losses"].items()}
+                for typ, m in ev["holdout"].items()
+            },
+            "speedup_single_core": ev.get("speed", {}).get("speedup_single_core"),
+        }
+    target = out or DEFAULT_WEIGHTS
+    save_model(
+        target,
+        net,
+        stats,
+        mcfg,
+        {
+            "trained_on": dict(Counter(m["template"] for m in meta)),
+            "cases": len(records),
+            "runs_per_case": int(records[0].get("n_runs", 64)) if records else 0,
+            "epochs": len(hist),
+            "created": datetime.now(UTC).strftime("%Y-%m-%d"),
+            "evaluation": summary,
+        },
+    )
+    typer.echo(f"Wrote {target} ({target.stat().st_size / 1024:.0f} KiB)")
 
 
 @app.command()

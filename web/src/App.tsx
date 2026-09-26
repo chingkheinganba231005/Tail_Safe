@@ -4,12 +4,14 @@ import { Bottlenecks } from "./screens/Bottlenecks";
 import { BuildingSetup } from "./screens/BuildingSetup";
 import { Optimize } from "./screens/Optimize";
 import { ReplayMicro } from "./screens/ReplayMicro";
+import { Report } from "./screens/Report";
 import { ScenarioBuilder } from "./screens/ScenarioBuilder";
 import { Stack3D } from "./screens/Stack3D";
 import { StressResults } from "./screens/StressResults";
+import { WhatIf } from "./screens/WhatIf";
 import type { BottleneckResult, BuildingView, OptimizeResult, ScenarioSpec, StressResult } from "./types";
 
-export type Step = "building" | "scenario" | "results" | "stack" | "replay" | "bottlenecks" | "optimize";
+export type Step = "building" | "scenario" | "results" | "stack" | "replay" | "bottlenecks" | "optimize" | "whatif" | "report";
 
 const STEPS: { id: Step; label: string; needs: "none" | "building" | "stress" }[] = [
   { id: "building", label: "Building", needs: "none" },
@@ -19,6 +21,8 @@ const STEPS: { id: Step; label: string; needs: "none" | "building" | "stress" }[
   { id: "replay", label: "Replay (people)", needs: "stress" },
   { id: "bottlenecks", label: "Bottlenecks", needs: "stress" },
   { id: "optimize", label: "Optimise", needs: "stress" },
+  { id: "whatif", label: "What-if (live)", needs: "building" },
+  { id: "report", label: "Briefing", needs: "stress" },
 ];
 
 export interface StressRun {
@@ -162,6 +166,10 @@ export function App() {
           )}
           {step === "bottlenecks" && stress && building && (
             <Bottlenecks building={building} stress={stress} result={bottlenecks} setResult={setBottlenecks} />
+          )}
+          {step === "whatif" && building && <WhatIf building={building} spec={spec} onStress={onStress} />}
+          {step === "report" && stress && building && (
+            <Report building={building} stress={stress} bottlenecks={bottlenecks} optimization={optimization} />
           )}
           {step === "optimize" && stress && building && (
             <Optimize building={building} stress={stress} result={optimization} setResult={setOptimization} />

@@ -102,6 +102,26 @@ def test_stress_bottlenecks_replay_flow() -> None:
     assert stair_rows and all(r["edges"] and set(r["edges"]) <= edges for r in stair_rows)
     assert all(q["edge"] in edges for q in bn["queues"])
 
+    brief = client.post(
+        "/api/briefing",
+        json={"building_id": bid, "stress": stress, "bottlenecks": bn, "llm": False},
+    )
+    assert brief.status_code == 200, brief.text
+    body = brief.json()
+    assert body["source"] == "template" and body["unknown_numbers"] == []
+    assert "## Why" in body["markdown"] and "not a substitute" in body["disclaimer"]
+    bad = client.post("/api/briefing", json={"building_id": bid, "stress": {"runs": 1}})
+    assert bad.status_code == 422
+    pdf = client.post(
+        "/api/briefing/pdf",
+        json={
+            "markdown": body["markdown"],
+            "distributions": {"Baseline": stress["losses"]["total_time"] + [None]},
+        },
+    )
+    assert pdf.status_code == 200 and pdf.headers["content-type"] == "application/pdf"
+    assert pdf.content.startswith(b"%PDF")
+
     rp = wait(
         client.post(
             "/api/replay",
@@ -227,3 +247,31 @@ def test_vision_detect_edit_build() -> None:
     bad = client.post("/api/vision/detect", json={"image": "data:image/png;base64,AAAA"})
     assert bad.status_code == 422
     assert client.get("/api/vision/sample", params={"template": "nope"}).status_code == 422
+
+
+def test_surrogate_predict_or_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    bid = building_id()
+    monkeypatch.setattr(api, "_SURROGATE", {})
+    try:
+        from tailsafe.surrogate.predictor import DEFAULT_WEIGHTS
+
+        available = DEFAULT_WEIGHTS.exists()
+    except ImportError:
+        available = False
+    res = client.post("/api/surrogate/predict", json={"building_id": bid, "spec": SPEC})
+    if not available:
+        assert res.status_code == 503
+        return
+    assert res.status_code == 200, res.text
+    body = res.json()
+    for q in body["losses"].values():
+        assert 0 < q["p50"] <= q["p75"] <= q["p90"] <= q["p95"] <= q["cvar95"] + 1e-6
+    assert body["edges"] and body["edges"][0]["label"]
+    assert body["model"]["trained_on"]
+    assert body["coverage_notes"] == []
+    assert "not a substitute" in body["disclaimer"]
+    bad = {**SPEC, "stair_blockages": [{"stair": "Z", "time": {"dist": "constant", "value": 1}}]}
+    assert (
+        client.post("/api/surrogate/predict", json={"building_id": bid, "spec": bad}).status_code
+        == 422
+    )
