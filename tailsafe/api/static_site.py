@@ -369,7 +369,7 @@ def graph_payload(b: Building) -> dict[str, Any]:
 
 def export_surrogate(out: Path, views: list[dict[str, Any]]) -> None:
     """Weights (float32 binary + description) and each building's graph features."""
-    from tailsafe.surrogate.predictor import DEFAULT_WEIGHTS
+    from tailsafe.surrogate import DEFAULT_WEIGHTS
 
     sdir = out / "surrogate"
     sdir.mkdir(parents=True, exist_ok=True)

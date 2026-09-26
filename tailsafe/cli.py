@@ -859,10 +859,10 @@ def surrogate_train(
 
     import numpy as np
 
+    from tailsafe.surrogate import DEFAULT_WEIGHTS
     from tailsafe.surrogate.data import load_dataset
     from tailsafe.surrogate.evaluate import prepare
     from tailsafe.surrogate.model import ModelConfig, TrainConfig, save_model, train
-    from tailsafe.surrogate.predictor import DEFAULT_WEIGHTS
 
     records = load_dataset(data)
     graphs, targets, meta = prepare(records)

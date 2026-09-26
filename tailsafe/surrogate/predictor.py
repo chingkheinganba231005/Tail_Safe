@@ -14,11 +14,10 @@ from tailsafe.building.model import Building
 from tailsafe.building.templates import TEMPLATES
 from tailsafe.config import Params, get_params
 from tailsafe.scenarios.spec import ScenarioSpec
+from tailsafe.surrogate import DEFAULT_WEIGHTS
 from tailsafe.surrogate.data import SHARE_65_RANGE, TYPOLOGIES
 from tailsafe.surrogate.features import StaticGraph, graph_features, static_graph
 from tailsafe.surrogate.model import HORIZON, LOSS_NAMES, QUANTILES, load_model, predict
-
-DEFAULT_WEIGHTS = Path(__file__).parent / "weights" / "surrogate.npz"
 
 
 def coverage_notes(building: Building, spec: ScenarioSpec) -> list[str]:
