@@ -1,20 +1,19 @@
-# TailSafe — Build Spec for Claude Code
+# TailSafe — Product specification
 
 > **Tail-risk evacuation stress-testing for high-rise Hong Kong.**
-> Paste this whole file into Claude Code, or save it in the repo root as `SPEC.md` and tell Claude Code: *"Read SPEC.md, enter plan mode, and propose an implementation plan for Milestone 0–2."*
 
 ---
 
-## 0. Your role and how to work
+## 0. What TailSafe is, and how it is built
 
-You are a senior engineer building **TailSafe**, an AI system that stress-tests how people evacuate Hong Kong high-rise buildings under realistic, uncertain, worst-case conditions, and then recommends interventions that shrink the *worst* outcomes, not just the average.
+**TailSafe** is a system that stress-tests how people evacuate Hong Kong high-rise buildings under realistic, uncertain, worst-case conditions, and then recommends interventions that shrink the *worst* outcomes, not just the average.
 
-Working rules:
-- Start in **plan mode**. Propose architecture and milestone plan before writing code. Ask me before any decision that is expensive to reverse (framework choice, data schema, simulation model).
-- Create and maintain a `CLAUDE.md` with project conventions, commands, and current status.
-- Build in the milestone order in §9. Each milestone must end with passing tests and a runnable demo.
+Engineering principles:
+- Agree the architecture and milestone plan before writing code; decisions that are expensive to reverse (framework choice, data schema, simulation model) are reviewed by the project owner.
+- Maintain `DEVELOPMENT.md` with project conventions, commands, and current status.
+- Build in the milestone order in §9. Each milestone ends with passing tests and a runnable demo.
 - **Determinism:** every stochastic component takes an explicit seed. Same seed → same result.
-- **Never invent citations or statistics.** Put every physical/demographic parameter in `config/params.yaml` with a `source:` field. If you don't know a source, write `source: ASSUMPTION — needs citation` so I can fill it in.
+- **Never invent citations or statistics.** Put every physical/demographic parameter in `config/params.yaml` with a `source:` field. If the source is not known, write `source: ASSUMPTION — needs citation` so it can be filled in later.
 - Prefer clarity over cleverness. Type hints everywhere, docstrings on public functions, `ruff` + `mypy` clean.
 
 ---
@@ -94,7 +93,7 @@ Existing tools (Pathfinder, MassMotion, buildingEXODUS, open-source JuPedSim/Vad
 ### 4.4 Microscopic simulator (`tailsafe/sim/micro.py`)
 - Social-force (or collision-free speed) model on the 2D floor geometry, with stairs connecting floors.
 - Used only to replay selected scenarios (median, P95, worst, and before/after of an intervention) for animation and to cross-check the meso engine.
-- Optional: an adapter to JuPedSim for validation if it simplifies things — discuss with me first.
+- Optional: an adapter to JuPedSim for validation if it simplifies things — to be agreed with the project owner.
 
 ### 4.5 Hazard model (`tailsafe/hazard/`)
 - Zone model on the building graph: fire origin node, smoke produced over time, spreads through open doors and vertical shafts (stair and lift) with an upward stack-effect bias; fire-rated doors and protected lobbies slow spread.
@@ -195,7 +194,7 @@ web/
 tests/
 notebooks/        # experiments, surrogate training
 docs/  (architecture.md, validation.md, assumptions.md, pitch_metrics.md)
-CLAUDE.md  README.md  pyproject.toml  docker-compose.yml
+DEVELOPMENT.md  README.md  pyproject.toml  docker-compose.yml
 ```
 
 ---
@@ -204,7 +203,7 @@ CLAUDE.md  README.md  pyproject.toml  docker-compose.yml
 
 | # | Milestone | Done when |
 |---|---|---|
-| M0 | Scaffolding: repo, tooling, CI, `CLAUDE.md`, `params.yaml` | `make test` and `make dev` work |
+| M0 | Scaffolding: repo, tooling, CI, `DEVELOPMENT.md`, `params.yaml` | `make test` and `make dev` work |
 | M1 | Building model + JSON schema + procedural HK templates | Can generate and visualize a 40-storey cruciform block |
 | M2 | Meso simulator + population model | Single scenario runs; analytical validation passes |
 | M3 | Scenario sampler, Monte Carlo runner, risk metrics | CVaR₉₅ with CIs in < 2 min for target building |
@@ -233,7 +232,3 @@ Show: baseline distribution → the tail → where it comes from (bottleneck + w
 - TailSafe is an educational and decision-support prototype, **not** a substitute for a registered fire engineer, the Fire Services Department, or compliance with the Buildings Department's Code of Practice for Fire Safety in Buildings. Show this in the UI and README.
 - No personal data. All occupants are synthetic.
 - Document every simplifying assumption in `docs/assumptions.md`.
-
----
-
-Begin with plan mode: summarize your understanding, list open questions for me, propose the tech choices you'd make for M0–M3, and wait for my go-ahead.

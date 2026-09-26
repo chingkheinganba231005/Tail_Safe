@@ -150,8 +150,8 @@ See [docs/demo.md](docs/demo.md) for the five-minute talk track.
 
 ## Status
 
-Development follows the milestones in [`Tailsafeidea.md`](Tailsafeidea.md) §9.
-The current state of each milestone is tracked in [`CLAUDE.md`](CLAUDE.md).
+Development follows the milestones in the [product specification](docs/spec.md) §9.
+The current state of each milestone is tracked in [`DEVELOPMENT.md`](DEVELOPMENT.md).
 
 ## Repository layout
 

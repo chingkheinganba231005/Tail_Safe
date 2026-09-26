@@ -479,7 +479,7 @@ missing). CLI: `tailsafe surrogate data | eval | train`.
 The spec named PyTorch Geometric. Its wheels could not be downloaded in the
 development environment, so the same model class is written directly in JAX
 (`pip install 'tailsafe[surrogate]'` pulls `jax[cpu]` and `optax`). This is
-recorded as an open decision in `CLAUDE.md`.
+recorded as an open decision in `DEVELOPMENT.md`.
 
 ## Briefing (`tailsafe/report/`)
 

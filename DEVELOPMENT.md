@@ -1,9 +1,9 @@
-# CLAUDE.md — TailSafe project guide
+# TailSafe — developer guide
 
 TailSafe stress-tests evacuation of Hong Kong high-rise buildings under uncertain,
 worst-case conditions and ranks cheap operational interventions by how much they
 shrink the **tail** (CVaR₉₅, P(RSET > ASET)), not the mean. The full product spec
-is [`Tailsafeidea.md`](Tailsafeidea.md); this file records conventions, commands
+is [`docs/spec.md`](docs/spec.md); this file records conventions, commands
 and current status.
 
 ## Commands
@@ -63,8 +63,7 @@ make pitch-demo  # the whole pitch, timed (= tailsafe demo --out out/pitch, ~4 m
   live in `tests/validation/` and are summarised in `docs/validation.md`.
 - **Responsible use:** show the disclaimer (`tailsafe.DISCLAIMER`) in the UI,
   API and reports. All occupants are synthetic.
-- **Git:** commits are authored by the repository owner; do not add AI
-  co-author or session trailers to commit messages.
+- **Git:** commits are authored by the repository owner.
 
 ## Layout
 
@@ -100,7 +99,7 @@ docs/                  architecture, validation, assumptions, pitch metrics
 
 | # | Milestone | State |
 |---|---|---|
-| M0 | Scaffolding: tooling, CI, CLAUDE.md, params.yaml | ✅ done |
+| M0 | Scaffolding: tooling, CI, DEVELOPMENT.md, params.yaml | ✅ done |
 | M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make demo`) |
 | M2 | Meso simulator + population model | ✅ done (`tailsafe validate`, `tailsafe sim run`) |
 | M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-demo`: 1,000 runs ≈ 1 min on 4 cores) |
