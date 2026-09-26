@@ -11,6 +11,7 @@ import { ScenarioBuilder } from "./screens/ScenarioBuilder";
 import { Stack3D } from "./screens/Stack3D";
 import { StressResults } from "./screens/StressResults";
 import { WhatIf } from "./screens/WhatIf";
+import { STATIC } from "./static/site";
 import type { BottleneckResult, BuildingView, OptimizeResult, ScenarioSpec, StressResult } from "./types";
 
 export type Step = "building" | "scenario" | "results" | "stack" | "replay" | "bottlenecks" | "optimize" | "whatif" | "report";
@@ -181,13 +182,26 @@ export function App() {
       <div className="border-b" style={{ borderColor: "var(--border)" }}>
         <details className="mx-auto max-w-[1180px] px-4 py-2.5 text-sm sm:px-6">
           <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span className="phase-tag">Prototype</span>
+            <span className="phase-tag">{STATIC ? "Browser version" : "Prototype"}</span>
             <span>
+              {STATIC
+                ? "Results are pre-computed for four standard buildings; What-if runs live in your browser. "
+                : ""}
               Decision support only — not a fire-safety assessment. All residents are synthetic.{" "}
               <span className="underline underline-offset-2">Read the notice</span>
             </span>
           </summary>
           <p className="secondary mt-2 max-w-3xl leading-relaxed">{disclaimer}</p>
+          {STATIC && (
+            <p className="secondary mt-2 max-w-3xl leading-relaxed">
+              This browser version shows results recorded from the simulator for the reference scenario of
+              each building type. To simulate your own building and settings,{" "}
+              <a href={`${REPO}#run-the-full-app`} target="_blank" rel="noreferrer">
+                run the full app
+              </a>
+              .
+            </p>
+          )}
         </details>
       </div>
 

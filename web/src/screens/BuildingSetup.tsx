@@ -1,11 +1,12 @@
-import { TypologyGlyph } from "../components/TypologyGlyph";
-import { Callout } from "../components/Icon";
 import { useEffect, useMemo, useState } from "react";
 import { get, post } from "../api";
+import { Callout } from "../components/Icon";
 import { PlanEditor } from "../components/PlanEditor";
 import { PlanView } from "../components/PlanView";
 import { StatTile } from "../components/StatTile";
+import { TypologyGlyph } from "../components/TypologyGlyph";
 import { levelLabel, titleCase } from "../lib/format";
+import { STATIC } from "../static/site";
 import type { Building, BuildingView, Template } from "../types";
 
 interface Props {
@@ -74,11 +75,11 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
             <span className="sm:hidden">Type</span>
             <span className="hidden sm:inline">Building type</span>
           </button>
-          <button aria-pressed={source === "plan"} onClick={() => setSource("plan")}>
+          <button aria-pressed={source === "plan"} disabled={STATIC} onClick={() => setSource("plan")}>
             <span className="sm:hidden">Plan image</span>
             <span className="hidden sm:inline">Floor-plan image</span>
           </button>
-          <button aria-pressed={source === "upload"} onClick={() => setSource("upload")}>
+          <button aria-pressed={source === "upload"} disabled={STATIC} onClick={() => setSource("upload")}>
             Upload file
           </button>
         </div>
@@ -107,6 +108,7 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
                   <label key={k} className="flex h-9 items-center gap-2 text-sm">
                     <input
                       type="checkbox"
+                      disabled={STATIC}
                       checked={v}
                       onChange={(e) => setOptions({ ...options, [k]: e.target.checked })}
                     />
@@ -118,6 +120,7 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
                     <input
                       type="number"
                       className="w-24"
+                      disabled={STATIC}
                       value={v}
                       step={Number.isInteger(v) ? 1 : 0.5}
                       onChange={(e) => setOptions({ ...options, [k]: Number(e.target.value) })}
@@ -129,6 +132,12 @@ export function BuildingSetup({ building, onBuilding, onConfirm }: Props) {
                 {busy ? "Generating…" : "Generate building"}
               </button>
             </div>
+            {STATIC && (
+              <p className="muted text-sm">
+                In the browser version each building type has its standard size, and reading floor plans needs
+                the full app, which can change both.
+              </p>
+            )}
           </div>
         ) : source === "plan" ? (
           <PlanEditor onBuilding={onBuilding} />

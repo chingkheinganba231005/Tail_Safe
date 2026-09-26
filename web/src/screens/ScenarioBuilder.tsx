@@ -1,9 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { get } from "../api";
 import type { StressRun } from "../App";
+import { get } from "../api";
+import { Callout } from "../components/Icon";
 import { JobProgress } from "../components/JobProgress";
 import { useJob } from "../components/useJob";
 import { levelLabel } from "../lib/format";
+import { STATIC } from "../static/site";
+import { canon } from "../static/key";
 import type { BuildingView, Dist, ScenarioSpec, StressResult, TimeSlot } from "../types";
 
 interface Props {
@@ -102,18 +105,21 @@ export function ScenarioBuilder({ building, spec, setSpec, onStress }: Props) {
   const [runs, setRuns] = useState(300);
   const [seed, setSeed] = useState(0);
   const { job, error, running, run } = useJob<StressResult>();
+  // Browser version: only the reference scenario of each building is recorded.
+  const [standard, setStandard] = useState<string | null>(null);
 
   useEffect(() => {
-    if (spec) {
-      setSpec(fitSpec(spec, building));
-      return;
-    }
-    get<ScenarioSpec>("/api/specs/demo")
-      .then((s) => setSpec(fitSpec(s, building)))
+    if (spec) setSpec(fitSpec(spec, building));
+    get<ScenarioSpec>("/api/specs/reference")
+      .then((s) => {
+        setStandard(canon(fitSpec(s, building)));
+        if (!spec) setSpec(fitSpec(s, building));
+      })
       .catch(() => undefined);
   }, [building.id]);
 
   if (!spec) return <p className="muted">Loading scenario…</p>;
+  const changed = STATIC && standard !== null && canon(spec) !== standard;
   const set = (patch: Partial<ScenarioSpec>) => setSpec({ ...spec, ...patch });
   const levels = b.levels.map((l) => l.index).filter((l) => l > 0);
   const hazardOn = spec.hazard?.enabled ?? false;
@@ -124,7 +130,7 @@ export function ScenarioBuilder({ building, spec, setSpec, onStress }: Props) {
     if (out) onStress({ jobId: out.job.id, result: out.result, spec, runs, seed });
   };
 
-  const loadDemo = async () => setSpec(fitSpec(await get<ScenarioSpec>("/api/specs/demo"), building));
+  const loadReference = async () => setSpec(fitSpec(await get<ScenarioSpec>("/api/specs/reference"), building));
 
   return (
     <div className="space-y-4">
@@ -137,8 +143,8 @@ export function ScenarioBuilder({ building, spec, setSpec, onStress }: Props) {
               service arrives…) is sampled from the parameter registry in every run.
             </p>
           </div>
-          <button className="btn-ghost text-sm" onClick={loadDemo}>
-            Load pitch scenario
+          <button className="btn-ghost text-sm" onClick={loadReference}>
+            Load the reference scenario
           </button>
         </div>
       </section>
@@ -355,7 +361,7 @@ export function ScenarioBuilder({ building, spec, setSpec, onStress }: Props) {
       </div>
       <section className="card flex flex-wrap items-end gap-3 p-4">
         <Field label="Monte Carlo runs">
-          <select value={runs} onChange={(e) => setRuns(Number(e.target.value))}>
+          <select value={runs} disabled={STATIC} onChange={(e) => setRuns(Number(e.target.value))}>
             {[100, 300, 1000, 2000].map((n) => (
               <option key={n} value={n}>
                 {n}
@@ -364,9 +370,9 @@ export function ScenarioBuilder({ building, spec, setSpec, onStress }: Props) {
           </select>
         </Field>
         <Field label="Seed">
-          <input type="number" min={0} className="w-24" value={seed} onChange={(e) => setSeed(Number(e.target.value))} />
+          <input type="number" min={0} className="w-24" value={seed} disabled={STATIC} onChange={(e) => setSeed(Number(e.target.value))} />
         </Field>
-        <button className="btn" disabled={running} onClick={start}>
+        <button className="btn" disabled={running || changed} onClick={start}>
           {running ? "Running…" : "Run stress test"}
         </button>
         <p className="muted text-xs">
@@ -375,6 +381,17 @@ export function ScenarioBuilder({ building, spec, setSpec, onStress }: Props) {
           Same seed → same scenarios, so runs are reproducible and comparable.
         </p>
       </section>
+      {changed && (
+        <Callout tone="info">
+          <p>
+            You have changed the scenario. The browser version only has results for the reference scenario of
+            each building — the What-if screen estimates any settings instantly, in your browser.
+          </p>
+          <button className="btn-ghost mt-2" onClick={loadReference}>
+            Back to the reference scenario
+          </button>
+        </Callout>
+      )}
       <JobProgress job={job} error={error} label="Stress test" />
     </div>
   );

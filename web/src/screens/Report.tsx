@@ -1,7 +1,7 @@
-import { Callout } from "../components/Icon";
 import { Fragment, type ReactNode, useState } from "react";
-import { post } from "../api";
 import type { StressRun } from "../App";
+import { post, postBlob } from "../api";
+import { Callout } from "../components/Icon";
 import type { BottleneckResult, BuildingView, Briefing, OptimizeResult } from "../types";
 
 interface Props {
@@ -82,16 +82,14 @@ export function Report({ building, stress, bottlenecks, optimization }: Props) {
     const distributions: Record<string, number[]> = optimization
       ? { Baseline: optimization.before_after.total_time.before, "With plan": optimization.before_after.total_time.after }
       : { Baseline: stress.result.losses.total_time };
-    const res = await fetch("/api/briefing/pdf", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ markdown: brief.markdown, distributions }),
-    });
-    if (!res.ok) {
-      setError(`PDF export failed (${res.status})`);
+    let blob: Blob;
+    try {
+      blob = await postBlob("/api/briefing/pdf", { markdown: brief.markdown, distributions });
+    } catch (e) {
+      setError(`PDF export failed: ${(e as Error).message}`);
       return;
     }
-    const url = URL.createObjectURL(await res.blob());
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "tailsafe-briefing.pdf";

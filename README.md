@@ -17,18 +17,45 @@ scenarios) instead of a single "design" average.
 > Many parameters are still marked `ASSUMPTION — needs citation` in
 > [`config/params.yaml`](config/params.yaml); see [`docs/assumptions.md`](docs/assumptions.md).
 
-## Quick start
+## Use it from any browser
 
-Requires Python 3.11+ and `make`.
+**Browser version — nothing to install:
+[chingkheinganba231005.github.io/Tail_Safe](https://chingkheinganba231005.github.io/Tail_Safe/)**
+
+The complete interface on any device, phones included. Results for the reference
+scenario of each of the four building types are recorded from the simulator, and
+the What-if screen runs the trained network in your browser for any settings.
+
+### Run the full app
+
+To stress-test your own building and settings, run the full app (simulator, API
+and web UI) — it works from any browser that can reach it.
+
+* **On your computer, with Docker:**
+
+  ```bash
+  docker build -t tailsafe .
+  docker run -p 7860:7860 tailsafe
+  ```
+
+  Open http://localhost:7860, or `http://<your computer's address>:7860` from a
+  phone or tablet on the same network.
+* **At a public web address:** publish the same container as a free
+  [Hugging Face Space](https://huggingface.co/spaces) (Docker). The workflow in
+  `.github/workflows/space.yml` does it on every push once the Space is set up
+  (steps in [DEVELOPMENT.md](DEVELOPMENT.md#publishing)).
+* **For development:** Python 3.11+, Node 20+ and `make` (below).
+
+## Quick start (development)
 
 ```bash
-make install     # create .venv and install tailsafe + dev tools (+ JAX for the surrogate)
-make test        # fast test suite
-make check       # lint + format check + mypy + tests (what CI runs)
-make dev         # API on :8000 + web UI with hot reload on http://localhost:5173 (needs Node 20+)
-make web         # or: build the UI once; `make api` then serves it on http://localhost:8000
-make demo        # generate and render a 40-storey cruciform public-housing block
-make stress-demo # 1,000-scenario stress test of the pitch scenario (~1 min on 4 cores)
+make install        # create .venv and install tailsafe + dev tools (+ JAX for the surrogate)
+make test           # fast test suite
+make check          # lint + format check + mypy + tests (what CI runs)
+make dev            # API on :8000 + web UI with hot reload on http://localhost:5173
+make web            # or: build the UI once; `make api` then serves it on http://localhost:8000
+make example        # generate and render a 40-storey cruciform public-housing block
+make stress-example # 1,000-scenario stress test of the reference scenario (~1 min on 4 cores)
 ```
 
 The `tailsafe` command is installed into `.venv/bin`:
@@ -40,40 +67,39 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe validate                  # analytical checks of the simulator
 .venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
     --block-stair A@240 --plot out/run.png   # one scenario: JSON summary + plot
-.venv/bin/tailsafe stress run cruciform --spec demo --runs 1000 --out out/demo
-.venv/bin/tailsafe stress bottlenecks out/demo   # what drives the tail?
-.venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo  # which plan fixes it?
-.venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo
+.venv/bin/tailsafe stress run cruciform --runs 1000 --out out/stress
+.venv/bin/tailsafe stress bottlenecks out/stress   # what drives the tail?
+.venv/bin/tailsafe optimize cruciform --out out/plan  # which plan fixes it?
+.venv/bin/tailsafe brief --stress out/stress --optimization out/plan  # one-page briefing (Markdown + PDF)
 .venv/bin/tailsafe micro run cruciform --index 3 --plot out/floor.png --level 14  # one scenario, person by person
 .venv/bin/tailsafe micro compare cruciform --runs 20   # how far the two engines agree
 .venv/bin/tailsafe vision detect plan.png --scale 0,0,200,0,10 --out det.json --overlay out/det.png
 .venv/bin/tailsafe vision build det.json --storeys 30 --out out/plan_building.json
 .venv/bin/tailsafe surrogate data --cases 800 && .venv/bin/tailsafe surrogate eval  # retrain / re-evaluate the surrogate
-.venv/bin/tailsafe brief --stress out/demo --optimization out/opt-demo  # briefing (Markdown + PDF)
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
 
-*A procedurally generated 40-storey cruciform public-housing block (`make demo`):
+*A procedurally generated 40-storey cruciform public-housing block (`make example`):
 typical-floor plan with the egress graph, and the 3D stack with the refuge floor.*
 
-### Example: the pitch scenario
+### Example: the reference scenario
 
 *Sunday 3 a.m., 40-storey public housing block, 22% of residents aged 65+,
 Stair A smoke-logged at 4 minutes, one lift out of service* — 1,000 sampled
-scenarios (`make stress-demo`):
+scenarios (`make stress-example`):
 
-![Distribution of total evacuation time with mean, P95 and CVaR95, and who is still inside in the worst 5%](docs/img/stress_demo.png)
+![Distribution of total evacuation time with mean, P95 and CVaR95, and who is still inside in the worst 5%](docs/img/stress_example.png)
 
 > These numbers come from parameters that are still largely **assumptions**
 > (walking speeds of frail residents, pre-movement at night, fire-service
-> rescue logistics). Treat them as a demonstration of the method until the
+> rescue logistics). Treat them as an illustration of the method until the
 > registry is calibrated.
 
 ### Example: the fix, and its trade-off
 
 `tailsafe optimize` searches cheap operational plans with common random numbers
-and confirms the best one on 400 fresh scenarios. For the pitch scenario it
+and confirms the best one on 400 fresh scenarios. For the reference scenario it
 proposes evacuation lifts for mobility-impaired residents plus two floor
 wardens. The tail of the total evacuation time roughly halves, because
 wheelchair users no longer wait for fire-service rescue, and P(RSET > ASET)
@@ -82,31 +108,31 @@ falls slightly. But the tail of the time for 95% of occupants to get out gets
 lift out of service is an evacuation lift, the one that remains cannot keep up
 and that group gets out later than on foot; when it is the firefighting lift,
 both evacuation lifts run and almost everyone gains (the left-hand cluster in
-the right panel). The numbers are in
-[`docs/pitch_metrics.md`](docs/pitch_metrics.md), generated from the saved results.
+the right panel).
 
-![Before/after distributions on the same 400 scenarios](docs/img/opt_demo.png)
+![Before/after distributions on the same 400 scenarios](docs/img/optimise_example.png)
 
 ### The web UI
 
-`make dev` and open http://localhost:5173: pick a building, describe the
-scenario, run the stress test, then follow the tail through the 3D stack view,
-the bottleneck ranking and the optimiser's before/after comparison.
+Pick a building, describe the scenario, run the stress test, then follow the
+tail through the 3D stack, the person-by-person replay, the bottleneck ranking
+and the optimiser's before/after comparison. Every screen has a Back and a
+Continue button, and the layout works on phones.
 
 ![Stress-test results in the web UI: CVaR95 and P(RSET > ASET) with confidence intervals, the distribution with mean, P95 and CVaR95 markers](docs/img/web_results.png)
 
-No building model? On the Building screen, *Floor plan image* reads a plan
+No building model? On the Building screen, *Floor-plan image* reads a plan
 (PNG, JPEG or PDF): draw a reference line, let TailSafe find rooms, doorways
 and stairs, correct what it got wrong, and stack the floor into a tower:
 
-![Floor-plan editor: rooms by type, doorways in orange, the reference line and the correction panel](docs/img/web_plan_editor.png)
+![Floor-plan editor: rooms by type, doorways, the reference line and the correction panel](docs/img/web_plan_editor.png)
 
-The *Replay (people)* screen re-runs one scenario person by person with the
+The *Replay* screen re-runs one scenario person by person with the
 microscopic engine and compares it with the fast engine:
 
 ![Person-by-person replay of the fire floor in the worst scenario, with the fast and microscopic engines' times side by side](docs/img/web_replay.png)
 
-The *What-if (live)* screen answers as you move the controls: a graph neural
+The *What-if* screen answers as you move the controls: a graph neural
 network trained on simulator runs estimates the median-to-P95 range and CVaR₉₅
 of each outcome in milliseconds, and *Confirm with full simulation* runs the
 real stress test and plots it alongside. Its accuracy, including on building
@@ -120,14 +146,6 @@ the results (an optional LLM drafts the text when configured; a draft with
 any other number is rejected), with a PDF export.
 
 ![One-page briefing: what we found, who is most at risk, why, what to do, limits, and the before/after distribution](docs/img/briefing.png)
-
-### The whole pitch in one command
-
-```bash
-.venv/bin/tailsafe demo --out out/pitch   # ~4 min on 4 cores: tail → causes → plan → replay → briefing
-```
-
-See [docs/demo.md](docs/demo.md) for the five-minute talk track.
 
 ## What is in the box
 
@@ -146,7 +164,7 @@ See [docs/demo.md](docs/demo.md) for the five-minute talk track.
 | Microscopic replay engine (people as discs on the floor plan) with a meso–micro agreement study | `tailsafe/sim/micro.py`, `tailsafe/analysis/agreement.py` | ✅ |
 | Floor-plan reader (walls, doorways, rooms, stairs, scale) with a correction editor | `tailsafe/vision/`, web Building screen | ✅ |
 | Graph-neural-network surrogate (JAX) with leave-one-typology-out evaluation | `tailsafe/surrogate/` | ✅ |
-| Grounded one-page briefing (template, or LLM with a number check) and PDF export; timed end-to-end demo | `tailsafe/report/`, web Briefing screen | ✅ |
+| Grounded one-page briefing (template, or LLM with a number check) and PDF export | `tailsafe/report/`, web Briefing screen | ✅ |
 
 ## Status
 
@@ -161,7 +179,7 @@ tailsafe/            Python package (building, population, sim, hazard, scenario
 config/params.yaml   every physical / demographic parameter, each with a source
 schemas/             JSON schemas generated from the Pydantic models
 data/templates/      generated example buildings
-docs/                architecture, validation, assumptions, pitch metrics
+docs/                specification, architecture, validation, assumptions
 tests/               pytest suite
 ```
 
@@ -170,4 +188,3 @@ tests/               pytest suite
 - [Architecture](docs/architecture.md) — modules, data flow and key design decisions
 - [Validation](docs/validation.md) — analytical checks and what they show
 - [Assumptions](docs/assumptions.md) — every simplification, stated plainly
-- [Demo](docs/demo.md) — the five-minute pitch, step by step

@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { histogram, ticks } from "../../lib/stats";
-import { useWidth } from "../hooks";
 import { Legend } from "../Legend";
 import { useTooltip } from "../Tooltip";
+import { useWidth } from "../hooks";
+import { histogram, ticks } from "../../lib/stats";
 
 export interface HistSeries {
   name: string;

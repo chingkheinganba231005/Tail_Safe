@@ -1,10 +1,10 @@
-import { Callout, Icon } from "../components/Icon";
 import { useEffect, useMemo, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
-import { Histogram } from "../components/charts/Histogram";
+import { Callout, Icon } from "../components/Icon";
 import { JobProgress } from "../components/JobProgress";
 import { StackLegend, StackView3D } from "../components/StackView3D";
+import { Histogram } from "../components/charts/Histogram";
 import { useJob } from "../components/useJob";
 import { LOSS_LABELS, LOSS_SHORT, clock, min, signedMin } from "../lib/format";
 import { extent } from "../lib/stats";

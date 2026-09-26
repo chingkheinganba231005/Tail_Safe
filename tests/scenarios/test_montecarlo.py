@@ -9,7 +9,7 @@ from tailsafe.building.model import Building
 from tailsafe.building.templates import generate
 from tailsafe.risk.breakdown import floor_band, tail_breakdown
 from tailsafe.scenarios.montecarlo import LOSSES, MCConfig, MCResult, run_monte_carlo
-from tailsafe.scenarios.spec import ScenarioSpec, demo_spec
+from tailsafe.scenarios.spec import ScenarioSpec, reference_spec
 
 
 @pytest.fixture(scope="module")
@@ -19,7 +19,7 @@ def small() -> Building:
 
 @pytest.fixture(scope="module")
 def result(small: Building) -> MCResult:
-    return run_monte_carlo(small, demo_spec(), MCConfig(n_runs=40, batch_size=20, workers=1))
+    return run_monte_carlo(small, reference_spec(), MCConfig(n_runs=40, batch_size=20, workers=1))
 
 
 def test_runs_and_losses(result: MCResult) -> None:
@@ -36,7 +36,7 @@ def test_runs_and_losses(result: MCResult) -> None:
 
 
 def test_parallel_equals_serial(small: Building, result: MCResult) -> None:
-    par = run_monte_carlo(small, demo_spec(), MCConfig(n_runs=40, batch_size=20, workers=2))
+    par = run_monte_carlo(small, reference_spec(), MCConfig(n_runs=40, batch_size=20, workers=2))
     np.testing.assert_array_equal(par.loss("total_time"), result.loss("total_time"))
     np.testing.assert_array_equal(par.arc_qint, result.arc_qint)
 
@@ -94,7 +94,7 @@ def test_floor_band_labels() -> None:
 def test_performance_target() -> None:
     """Spec §4.3: 40 storeys, ~2,000 occupants, 1,000 runs in under 2 minutes."""
     b = generate("cruciform", storeys=40)
-    res = run_monte_carlo(b, demo_spec(), MCConfig(n_runs=1000, keep_groups=False))
+    res = run_monte_carlo(b, reference_spec(), MCConfig(n_runs=1000, keep_groups=False))
     assert res.array("n_agents").mean() > 1700
     assert res.elapsed < 120.0, f"{res.elapsed:.1f} s"
 

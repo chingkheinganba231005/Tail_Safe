@@ -1,11 +1,11 @@
-import { Callout } from "../components/Icon";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { get, post } from "../api";
 import type { StressRun } from "../App";
+import { get, post } from "../api";
 import { ChartCard } from "../components/ChartCard";
+import { Callout } from "../components/Icon";
+import { JobProgress } from "../components/JobProgress";
 import { RangeChart, type RangeRow } from "../components/charts/RangeChart";
 import { RankChart } from "../components/charts/RankChart";
-import { JobProgress } from "../components/JobProgress";
 import { useJob } from "../components/useJob";
 import { LOSS_SHORT, levelLabel } from "../lib/format";
 import { quantile } from "../lib/stats";
@@ -37,7 +37,7 @@ export function WhatIf({ building, spec: initial, onStress }: Props) {
 
   useEffect(() => {
     if (initial) return;
-    get<ScenarioSpec>("/api/specs/demo").then((s) =>
+    get<ScenarioSpec>("/api/specs/reference").then((s) =>
       setSpec({ ...s, fire_level: s.fire_level != null ? Math.min(s.fire_level, Math.max(...levels)) : null }),
     );
   }, []);

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
-import { FloorChart } from "../components/charts/FloorChart";
-import { LineChart } from "../components/charts/LineChart";
 import { JobProgress } from "../components/JobProgress";
 import { StackLegend, StackView3D } from "../components/StackView3D";
+import { FloorChart } from "../components/charts/FloorChart";
+import { LineChart } from "../components/charts/LineChart";
 import { useJob } from "../components/useJob";
 import { clock, levelLabel, minutes } from "../lib/format";
 import { useMode } from "../lib/theme";

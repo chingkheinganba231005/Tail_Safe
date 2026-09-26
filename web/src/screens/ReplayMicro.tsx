@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { get } from "../api";
 import type { StressRun } from "../App";
+import { get } from "../api";
 import { ChartCard } from "../components/ChartCard";
+import { JobProgress } from "../components/JobProgress";
 import { FloorChart } from "../components/charts/FloorChart";
 import { LineChart } from "../components/charts/LineChart";
 import { useWidth } from "../components/hooks";
-import { JobProgress } from "../components/JobProgress";
 import { useJob } from "../components/useJob";
 import { clock, levelLabel, minutes } from "../lib/format";
 import { dotsAt, frameAt } from "../lib/interp";

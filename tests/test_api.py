@@ -71,8 +71,8 @@ def test_templates_and_buildings() -> None:
     assert up.status_code == 200 and up.json()["id"] == bid
 
 
-def test_demo_spec() -> None:
-    spec = client.get("/api/specs/demo").json()
+def test_reference_spec() -> None:
+    spec = client.get("/api/specs/reference").json()
     assert spec["fire_level"] == 14 and spec["hazard"]["enabled"]
 
 

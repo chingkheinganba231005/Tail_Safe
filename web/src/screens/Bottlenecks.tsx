@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
-import { RankChart } from "../components/charts/RankChart";
 import { JobProgress } from "../components/JobProgress";
 import { PlanView } from "../components/PlanView";
 import { StackView3D } from "../components/StackView3D";
+import { RankChart } from "../components/charts/RankChart";
 import { useJob } from "../components/useJob";
 import { LOSS_SHORT, levelLabel, pct, signedMin } from "../lib/format";
 import { LOSSES, type BottleneckResult, type BuildingView, type Loss } from "../types";

@@ -1,0 +1,47 @@
+name: Full app (Hugging Face Space)
+
+# Optional. Publishes the full app (see Dockerfile) to a Hugging Face Space,
+# so anyone can run their own simulations from a browser at a public URL.
+#
+# One-time setup:
+#   1. On huggingface.co create a Space with the "Docker" SDK (the free CPU
+#      hardware is enough).
+#   2. Create an access token with write permission.
+#   3. In this repository: Settings → Secrets and variables → Actions:
+#      secret HF_TOKEN = the token; variable HF_SPACE = <user>/<space-name>.
+# Until HF_SPACE is set this workflow is skipped.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: space
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    if: ${{ vars.HF_SPACE != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Push the app to the Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ vars.HF_SPACE }}
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git lfs install --local
+          git checkout --orphan space
+          git rm -r -q --cached .
+          # Only what the container needs; binary files go through Git LFS.
+          rm -rf docs notebooks tests data
+          # A Space reads its settings from front matter at the top of README.md.
+          { printf -- '---\ntitle: TailSafe\nsdk: docker\napp_port: 7860\ncolorFrom: green\ncolorTo: gray\npinned: false\n---\n\n'; cat README.md; } > README.space
+          mv README.space README.md
+          git lfs track "*.npz" "*.png" "*.jpg" "*.pdf"
+          git add -A
+          git commit -q -m "Publish ${GITHUB_SHA::7}"
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" space:main

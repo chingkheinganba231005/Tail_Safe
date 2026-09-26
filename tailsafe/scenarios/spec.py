@@ -150,14 +150,14 @@ class ScenarioSpec(_Model):
         return self.model_dump(mode="json", exclude={"name", "description"})
 
 
-def demo_spec() -> ScenarioSpec:
-    """The pitch scenario (spec §10).
+def reference_spec() -> ScenarioSpec:
+    """The reference scenario (spec §10).
 
     Sunday 3 a.m., 22% of residents aged 65+, fire on 14/F, Stair A smoke-logged
     at t = 4 min, one lift out of service.
     """
     return ScenarioSpec(
-        name="demo-sunday-3am",
+        name="sunday-3am",
         description=(
             "Sunday, 3 a.m., 40-storey public housing block, 22% of residents aged 65+, "
             "fire on 14/F, Stair A smoke-logged at t = 4 min, one lift out of service."

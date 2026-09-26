@@ -169,7 +169,7 @@ fixes what is known — time slot, population mix, operational measures (phased
 release, stair assignment, evacuation lifts and their priority rule) — and
 describes what is uncertain with `Dist` objects: when named stairs become
 impassable, whether a random stair is lost and when, how many lifts are out of
-service, when fire-service rescue starts. `demo_spec()` is the pitch scenario.
+service, when fire-service rescue starts. `reference_spec()` is the reference scenario (spec §10).
 
 **Sampler** (`sampler.py`). Scenario-level draws use a fixed 16-slot uniform
 vector per scenario (rescue start, fire level, random blockage ×3, lifts out ×3,
@@ -208,9 +208,9 @@ loss. Shares of stragglers by the household's most dependent member and by
 floor band are compared with shares of all occupants (risk ratio), which gives
 a plain-language headline.
 
-Performance: 1,000 scenarios of the 40-storey demo block (~1,830 occupants)
+Performance: 1,000 scenarios of the 40-storey reference block (~1,830 occupants)
 take ~64 s on 4 cores as of M11 (~41 s when measured at M3, before the smoke
-model and later features; `make stress-demo`; target < 120 s, checked by the
+model and later features; `make stress-example`; target < 120 s, checked by the
 slow test). Scenarios are
 handed to workers in chunks of at most 10, and smaller for short runs (tail
 re-runs, optimiser samples) so every worker stays busy; each scenario is
@@ -327,7 +327,7 @@ of the sampled population, so common random numbers are kept. Households on
 covered floors react no later than the warden's sweep time, and each warden
 escorts one household that would otherwise wait for rescue down the stairs.
 
-CLI: `tailsafe optimize cruciform --spec demo --scenarios 100 --confirm 400 --out out/opt`.
+CLI: `tailsafe optimize cruciform --scenarios 100 --confirm 400 --out out/plan`.
 The GNN surrogate (M10) will pre-screen candidates here; the simulator will
 still confirm finalists.
 
@@ -486,7 +486,6 @@ recorded as an open decision in `DEVELOPMENT.md`.
 | File | Role |
 |---|---|
 | `briefing.py` | Facts from saved results, the template briefing, the optional LLM briefing with its number check, the one-page PDF |
-| `pitch.py` | `docs/pitch_metrics.md`, the headline numbers for the pitch |
 
 `briefing_facts` turns a stress test (and, when available, the bottleneck
 table and the optimised plan) into a small JSON document with every number
@@ -508,9 +507,37 @@ from the scenario's settings, never from its free-text description.
 
 CLI: `tailsafe brief` (Markdown, the facts as JSON, PDF). API:
 `POST /api/briefing` (results in, checked briefing out) and
-`POST /api/briefing/pdf`. `tailsafe demo` runs the pitch end to end —
-building, stress test, bottlenecks, plan, replay, briefing, pitch metrics —
-and times each step (see [demo.md](demo.md)).
+`POST /api/briefing/pdf`.
+
+## Browser version (`tailsafe/api/static_site.py`, `web/src/static/`)
+
+The same web UI, served as static files (GitHub Pages) with no Python server.
+
+* **Recording.** `tailsafe export-site --out web/public/data` drives the API
+  in-process with exactly the requests the UI sends on the standard path for
+  each building type (standard building, reference scenario fitted to it, 300-run
+  stress test, bottlenecks, optimised plan, 3D and before/after replays, the
+  person-by-person replay of the worst run with every floor, briefings and
+  PDFs), and writes each response to `r/<key>.json` (or `.pdf`).
+* **Keys.** A key is two FNV-1a hashes of `METHOD path canonical-body`, where
+  the canonical body has sorted keys and integral numbers written without a
+  decimal point (`canon` in Python and TypeScript; the briefing endpoints are
+  keyed by building and which results are included). Tests on both sides
+  check the same reference hashes. Job ids are replaced by ids derived from
+  the request, so follow-up requests (bottlenecks of a stress test, floors of
+  a replay) have stable keys.
+* **In the browser.** With `VITE_STATIC=1` the API client (`web/src/api.ts`)
+  answers from those files; a request that was not recorded gets a plain
+  message ("run TailSafe on your computer, or use What-if"). The scenario
+  screen notices when the scenario differs from the recorded one and offers
+  to reset it. The what-if network runs in the browser: `web/src/static/
+  surrogate.ts` ports the feature construction, the message-passing network
+  and the coverage notes; the exporter writes float32 weights, feature
+  statistics and each building's graph. A unit test compares the port with
+  predictions from the Python model.
+* **Deploying.** `.github/workflows/pages.yml` records the data (simulation
+  results cached by a hash of the code and parameters), builds with
+  `VITE_BASE=/<repo>/` and deploys to GitHub Pages on every push to `main`.
 
 ## Web UI (`web/`)
 

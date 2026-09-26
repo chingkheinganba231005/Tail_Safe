@@ -1,7 +1,7 @@
-import { Callout, Icon } from "./Icon";
 import { useRef, useState, type MouseEvent } from "react";
 import { get, post } from "../api";
 import type { BuildingView, PlanDetection, PlanDoor, PlanRoomType, PlanScale } from "../types";
+import { Callout, Icon } from "./Icon";
 
 interface Props {
   onBuilding: (b: BuildingView) => void;

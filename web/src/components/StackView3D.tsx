@@ -3,10 +3,10 @@ import { Canvas, type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { CanvasTexture, DoubleSide, Shape, ShapeGeometry, Vector2, type BufferGeometry } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
-import type { Building, Replay } from "../types";
 import { BLUE, ORANGE, ramp, smokeLevel } from "../lib/color";
 import { levelLabel } from "../lib/format";
 import { useMode } from "../lib/theme";
+import type { Building, Replay } from "../types";
 import { useTooltip } from "./Tooltip";
 
 interface Props {

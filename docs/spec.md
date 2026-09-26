@@ -11,7 +11,7 @@
 Engineering principles:
 - Agree the architecture and milestone plan before writing code; decisions that are expensive to reverse (framework choice, data schema, simulation model) are reviewed by the project owner.
 - Maintain `DEVELOPMENT.md` with project conventions, commands, and current status.
-- Build in the milestone order in §9. Each milestone ends with passing tests and a runnable demo.
+- Build in the milestone order in §9. Each milestone ends with passing tests and something runnable.
 - **Determinism:** every stochastic component takes an explicit seed. Same seed → same result.
 - **Never invent citations or statistics.** Put every physical/demographic parameter in `config/params.yaml` with a `source:` field. If the source is not known, write `source: ASSUMPTION — needs citation` so it can be filled in later.
 - Prefer clarity over cleverness. Type hints everywhere, docstrings on public functions, `ruff` + `mypy` clean.
@@ -157,7 +157,7 @@ Screens:
 8. **What-if (live)** — sliders hit the GNN surrogate for instant estimates, with a "confirm with full simulation" button.
 9. **Report** — generated briefing, export to PDF.
 
-Design: clean, calm, accessible (colour-blind-safe heatmaps), works on a laptop projector for a pitch.
+Design: clean, calm, accessible (colour-blind-safe heatmaps), readable on a phone as well as a large screen.
 
 ---
 
@@ -193,7 +193,7 @@ data/templates/   data/floorplans/   data/labels/
 web/
 tests/
 notebooks/        # experiments, surrogate training
-docs/  (architecture.md, validation.md, assumptions.md, pitch_metrics.md)
+docs/  (spec.md, architecture.md, validation.md, assumptions.md)
 DEVELOPMENT.md  README.md  pyproject.toml  docker-compose.yml
 ```
 
@@ -209,21 +209,21 @@ DEVELOPMENT.md  README.md  pyproject.toml  docker-compose.yml
 | M3 | Scenario sampler, Monte Carlo runner, risk metrics | CVaR₉₅ with CIs in < 2 min for target building |
 | M4 | Hazard model (smoke, visibility, FED, ASET) | P(RSET>ASET) reported; monotonicity tests pass |
 | M5 | Bottleneck attribution | Ranked, counterfactual bottleneck table |
-| M6 | Intervention optimizer | Before/after with statistically significant CVaR reduction on demo building |
-| M7 | Backend API + frontend screens 1–4, 6, 7 | Full demo flow in the browser |
+| M6 | Intervention optimizer | Before/after with statistically significant CVaR reduction on the reference building |
+| M7 | Backend API + frontend screens 1–4, 6, 7 | The full flow in the browser |
 | M8 | Micro simulator + replay screen | Worst-case animation; meso–micro agreement report |
 | M9 | Floor plan ingestion + correction editor | Upload → corrected graph → simulation |
 | M10 | GNN surrogate + live what-if | Surrogate calibrated; ≥100× faster than simulator |
-| M11 | LLM briefing, PDF export, polish, `pitch_metrics.md` | Demo script runs start-to-finish in 5 minutes |
+| M11 | LLM briefing, PDF export, polish | Briefing checked against the computed results; PDF export |
 
-The demo must never depend on the CV module working: procedural templates are the default path.
+The main path must never depend on the CV module working: procedural templates are the default.
 
 ---
 
-## 10. Demo scenario (for the pitch)
+## 10. Reference scenario
 
 "Sunday, 3 a.m., 40-storey public housing block, 22% of residents aged 65+, fire on 14/F, Stair A smoke-logged at t = 4 min, one lift out of service."
-Show: baseline distribution → the tail → where it comes from (bottleneck + which residents) → optimized operational plan → before/after animation → one-page briefing. `docs/pitch_metrics.md` should auto-populate the headline numbers from the latest run.
+The default scenario in the CLI (`--spec reference`) and the web UI. The standard path through the tool follows it: baseline distribution → the tail → where it comes from (bottleneck + which residents) → optimized operational plan → before/after animation → one-page briefing.
 
 ---
 

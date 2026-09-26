@@ -7,12 +7,12 @@ import numpy as np
 from tailsafe.building.templates import generate
 from tailsafe.risk.metrics import cvar, cvar_halfwidth
 from tailsafe.scenarios.montecarlo import MCConfig, run_monte_carlo
-from tailsafe.scenarios.spec import demo_spec
+from tailsafe.scenarios.spec import reference_spec
 
 
 def test_cvar_converges() -> None:
     b = generate("cruciform", storeys=16, flats_per_wing=2)
-    res = run_monte_carlo(b, demo_spec(), MCConfig(n_runs=320, batch_size=40, workers=2))
+    res = run_monte_carlo(b, reference_spec(), MCConfig(n_runs=320, batch_size=40, workers=2))
     x = res.loss("self_evacuation_time")
     widths = [cvar_halfwidth(x[:n]) for n in (40, 80, 160, 320)]
     assert widths[-1] < widths[0]

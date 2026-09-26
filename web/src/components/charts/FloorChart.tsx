@@ -1,7 +1,7 @@
+import { useTooltip } from "../Tooltip";
+import { useWidth } from "../hooks";
 import { levelLabel } from "../../lib/format";
 import { ticks } from "../../lib/stats";
-import { useWidth } from "../hooks";
-import { useTooltip } from "../Tooltip";
 
 export interface FloorRow {
   level: number;

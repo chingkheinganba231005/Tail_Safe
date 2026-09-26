@@ -1,8 +1,10 @@
-import { Callout } from "./Icon";
+import { NOT_RECORDED } from "../static/site";
 import type { Job } from "../types";
+import { Callout } from "./Icon";
 
 /** Progress of a background job (status, bar, message). */
 export function JobProgress({ job, error, label }: { job: Job | null; error: string | null; label: string }) {
+  if (error === NOT_RECORDED) return <Callout tone="info">{error}</Callout>;
   if (error) {
     return (
       <Callout tone="critical">

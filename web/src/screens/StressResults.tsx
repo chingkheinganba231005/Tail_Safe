@@ -2,11 +2,11 @@ import type React from "react";
 import { useMemo, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
+import { StatTile } from "../components/StatTile";
 import { FloorChart } from "../components/charts/FloorChart";
 import { Histogram, histogramTable } from "../components/charts/Histogram";
 import { Meter } from "../components/charts/Meter";
 import { RankChart } from "../components/charts/RankChart";
-import { StatTile } from "../components/StatTile";
 import { LOSS_LABELS, LOSS_SHORT, levelLabel, min, minutes, pct } from "../lib/format";
 import { LOSSES, type BuildingView, type Loss } from "../types";
 

@@ -98,7 +98,7 @@ or pessimistic. Numeric values and their sources live in
 - Species scale with one products tracer (soot, CO, CO₂ yields fixed); O₂
   depletion, HCN, irritants and radiant heat are ignored.
 - Occupants do not turn back from smoke-logged stairs by themselves; stair
-  loss is modelled with explicit blockages (e.g. the demo's Stair A at 4 min).
+  loss is modelled with explicit blockages (e.g. the reference scenario's Stair A at 4 min).
 - The fire flat's household reacts quickly (short pre-movement); everyone else
   hears the alarm at ignition.
 - Numbers are only as good as the assumed parameters in `params.yaml`
@@ -189,6 +189,6 @@ or pessimistic. Numeric values and their sources live in
 - The LLM writer is optional and off unless configured; the template briefing
   is the default. An LLM draft is accepted only if every number in it appears
   in the computed results, but its wording is not otherwise verified.
-- The demo run (`tailsafe demo`) uses smaller samples than the pitch numbers
-  (600 scenarios, 200 to confirm) to fit five minutes; its confidence
-  intervals are wider.
+- The browser version shows results recorded for the reference scenario of
+  each building type with 300 scenarios (plans confirmed on 200), so its
+  confidence intervals are wider than a 1,000-run study.

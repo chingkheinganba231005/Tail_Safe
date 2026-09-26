@@ -19,6 +19,7 @@ time distribution (before and after the plan when there is one).
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import textwrap
@@ -43,19 +44,26 @@ KEY_ENV = "ANTHROPIC_API_KEY"
 _NUMBER = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?")
 
 
-def _m(seconds: float) -> float:
-    """Seconds to minutes, rounded as displayed."""
+def _m(seconds: float | None) -> float | None:
+    """Seconds to minutes, rounded as displayed; ``None`` if never reached.
+
+    Results arrive as JSON, where an outcome that never happens within the
+    simulated period (``inf``) is ``null``.
+    """
+    if seconds is None or not math.isfinite(float(seconds)):
+        return None
     return round(float(seconds) / 60.0, 1)
 
 
-def _ci_min(est: dict[str, float]) -> list[float]:
+def _ci_min(est: dict[str, float | None]) -> list[float | None]:
     return [_m(est["lo"]), _m(est["hi"])]
 
 
-def _verdict(delta: dict[str, float]) -> str:
-    if delta["hi"] < 0:
+def _verdict(delta: dict[str, float | None]) -> str:
+    hi, lo = delta.get("hi"), delta.get("lo")
+    if hi is not None and hi < 0:
         return "better"
-    if delta["lo"] > 0:
+    if lo is not None and lo > 0:
         return "worse"
     return "no clear change"
 
@@ -221,8 +229,19 @@ def unknown_numbers(text: str, facts: dict[str, Any]) -> list[str]:
 
 
 # ----------------------------------------------------------------------------- writers
-def _fmt(x: float) -> str:
-    return f"{x:.1f}"
+BEYOND = "beyond the simulated period"
+
+
+def _mins(x: float | None) -> str:
+    """ "12.3 min", or a phrase when the outcome was never reached."""
+    return BEYOND if x is None else f"{x:.1f} min"
+
+
+def _ci(pair: list[float | None]) -> str:
+    lo, hi = pair
+    if lo is None or hi is None:
+        return ""
+    return f" (95% confidence {lo:.1f} to {hi:.1f} min)"
 
 
 def _lower_first(s: str) -> str:
@@ -242,13 +261,12 @@ def template_briefing(facts: dict[str, Any]) -> str:
         "",
         "## What we found",
         "",
-        f"- On an average run, everyone is out after {_fmt(tot['average_min'])} min "
+        f"- On an average run, everyone is out after {_mins(tot['average_min'])} "
         "(including fire-service rescue). In the worst 5% of runs it takes "
-        f"{_fmt(tot['worst_5pct_average_min'])} min on average "
-        f"(95% confidence {_fmt(tot['worst_5pct_average_ci_min'][0])} to "
-        f"{_fmt(tot['worst_5pct_average_ci_min'][1])} min).",
-        f"- The last person who can leave unaided is out after {_fmt(selfe['average_min'])} min "
-        f"on average, {_fmt(selfe['worst_5pct_average_min'])} min in the worst 5%.",
+        f"{_mins(tot['worst_5pct_average_min'])} on average"
+        f"{_ci(tot['worst_5pct_average_ci_min'])}.",
+        f"- The last person who can leave unaided is out after {_mins(selfe['average_min'])} "
+        f"on average, {_mins(selfe['worst_5pct_average_min'])} in the worst 5%.",
     ]
     smoke = facts.get("someone_caught_by_smoke")
     if smoke:
@@ -274,10 +292,10 @@ def template_briefing(facts: dict[str, Any]) -> str:
             lines.append(f"- {bn['headline']}")
         for row in bn["top"][1:]:
             change = row["change_in_worst_5pct_average_min"]
-            if change < 0:
+            if change is not None and change < 0:
                 lines.append(
                     f"- More capacity at {row['element']} would cut the worst-5% average of the "
-                    f"{bn['outcome']} by {_fmt(-change)} min."
+                    f"{bn['outcome']} by {_mins(-change)}."
                 )
     plan = facts.get("plan")
     if plan:
@@ -290,14 +308,14 @@ def template_briefing(facts: dict[str, Any]) -> str:
         )
         lines.append("")
         for e in plan["effects"]:
-            if e["verdict"] == "no clear change":
-                what = "no clear change"
+            if e["verdict"] == "no clear change" or e["change_min"] is None:
+                what = e["verdict"]
             else:
-                what = f"{e['verdict']} by {_fmt(abs(e['change_min']))} min"
+                what = f"{e['verdict']} by {_mins(abs(e['change_min']))}"
             lines.append(
                 f"- {e['outcome'][:1].upper() + e['outcome'][1:]} (worst 5%): "
-                f"{_fmt(e['worst_5pct_average_before_min'])} → "
-                f"{_fmt(e['worst_5pct_average_after_min'])} min, {what}."
+                f"{_mins(e['worst_5pct_average_before_min'])} → "
+                f"{_mins(e['worst_5pct_average_after_min'])}, {what}."
             )
         s = plan["someone_caught_by_smoke"]
         lines.append(
@@ -412,8 +430,9 @@ def make_briefing(facts: dict[str, Any], *, use_llm: bool | None = None) -> Brie
 
 
 # ----------------------------------------------------------------------------- PDF
-_BLUE, _ORANGE = "#2a78d6", "#eb6834"
-_INK, _INK2, _MUTED, _GRID = "#0b0b0b", "#52514e", "#898781", "#e1e0d9"
+# The web UI's chart palette (checked for colour-blind separation) and ink.
+_BLUE, _ORANGE = "#7a4a9e", "#d9730d"
+_INK, _INK2, _MUTED, _GRID = "#0b0c0c", "#4f5154", "#737373", "#e8e8e8"
 
 
 def _plain(s: str) -> str:

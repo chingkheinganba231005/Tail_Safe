@@ -176,13 +176,13 @@ def test_surrogate_predictor(trained: tuple[Any, ...]) -> None:
 
 
 def test_coverage_notes() -> None:
-    from tailsafe.scenarios.spec import RandomStairBlockage, demo_spec
+    from tailsafe.scenarios.spec import RandomStairBlockage, reference_spec
     from tailsafe.surrogate.predictor import coverage_notes
 
-    assert coverage_notes(generate("cruciform", storeys=40), demo_spec()) == []
+    assert coverage_notes(generate("cruciform", storeys=40), reference_spec()) == []
     notes = coverage_notes(
         generate("cruciform", storeys=45, wing_end_stairs=True),
-        demo_spec().model_copy(
+        reference_spec().model_copy(
             update={
                 "phased_release": {3: 60.0},
                 "random_stair_blockage": RandomStairBlockage(probability=0.5),

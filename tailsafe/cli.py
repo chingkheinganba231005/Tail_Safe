@@ -289,10 +289,10 @@ def _tenability_json(ra: Any, b: Any) -> dict[str, Any]:
 def _load_spec(spec: str) -> Any:
     import yaml
 
-    from tailsafe.scenarios.spec import ScenarioSpec, demo_spec
+    from tailsafe.scenarios.spec import ScenarioSpec, reference_spec
 
-    if spec == "demo":
-        return demo_spec()
+    if spec == "reference":
+        return reference_spec()
     path = Path(spec)
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     return ScenarioSpec.model_validate(data)
@@ -336,16 +336,18 @@ def _print_risk(result: Any) -> None:
 
 @stress_app.command("spec")
 def stress_spec() -> None:
-    """Print the demo scenario specification (a starting point for your own)."""
-    from tailsafe.scenarios.spec import demo_spec
+    """Print the reference scenario specification (a starting point for your own)."""
+    from tailsafe.scenarios.spec import reference_spec
 
-    typer.echo(demo_spec().model_dump_json(indent=2, exclude_none=True))
+    typer.echo(reference_spec().model_dump_json(indent=2, exclude_none=True))
 
 
 @stress_app.command("run")
 def stress_run(
     building: Annotated[str, typer.Argument(help="Building JSON path or a template name.")],
-    spec: Annotated[str, typer.Option(help="'demo' or a JSON/YAML ScenarioSpec file.")] = "demo",
+    spec: Annotated[
+        str, typer.Option(help="'reference' or a JSON/YAML ScenarioSpec file.")
+    ] = "reference",
     storeys: Annotated[int | None, typer.Option(help="Storeys, when using a template.")] = None,
     runs: Annotated[int, typer.Option(help="Number of scenarios.")] = 1000,
     seed: Annotated[int, typer.Option(help="Random seed.")] = 0,
@@ -464,7 +466,9 @@ def stress_bottlenecks(
 @app.command("optimize")
 def optimize_cmd(
     building: Annotated[str, typer.Argument(help="Building JSON path or a template name.")],
-    spec: Annotated[str, typer.Option(help="'demo' or a JSON/YAML ScenarioSpec file.")] = "demo",
+    spec: Annotated[
+        str, typer.Option(help="'reference' or a JSON/YAML ScenarioSpec file.")
+    ] = "reference",
     storeys: Annotated[int | None, typer.Option(help="Storeys, when using a template.")] = None,
     objective: Annotated[str, typer.Option(help="cvar, p_rset or weighted.")] = "cvar",
     loss: Annotated[str, typer.Option(help="Loss for cvar / weighted objectives.")] = "total_time",
@@ -534,35 +538,6 @@ def optimize_cmd(
         typer.echo(f"\nWrote {out}/optimization.json, plan.json, before_after.png")
 
 
-@app.command()
-def pitch(
-    stress: Annotated[Path, typer.Option(help="Directory from `stress run --out`.")] = Path(
-        "out/demo1000"
-    ),
-    optimization: Annotated[
-        Path | None, typer.Option(help="Directory from `optimize --out`.")
-    ] = Path("out/opt-demo"),
-    out: Annotated[Path, typer.Option(help="Markdown file to write.")] = Path(
-        "docs/pitch_metrics.md"
-    ),
-) -> None:
-    """Regenerate docs/pitch_metrics.md from the latest saved results."""
-    from tailsafe.report.pitch import load_json, pitch_markdown
-
-    metrics = load_json(stress / "metrics.json")
-    if metrics is None:
-        raise typer.BadParameter(f"{stress}/metrics.json not found; run `stress run --out` first")
-    bottlenecks = load_json(stress / "bottlenecks.json")
-    opt = load_json(optimization / "optimization.json") if optimization else None
-    sources = {"stress test": str(stress / "metrics.json")}
-    if bottlenecks:
-        sources["bottlenecks"] = str(stress / "bottlenecks.json")
-    if opt and optimization:
-        sources["optimisation"] = str(optimization / "optimization.json")
-    out.write_text(pitch_markdown(metrics, bottlenecks, opt, sources=sources), encoding="utf-8")
-    typer.echo(f"Wrote {out}")
-
-
 def _briefing_distributions(stress: Path, optimization: Path | None) -> dict[str, Any]:
     from tailsafe.scenarios.montecarlo import MCResult
 
@@ -578,12 +553,10 @@ def _briefing_distributions(stress: Path, optimization: Path | None) -> dict[str
 
 @app.command()
 def brief(
-    stress: Annotated[Path, typer.Option(help="Directory from `stress run --out`.")] = Path(
-        "out/demo1000"
-    ),
+    stress: Annotated[Path, typer.Option(help="Directory from `stress run --out`.")],
     optimization: Annotated[
-        Path | None, typer.Option(help="Directory from `optimize --out`.")
-    ] = Path("out/opt-demo"),
+        Path | None, typer.Option(help="Directory from `optimize --out` (optional).")
+    ] = None,
     writer: Annotated[
         str, typer.Option(help="auto (LLM when configured), template or llm.")
     ] = "auto",
@@ -594,10 +567,13 @@ def brief(
 ) -> None:
     """One-page briefing for the building manager; every number checked against the results."""
     from tailsafe.report.briefing import briefing_facts, briefing_pdf, make_briefing
-    from tailsafe.report.pitch import load_json
 
     if writer not in ("auto", "template", "llm"):
         raise typer.BadParameter("--writer must be auto, template or llm")
+
+    def load_json(path: Path) -> dict[str, Any] | None:
+        return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
     metrics = load_json(stress / "metrics.json")
     if metrics is None:
         raise typer.BadParameter(f"{stress}/metrics.json not found; run `stress run --out` first")
@@ -618,123 +594,33 @@ def brief(
         typer.echo(f"Wrote {pdf}", err=True)
 
 
-@app.command()
-def demo(
-    out: Annotated[Path, typer.Option(help="Directory for everything the pitch shows.")] = Path(
-        "out/pitch"
+@app.command("export-site")
+def export_site(
+    out: Annotated[Path, typer.Option(help="Directory the static web build serves.")] = Path(
+        "web/public/data"
     ),
-    runs: Annotated[int, typer.Option(help="Stress-test scenarios.")] = 600,
-    rerun_fraction: Annotated[
-        float, typer.Option(help="Share of worst scenarios re-run per bottleneck.")
-    ] = 0.1,
-    scenarios: Annotated[int, typer.Option(help="Scenarios per optimiser evaluation.")] = 50,
-    confirm: Annotated[int, typer.Option(help="Fresh scenarios to confirm the plan.")] = 200,
-    replay: Annotated[bool, typer.Option(help="Person-by-person replay of the worst run.")] = True,
-    workers: Annotated[int | None, typer.Option(help="Processes (default: all CPUs).")] = None,
-    budget: Annotated[float, typer.Option(help="Target wall time (s) for the whole run.")] = 300.0,
+    runs: Annotated[int, typer.Option(help="Stress-test scenarios per building.")] = 300,
+    template: Annotated[
+        list[str] | None, typer.Option(help="Building types to include (default: all four).")
+    ] = None,
+    micro: Annotated[bool, typer.Option(help="Include the person-by-person replays.")] = True,
 ) -> None:
-    """The pitch end to end: tail → causes → plan → replay → briefing (timed).
+    """Record the data for the browser version (static hosting, no server)."""
+    from tailsafe.api.static_site import export_static_site
 
-    Sunday 3 a.m., 40-storey public housing block (the demo scenario): a
-    stress test, bottleneck attribution, the optimised plan with its paired
-    confirmation, a person-by-person snapshot of the worst scenario on the
-    fire floor, the briefing (Markdown + PDF) and the pitch metrics page.
-    The default sample sizes fit the 5-minute budget on a 4-core laptop; the
-    headline numbers in docs/pitch_metrics.md use larger samples
-    (--runs 1000 --rerun-fraction 0.2 --scenarios 100 --confirm 400, ~8 min).
-    """
-    import time as _time
-
-    import numpy as np
-
-    from tailsafe.building.builder import hk_level_label
-    from tailsafe.building.io import save_building
-    from tailsafe.building.render import save_render
-    from tailsafe.building.templates import generate
-    from tailsafe.scenarios.montecarlo import MCResult
-    from tailsafe.scenarios.sampler import ScenarioSampler, scenario_uniforms
-    from tailsafe.scenarios.spec import demo_spec
-    from tailsafe.sim.meso import run_meso
-    from tailsafe.sim.micro import run_micro
-    from tailsafe.sim.network import compile_network
-    from tailsafe.sim.plot import save_micro_frame
-
-    out.mkdir(parents=True, exist_ok=True)
-    times: dict[str, float] = {}
-    t_all = _time.perf_counter()
-
-    def step(name: str) -> float:
-        typer.echo(f"\n== {name} ==", err=True)
-        return _time.perf_counter()
-
-    t = step("1/6 Building: 40-storey cruciform public housing block")
-    b = generate("cruciform", storeys=40)
-    save_building(b, out / "building.json")
-    save_render(b, out / "building.png", level=14)
-    times["building"] = _time.perf_counter() - t
-
-    t = step(f"2/6 Stress test: {runs} scenarios")
-    stress_run(
-        str(out / "building.json"), spec="demo", runs=runs, workers=workers, out=out / "stress"
+    manifest = export_static_site(
+        out, templates=template, runs=runs, micro=micro, log=lambda m: typer.echo(m, err=True)
     )
-    times["stress test"] = _time.perf_counter() - t
-
-    t = step("3/6 Where the tail comes from: counterfactual bottlenecks")
-    stress_bottlenecks(out / "stress", rerun_fraction=rerun_fraction, workers=workers)
-    times["bottlenecks"] = _time.perf_counter() - t
-
-    t = step("4/6 The fix: optimised operational plan, confirmed on fresh scenarios")
-    optimize_cmd(
-        str(out / "building.json"),
-        scenarios=scenarios,
-        confirm=confirm,
-        workers=workers,
-        out=out / "plan",
-    )
-    times["optimisation"] = _time.perf_counter() - t
-
-    if replay:
-        t = step("5/6 Replay: the worst scenario, person by person, on the fire floor")
-        res = MCResult.load(out / "stress")
-        worst = res.runs[int(np.argmax(res.loss("total_time")))].index
-        sc_spec = demo_spec()
-        u = scenario_uniforms(0, worst, 1)[0]
-        sc = ScenarioSampler(b, sc_spec).sample(0, worst, u)
-        net = compile_network(b)
-        me = run_meso(net, sc.population, sc.sim)
-        mi = run_micro(net, sc.population, sc.sim, meso=me, seed=0, index=worst)
-        fire = sc_spec.fire_level or 1
-        save_micro_frame(mi, fire, 420.0, out / "replay.png")
-        typer.echo(f"Scenario {worst}: wrote {out}/replay.png ({hk_level_label(fire)}, t = 7 min)")
-        times["replay"] = _time.perf_counter() - t
-
-    t = step("6/6 Briefing and pitch metrics")
-    brief(
-        stress=out / "stress",
-        optimization=out / "plan",
-        writer="auto",
-        out=out / "briefing.md",
-        pdf=out / "briefing.pdf",
-    )
-    pitch(stress=out / "stress", optimization=out / "plan", out=out / "pitch_metrics.md")
-    times["briefing"] = _time.perf_counter() - t
-
-    total = _time.perf_counter() - t_all
-    typer.echo("\nStep timings:")
-    for name, sec in times.items():
-        typer.echo(f"  {name:<14} {sec:6.1f} s")
-    verdict = "within" if total <= budget else "OVER"
-    typer.echo(f"  {'total':<14} {total:6.1f} s ({verdict} the {budget:.0f} s budget)")
-    (out / "timings.json").write_text(
-        json.dumps({**times, "total": total, "budget": budget}, indent=1) + "\n",
-        encoding="utf-8",
-    )
+    n = len(manifest["buildings"])
+    typer.echo(f"Wrote {manifest['responses']} responses for {n} buildings to {out}")
 
 
 @micro_app.command("run")
 def micro_run(
     building: Annotated[str, typer.Argument(help="Building JSON path or a template name.")],
-    spec: Annotated[str, typer.Option(help="'demo' or a JSON/YAML ScenarioSpec file.")] = "demo",
+    spec: Annotated[
+        str, typer.Option(help="'reference' or a JSON/YAML ScenarioSpec file.")
+    ] = "reference",
     storeys: Annotated[int | None, typer.Option(help="Storeys, when using a template.")] = None,
     index: Annotated[int, typer.Option(help="Scenario index (as in `stress run`).")] = 0,
     seed: Annotated[int, typer.Option(help="Seed of the stress test.")] = 0,
@@ -770,7 +656,9 @@ def micro_run(
 @micro_app.command("compare")
 def micro_compare(
     building: Annotated[str, typer.Argument(help="Building JSON path or a template name.")],
-    spec: Annotated[str, typer.Option(help="'demo' or a JSON/YAML ScenarioSpec file.")] = "demo",
+    spec: Annotated[
+        str, typer.Option(help="'reference' or a JSON/YAML ScenarioSpec file.")
+    ] = "reference",
     storeys: Annotated[int | None, typer.Option(help="Storeys, when using a template.")] = None,
     runs: Annotated[int, typer.Option(help="Scenarios to compare.")] = 20,
     seed: Annotated[int, typer.Option(help="Random seed.")] = 0,

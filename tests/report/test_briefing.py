@@ -20,13 +20,13 @@ from tailsafe.report.briefing import (
     unknown_numbers,
 )
 from tailsafe.scenarios.montecarlo import MCConfig, run_monte_carlo
-from tailsafe.scenarios.spec import demo_spec
+from tailsafe.scenarios.spec import reference_spec
 
 
 @pytest.fixture(scope="module")
 def results() -> dict[str, Any]:
     b = generate("cruciform", storeys=16, flats_per_wing=2)
-    spec = demo_spec().model_copy(update={"fire_level": 6})
+    spec = reference_spec().model_copy(update={"fire_level": 6})
     cfg = MCConfig(n_runs=20, batch_size=20, workers=1)
     res = run_monte_carlo(b, spec, cfg)
     plan = InterventionPlan(evacuation_lifts=True)
@@ -56,7 +56,7 @@ def test_template_uses_only_numbers_from_the_facts(results: dict[str, Any]) -> N
         building_name=results["building"].name,
     )
     assert facts["simulated_scenarios"] == 20
-    # The scenario sentence comes from the settings, not the demo's free text.
+    # The scenario sentence comes from the settings, not the scenario's free text.
     assert facts["scenario"].startswith("Weekend night, 22% of residents aged 65+, fire on 6/F")
     assert "40-storey" not in facts["scenario"]
     assert facts["plan"]["confirmation_scenarios"] == 20
@@ -158,31 +158,3 @@ def test_brief_cli(results: dict[str, Any], tmp_path: Path) -> None:
     assert (tmp_path / "brief.pdf").read_bytes().startswith(b"%PDF")
     facts = json.loads((tmp_path / "brief.facts.json").read_text())
     assert unknown_numbers(out.read_text(), facts) == []
-
-
-@pytest.mark.slow
-def test_demo_cli_end_to_end(tmp_path: Path) -> None:
-    from typer.testing import CliRunner
-
-    from tailsafe.cli import app
-
-    r = CliRunner().invoke(
-        app,
-        [
-            "demo",
-            "--out",
-            str(tmp_path),
-            "--runs",
-            "60",
-            "--scenarios",
-            "20",
-            "--confirm",
-            "40",
-            "--no-replay",
-        ],
-    )
-    assert r.exit_code == 0, r.output
-    for name in ("building.png", "stress/metrics.json", "plan/optimization.json"):
-        assert (tmp_path / name).exists(), name
-    assert (tmp_path / "briefing.pdf").read_bytes().startswith(b"%PDF")
-    assert json.loads((tmp_path / "timings.json").read_text())["total"] > 0
