@@ -253,7 +253,9 @@ def test_surrogate_predict_or_unavailable(monkeypatch: pytest.MonkeyPatch) -> No
     bid = building_id()
     monkeypatch.setattr(api, "_SURROGATE", {})
     try:
-        from tailsafe.surrogate.predictor import DEFAULT_WEIGHTS
+        import jax  # noqa: F401
+
+        from tailsafe.surrogate import DEFAULT_WEIGHTS
 
         available = DEFAULT_WEIGHTS.exists()
     except ImportError:
