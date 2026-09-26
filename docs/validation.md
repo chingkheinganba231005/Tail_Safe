@@ -121,7 +121,17 @@ doors and exits, which add capacity without changing path lengths.
 | Comparing a result with itself gives ΔCVaR = 0 and "not significant" | `tests/optimize/test_optimize.py` | ✅ |
 | The optimiser never returns a plan worse than the baseline in-sample, and confirms on fresh scenarios | `tests/optimize/test_optimize.py` | ✅ |
 
-## 7. Parameter registry
+## 7. Web API and UI (M7)
+
+| Check | Test | Status |
+|---|---|---|
+| A 3D replay re-simulates exactly the stress-test scenario it claims to (same total time) | `tests/test_api.py` | ✅ |
+| The worst confirmation scenario replays exactly with and without the plan (side-by-side animation shows the same draws) | `tests/test_api.py` | ✅ |
+| Results are strict JSON (no NaN / ∞), repeated requests come from the cache, progress events end in the final state | `tests/test_api.py` | ✅ |
+| Bottleneck rows point at real building edges (for highlighting) | `tests/test_api.py` | ✅ |
+| Chart helpers: histogram keeps every value on shared bins, quantiles match NumPy, ramps and floor labels | `web/test/lib.test.ts` | ✅ |
+
+## 8. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

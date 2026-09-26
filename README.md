@@ -25,7 +25,8 @@ Requires Python 3.11+ and `make`.
 make install     # create .venv and install tailsafe + dev tools
 make test        # fast test suite
 make check       # lint + format check + mypy + tests (what CI runs)
-make dev         # start the API on http://localhost:8000 (docs at /docs)
+make dev         # API on :8000 + web UI with hot reload on http://localhost:5173 (needs Node 20+)
+make web         # or: build the UI once; `make api` then serves it on http://localhost:8000
 make demo        # generate and render a 40-storey cruciform public-housing block
 make stress-demo # 1,000-scenario stress test of the pitch scenario (~1 min on 4 cores)
 ```
@@ -80,6 +81,14 @@ the right panel). The numbers are in
 
 ![Before/after distributions on the same 400 scenarios](docs/img/opt_demo.png)
 
+### The web UI
+
+`make dev` and open http://localhost:5173: pick a building, describe the
+scenario, run the stress test, then follow the tail through the 3D stack view,
+the bottleneck ranking and the optimiser's before/after comparison.
+
+![Stress-test results in the web UI: CVaR95 and P(RSET > ASET) with confidence intervals, the distribution with mean, P95 and CVaR95 markers](docs/img/web_results.png)
+
 ## What is in the box
 
 | Area | Module | Status |
@@ -93,7 +102,8 @@ the right panel). The numbers are in
 | Bottleneck attribution: recurrence, min-cut, counterfactual ΔCVaR₉₅ | `tailsafe/analysis/` | ✅ |
 | Intervention optimiser (lifts, door hold-open, stair assignment, phasing, wardens) with paired confirmation | `tailsafe/optimize/` | ✅ |
 | Background-job API (FastAPI, SSE progress, result cache) | `tailsafe/api/` | ✅ |
-| Web UI, micro-simulation, surrogate, vision, briefing | | planned |
+| Web UI: building setup, scenario builder, results, 3D stack, bottlenecks, optimise (before/after) | `web/` | ✅ |
+| Micro-simulation, surrogate, vision, briefing | | planned |
 
 ## Status
 

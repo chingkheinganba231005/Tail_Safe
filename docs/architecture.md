@@ -344,3 +344,32 @@ repeated request is answered from `runs/cache/` (or `$TAILSAFE_CACHE_DIR`)
 without simulating. Non-finite floats are sent as `null` (strict JSON).
 Buildings are stored by digest; uploaded JSON is validated before use.
 Every result carries the responsible-use disclaimer.
+
+## Web UI (`web/`)
+
+React + TypeScript (Vite), Tailwind, react-three-fiber. It talks only to the
+job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
+`web/dist`, which the FastAPI app serves at `/`.
+
+| Screen | What it shows |
+|---|---|
+| 1 Building | Template gallery with options, or JSON upload; plan of any floor; a small correction editor (stair and exit widths, re-validated by the server); confirm |
+| 2 Scenario | Time of day, age mix, vacancy, counter-flow, fire floor, smoke on/off, stair blockages (fixed or random time), random stair loss, lifts out, evacuation lifts, rescue teams; runs and seed |
+| 3 Stress results | Histogram with mean / P95 / CVaR₉₅ markers, stat tiles with CIs, P(RSET > ASET) meter, who is in the tail (risk ratios), floors that fail, stair queues by floor |
+| 4 3D stack | One scenario re-simulated with time series: translucent floors coloured by smoke, stair columns by queue length, blocked stairs, scrubber, people still on each floor, evacuation curve |
+| 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
+| 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
+
+Charts are small hand-written SVG components (`web/src/components/charts/`)
+following one set of rules: one hue per single-series chart, fixed categorical
+order when there are two series, a legend for two or more series, text in ink
+colours only, thin bars with 4 px rounded data ends, hairline grids, a hover
+tooltip on every mark, and a table view for every chart. Sequential ramps are
+one hue (blue for queues, orange for smoke) and reverse in dark mode so that
+"near zero" recedes into the background. Status colours appear only with an
+icon and a label. Light and dark themes are both specified (`styles.css`);
+the header toggle overrides the OS setting.
+
+Screens 5 (micro-simulation replay), 8 (surrogate what-if) and 9 (briefing)
+belong to milestones M8, M10 and M11. The full geometry editor (walls, doors,
+refuge tagging) comes with floor-plan vision in M9.

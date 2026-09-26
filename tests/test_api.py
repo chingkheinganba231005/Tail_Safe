@@ -96,6 +96,10 @@ def test_stress_bottlenecks_replay_flow() -> None:
 
     bn = wait(client.post("/api/bottlenecks", json={"stress_job_id": job["id"]}).json())
     assert bn["ranking"] and bn["ranking"][0]["rank"] == 1
+    edges = {e["id"] for e in client.get(f"/api/buildings/{bid}").json()["building"]["edges"]}
+    stair_rows = [r for r in bn["ranking"] if r["kind"] == "stair"]
+    assert stair_rows and all(r["edges"] and set(r["edges"]) <= edges for r in stair_rows)
+    assert all(q["edge"] in edges for q in bn["queues"])
 
     rp = wait(
         client.post(
@@ -112,6 +116,9 @@ def test_stress_bottlenecks_replay_flow() -> None:
     assert set(rp["stair_queues"]) == {"A", "B"}
     assert rp["visibility"] is not None
     assert rp["evacuated"][-1] == rp["summary"]["occupants"] - rp["summary"]["not_evacuated"]
+    # The replay is the same scenario as in the stress test (same draws).
+    worst = max(stress["losses"]["total_time"])
+    assert rp["summary"]["total_time_s"] == pytest.approx(worst, rel=1e-9)
 
 
 def test_optimize_job() -> None:
@@ -128,6 +135,27 @@ def test_optimize_job() -> None:
     out = wait(client.post("/api/optimize", json=body).json())
     assert out["plan_description"]
     assert len(out["before_after"]["total_time"]["before"]) == 12
+    # Replaying the worst confirmation scenario reproduces it exactly, with and
+    # without the plan (same seed and batch layout -> identical draws).
+    rp = out["replay"]
+    before = out["before_after"]["total_time"]["before"]
+    k = before.index(max(before))
+    for spec_key, series in (("baseline_spec", "before"), ("plan_spec", "after")):
+        replay = wait(
+            client.post(
+                "/api/replay",
+                json={
+                    "building_id": bid,
+                    "spec": rp[spec_key],
+                    "index": rp["worst_index"],
+                    "seed": rp["seed"],
+                    "runs": rp["runs"],
+                    "batch_size": rp["batch_size"],
+                },
+            ).json()
+        )
+        expected = out["before_after"]["total_time"][series][k]
+        assert replay["summary"]["total_time_s"] == pytest.approx(expected, rel=1e-9)
     bad = client.post("/api/optimize", json={**body, "levers": ["teleport"]})
     assert bad.status_code == 422
 
