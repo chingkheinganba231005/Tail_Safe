@@ -3,18 +3,20 @@ import { get } from "./api";
 import { Bottlenecks } from "./screens/Bottlenecks";
 import { BuildingSetup } from "./screens/BuildingSetup";
 import { Optimize } from "./screens/Optimize";
+import { ReplayMicro } from "./screens/ReplayMicro";
 import { ScenarioBuilder } from "./screens/ScenarioBuilder";
 import { Stack3D } from "./screens/Stack3D";
 import { StressResults } from "./screens/StressResults";
 import type { BottleneckResult, BuildingView, OptimizeResult, ScenarioSpec, StressResult } from "./types";
 
-export type Step = "building" | "scenario" | "results" | "stack" | "bottlenecks" | "optimize";
+export type Step = "building" | "scenario" | "results" | "stack" | "replay" | "bottlenecks" | "optimize";
 
 const STEPS: { id: Step; label: string; needs: "none" | "building" | "stress" }[] = [
   { id: "building", label: "Building", needs: "none" },
   { id: "scenario", label: "Scenario", needs: "building" },
   { id: "results", label: "Stress results", needs: "stress" },
   { id: "stack", label: "3D stack", needs: "stress" },
+  { id: "replay", label: "Replay (people)", needs: "stress" },
   { id: "bottlenecks", label: "Bottlenecks", needs: "stress" },
   { id: "optimize", label: "Optimise", needs: "stress" },
 ];
@@ -154,6 +156,9 @@ export function App() {
           )}
           {step === "stack" && stress && building && (
             <Stack3D building={building} stress={stress} index={replayIndex} setIndex={setReplayIndex} />
+          )}
+          {step === "replay" && stress && building && (
+            <ReplayMicro building={building} stress={stress} index={replayIndex} setIndex={setReplayIndex} />
           )}
           {step === "bottlenecks" && stress && building && (
             <Bottlenecks building={building} stress={stress} result={bottlenecks} setResult={setBottlenecks} />

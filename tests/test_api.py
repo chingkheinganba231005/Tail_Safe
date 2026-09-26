@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from tailsafe.api import app as api
 from tailsafe.api.jobs import finite
+from tailsafe.sim.cases import corridor_building
 
 client = TestClient(api.app)
 
@@ -174,3 +175,55 @@ def test_finite_replaces_infinities() -> None:
         "a": [1.0, None, None],
         "b": "x",
     }
+
+
+def test_micro_replay_and_floor_frames() -> None:
+    bid = building_id()
+    body = {"building_id": bid, "spec": SPEC, "index": 2}
+    job = client.post("/api/micro", json=body).json()
+    out = wait(job)
+    assert out["summary"]["not_out"] == 0
+    cmp = out["comparison"]
+    assert cmp["walkers"] > 0 and cmp["micro"]["last_s"] > cmp["micro"]["p50_s"] > 0
+    assert len(out["people_on_level"]) == out["frames"]
+    assert out["rooms"] and all(r["polygon"] for r in out["rooms"])
+    json.dumps(out, allow_nan=False)
+
+    level = client.get(f"/api/micro/{job['id']}/level/3").json()
+    assert len(level["frames"]) == len(level["times"]) == out["frames"]
+    first = level["frames"][0]
+    assert first and all(len(row) == 4 for row in first)
+    # everyone on 3/F at the start is accounted for in the per-level counts
+    k = out["levels"].index(3)
+    assert len(first) == out["people_on_level"][0][k]
+    assert client.get("/api/micro/nope/level/3").status_code == 404
+
+    corridor = corridor_building().model_dump(mode="json", exclude_none=True)
+    graph_only = client.post("/api/buildings/upload", json=corridor).json()
+    bad = client.post("/api/micro", json={"building_id": graph_only["id"], "spec": {"name": "x"}})
+    assert bad.status_code == 422
+
+
+def test_vision_detect_edit_build() -> None:
+    sample = client.get("/api/vision/sample", params={"template": "slab", "level": 1}).json()
+    assert sample["image"].startswith("data:image/png;base64,")
+    width_px = 10 / sample["m_per_px"]
+    scale = {"x1": 0, "y1": 0, "x2": width_px, "y2": 0, "metres": 10}
+    det = client.post("/api/vision/detect", json={"image": sample["image"], "scale": scale}).json()
+    detection = det["detection"]
+    assert det["summary"]["rooms"].get("stair") == 2
+    assert detection["m_per_px"] == pytest.approx(sample["m_per_px"])
+
+    # The editor retypes a room and adds a doorway, then builds 6 storeys.
+    unit = next(r for r in detection["rooms"] if r["type"] == "unit")
+    unit["type"] = "refuge"
+    d0 = detection["doors"][0]
+    detection["doors"].append({"id": "E1", "a": d0["a"], "b": d0["b"], "width_m": 0.9, "rooms": []})
+    built = client.post("/api/vision/build", json={"detection": detection, "storeys": 6}).json()
+    assert built["summary"]["storeys"] == 6
+    assert built["summary"]["nodes"].get("refuge") == 6
+    assert client.get(f"/api/buildings/{built['id']}").status_code == 200
+
+    bad = client.post("/api/vision/detect", json={"image": "data:image/png;base64,AAAA"})
+    assert bad.status_code == 422
+    assert client.get("/api/vision/sample", params={"template": "nope"}).status_code == 422

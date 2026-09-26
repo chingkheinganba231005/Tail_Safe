@@ -28,6 +28,13 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe stress bottlenecks out/demo       # counterfactual ranking (re-runs)
 .venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo   # plan search + confirmation
 .venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo # regenerate pitch_metrics.md
+.venv/bin/tailsafe micro run cruciform --index 3 --plot out/floor.png --level 14 --time 420
+.venv/bin/tailsafe micro compare cruciform --runs 20      # meso–micro agreement table
+.venv/bin/tailsafe micro fd                              # micro speed–density vs hydraulic
+.venv/bin/tailsafe vision synth slab --out out/plan.png  # rendered plan + truth JSON
+.venv/bin/tailsafe vision detect out/plan.png --scale 0,0,200,0,10 --out out/det.json --overlay out/det.png
+.venv/bin/tailsafe vision build out/det.json --storeys 20   # stacked, validated building JSON
+.venv/bin/tailsafe vision eval                           # precision/recall on rendered plans
 .venv/bin/tailsafe --help
 ```
 
@@ -61,14 +68,19 @@ tailsafe/config.py     parameter registry loader (inverse-CDF sampling)
 tailsafe/building/     egress graph model, schema, validation, HK templates, rendering
 tailsafe/population/   profiles, synthetic households, occupancy priors
 tailsafe/rng.py        named random streams (common random numbers)
-tailsafe/sim/          mesoscopic queue-network engine (Numba kernel in _kernel.py)
+tailsafe/sim/          mesoscopic queue-network engine (Numba kernel in _kernel.py);
+                       micro replay engine (micro.py, _micro_kernel.py) sharing meso decisions
 tailsafe/scenarios/    ScenarioSpec, sampler (16 fixed uniform slots, LHS), Monte Carlo runner
 tailsafe/hazard/       zone smoke network, tenability (visibility, FED), ASET, CFD import
-tailsafe/analysis/     bottlenecks: queue recurrence, min-cut/load, counterfactual ΔCVaR
+tailsafe/analysis/     bottlenecks: queue recurrence, min-cut/load, counterfactual ΔCVaR;
+                       meso–micro agreement (agreement.py)
 tailsafe/risk/         VaR/CVaR with bootstrap CIs, paired differences, tail breakdowns,
                        RSET vs ASET, plots
 tailsafe/optimize/     InterventionPlan levers, SAA search with CRN, CMA-ES, paired confirmation
 tailsafe/report/       pitch_metrics.md generator (numbers only from saved results)
+tailsafe/vision/       floor-plan reader (detect.py), plan → building (graph.py),
+                       rendered plans with truth (synth.py), evaluation
+tailsafe/building/geometry.py  rectangle helpers shared by vision and micro
 tailsafe/api/          FastAPI app: jobs (progress over SSE, disk cache), views for the UI
 web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–4, 6, 7)
 config/params.yaml     parameter registry
@@ -88,8 +100,10 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | M5 | Bottleneck attribution | ✅ done (`tailsafe stress bottlenecks DIR`) |
 | M6 | Intervention optimiser | ✅ done (`tailsafe optimize`, `tailsafe pitch`) |
 | M7 | Web app (job API + React UI) | ✅ done (`make dev`, screens 1–4, 6, 7) |
-| M8 | Micro simulator + replay screen | ⏳ next |
-| M9–M11 | Vision, surrogate, briefing | not started |
+| M8 | Micro simulator + replay screen | ✅ done (`tailsafe micro`, web screen 5) |
+| M9 | Floor-plan ingestion + correction editor | ✅ done (`tailsafe vision`, Building → Floor plan image) |
+| M10 | GNN surrogate + live what-if | ⏳ next |
+| M11 | Briefing, PDF export, polish | not started |
 
 ## Decisions taken (open for review)
 
@@ -136,5 +150,14 @@ started and are easy to revisit while the codebase is small:
   `docs/architecture.md` (Web UI) — text never in series colours, a table view per chart.
 - The 3D view needs WebGL; headless Chromium renders it with
   `--use-angle=swiftshader --enable-unsafe-swiftshader`.
+- The micro kernel (`_micro_kernel.py`) also compiles on first use. It needs room
+  polygons; `micro_problems(building)` says why a building can't be replayed.
+  Its robustness rules (forced moves below jam density, overlap resolution,
+  squeezing past in doorways/stand-offs) exist because pure collision-free
+  speed models gridlock in head-on encounters; change them with the
+  20/40-storey agreement runs (`tailsafe micro compare`) as the regression check.
+- The plan reader assumes axis-aligned plans with walls thicker than other lines.
+  Its evaluation is on *rendered* plans (`vision/synth.py`); never present those
+  numbers as results on real drawings.
 - `Building` caches lookups (`node_by_id` ...). Treat it as immutable; use
   `model_copy(update=...)`, which drops the caches.

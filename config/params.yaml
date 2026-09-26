@@ -144,6 +144,46 @@ movement:
         Fractional loss of an edge's capacity when the opposite direction is fully
         occupied (scaled linearly by the opposite direction's share of occupants).
       source: *assumption
+  # Microscopic replay engine (tailsafe/sim/micro.py): collision-free speed model
+  # (model form after Tordeux, Chraibi & Seyfried, "Collision-free speed model
+  # for pedestrian dynamics", Traffic and Granular Flow '15, 2016). The numbers
+  # below are this implementation's choices, not values taken from that paper.
+  micro:
+    body_radius:
+      value: 0.2
+      unit: m
+      note: "Radius of an able adult; scaled by sqrt(profile space_factor)"
+      source: *assumption
+    time_gap:
+      value: 1.0
+      unit: s
+      note: "T in V(s) = min(v0, max(0, (s - l) / T)): headway kept to the person ahead"
+      source: *assumption
+    repulsion_strength:
+      value: 5.0
+      unit: dimensionless
+      note: "Weight of neighbour repulsion in the walking direction"
+      source: *assumption
+    repulsion_range:
+      value: 0.1
+      unit: m
+      note: "Decay length of neighbour repulsion"
+      source: *assumption
+    wall_repulsion_strength:
+      value: 5.0
+      unit: dimensionless
+      source: *assumption
+    wall_repulsion_range:
+      value: 0.05
+      unit: m
+      source: *assumption
+    lane_width:
+      value: 0.55
+      unit: m
+      note: >-
+        Lateral space one person occupies in a doorway or on a stair flight
+        (people abreast = width / this, at least one)
+      source: *assumption
 
 # -----------------------------------------------------------------------------
 # Default geometry used by the procedural Hong Kong typology generators.
@@ -546,3 +586,59 @@ hazard:
     unit: s
     note: "Household of the fire flat reacts quickly (they discover the fire)"
     source: *assumption_behaviour
+
+# -----------------------------------------------------------------------------
+# Floor-plan ingestion (tailsafe/vision/). Heuristics for reading raster plans;
+# every value can be overridden in the correction editor.
+# -----------------------------------------------------------------------------
+vision:
+  default_wall_thickness:
+    value: 0.2
+    unit: m
+    note: "Used to estimate the scale when the user gives no reference line"
+    source: *assumption_hk_code
+  door_width_min:
+    value: 0.6
+    unit: m
+    note: "Narrowest gap in a wall read as a doorway"
+    source: *assumption
+  door_width_max:
+    value: 2.0
+    unit: m
+    note: >-
+      Widest gap in a wall line read as a doorway or opening (main entrances,
+      corridor mouths); wider gaps join the spaces on either side
+    source: *assumption
+  stair_tread_min:
+    value: 0.2
+    unit: m
+    note: "Spacing range of tread lines in a stair symbol"
+    source: *assumption_hk_code
+  stair_tread_max:
+    value: 0.35
+    unit: m
+    source: *assumption_hk_code
+  corridor_min_aspect:
+    value: 3.0
+    unit: ratio
+    note: "Long side / short side above which a room with doors is a corridor"
+    source: *assumption
+  corridor_max_width:
+    value: 3.0
+    unit: m
+    source: *assumption
+  unit_area_small_max:
+    value: 35.0
+    unit: m^2
+    note: "Flats up to this area use the flat_small household-size prior"
+    source: *assumption_demography
+  unit_area_medium_max:
+    value: 60.0
+    unit: m^2
+    note: "Flats up to this area use flat_medium; larger ones flat_large"
+    source: *assumption_demography
+  min_room_area:
+    value: 1.0
+    unit: m^2
+    note: "Smaller enclosed regions (wall artefacts, ducts) are ignored"
+    source: *assumption

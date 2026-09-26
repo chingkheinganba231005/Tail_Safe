@@ -125,3 +125,37 @@ or pessimistic. Numeric values and their sources live in
   assigned stair is blocked they fall back to the fastest route.
 - **Holding stair doors open** restores their full flow capacity and lets smoke
   pass freely (both through the zone model).
+
+## Microscopic replay engine
+
+- People are discs of radius `movement.micro.body_radius` × √(space factor);
+  households do not hold together once they have left their flat (they
+  start together and walk at the household's pace).
+- Rooms are the bounding rectangles of node polygons; walls are the
+  rectangle sides; there is no furniture. Buildings without room polygons
+  (graph-only cases) cannot be replayed.
+- A stair flight is a straight strip of lanes; turning at half-landings is
+  folded into the flight length (as in the meso engine). Up and down
+  movement use separate lanes, so counter-flow on stairs does not collide.
+- Doorway capacity comes from lanes and headways, not from a specific-flow
+  table; the fundamental diagram and the agreement study in
+  `docs/validation.md` show how this compares with the hydraulic model.
+- Lift trips, fire-service rescues and toxic dose come from the meso run of
+  the same scenario.
+- All `movement.micro.*` values are assumptions (no calibration yet).
+
+## Floor-plan ingestion
+
+- Plans are read as axis-aligned: walls must run horizontally and
+  vertically in the image (rotate scans first). Curved or diagonal walls are
+  not read.
+- Walls must be drawn thicker than other lines. Plans where walls are thin
+  outlines or hatched need correcting by hand.
+- Doorways are gaps of 0.6–2.0 m (`vision.door_width_*`); wider openings join
+  the spaces on either side into one room.
+- The same plan is used for every storey; G/F usually differs (shops, lobby,
+  entrances) and should be checked. Refuge floors and lifts are not detected.
+- Without doorways to the outside, exits are assumed at the foot of every
+  staircase, and the building says so (`metadata.exits_assumed`).
+- Flat sizes map to household-size priors by area
+  (`vision.unit_area_small_max`, `vision.unit_area_medium_max`) — assumptions.

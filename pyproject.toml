@@ -40,6 +40,7 @@ dev = [
     "types-PyYAML",
     "types-jsonschema",
 ]
+vision = ["pypdfium2>=4.0"]
 
 [project.scripts]
 tailsafe = "tailsafe.cli:app"
@@ -86,10 +87,11 @@ ignore = [
 "tests/**" = ["D1"]
 # The Numba kernel keeps explicit comparisons and loops for nopython mode.
 "tailsafe/sim/_kernel.py" = ["SIM109"]
+"tailsafe/sim/_micro_kernel.py" = ["SIM102", "SIM109"]
 
 [tool.ruff.lint.pep8-naming]
 # Physics notation (N, M, dt, ...) is clearer than snake_case here.
-ignore-names = ["A", "B", "C", "D", "E", "G", "H", "K", "L", "M", "N", "P", "Q", "R", "T", "U", "V", "W", "X", "Y", "Z", "F*", "S*"]
+ignore-names = ["A", "B", "C", "D", "E", "G", "H", "K", "MK", "L", "M", "N", "P", "Q", "R", "T", "U", "V", "W", "X", "Y", "Z", "F*", "S*"]
 
 # --------------------------------------------------------------------------- mypy
 [tool.mypy]
@@ -99,7 +101,7 @@ warn_unreachable = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["numba", "numba.*", "scipy", "scipy.*", "networkx", "networkx.*", "mpl_toolkits.*"]
+module = ["numba", "numba.*", "scipy", "scipy.*", "networkx", "networkx.*", "mpl_toolkits.*", "pypdfium2"]
 ignore_missing_imports = true
 
 # --------------------------------------------------------------------------- pytest

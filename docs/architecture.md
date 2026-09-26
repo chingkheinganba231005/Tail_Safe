@@ -345,6 +345,106 @@ without simulating. Non-finite floats are sent as `null` (strict JSON).
 Buildings are stored by digest; uploaded JSON is validated before use.
 Every result carries the responsible-use disclaimer.
 
+## Microscopic replay engine (`tailsafe/sim/micro.py`, `_micro_kernel.py`)
+
+The meso engine is fast enough for thousands of Monte Carlo runs; the micro
+engine replays *selected* scenarios (median, worst, before/after) person by
+person, for animation and to cross-check the meso engine.
+
+- **Movement:** a collision-free speed model (model form after Tordeux,
+  Chraibi & Seyfried, 2016). Each person is a disc; the walking direction is
+  the direction to the next doorway plus exponential repulsion from
+  neighbours and walls; the speed is `min(v0, max(0, gap / T))`, where `gap`
+  is the free distance to the nearest person ahead *in the direction actually
+  taken*. `v0` is the household's speed times the smoke factor of the room.
+- **Space:** each node's polygon (axis-aligned rectangles in the templates)
+  is a room. Rooms connect through *portals*: door openings, or the shared
+  boundary of adjacent corridor segments clipped to the walkway width.
+  People outside a doorway's span first walk to a point in front of it.
+- **Doorways** have lanes (width ÷ `movement.micro.lane_width`, at least
+  one); each lane lets the next person through only one headway
+  (`T + 2r / v`) after the previous one — the same headway the speed model
+  keeps in a queue — so a door's capacity grows with its width. A person
+  enters the next room only if there is room at the entry point.
+- **Stairs:** a flight is a strip of lanes between side-by-side points at
+  the end of the landings (dog-leg geometry): people step onto the flight
+  from a line across its width, keep the time gap to whoever is ahead in
+  their lane, and step off at the next landing when there is room.
+- **Decisions are shared** with the meso engine through `meso.prepare()`:
+  reaction times, stair choice and assignments, counter-flow and refuge
+  waypoints, blockages and when each person discovers them, smoke-reduced
+  speeds. The two engines differ only in movement and queueing, so their
+  comparison isolates the flow model.
+- **Not walked:** households waiting for an evacuation lift or for
+  fire-service rescue take their exit times from the meso run of the same
+  scenario; toxic dose is not recomputed.
+- **Robustness rules** (documented because they shape results): forced
+  moves after 30 s of being blocked, but only into rooms below jam density;
+  a small overlap-resolution step; two people facing each other in a doorway,
+  or stuck face to face for 5 s, squeeze past each other (swap places).
+- **Output:** exit and left-floor times per person, and frames every 2 s
+  (floor, x, y, state per person) for the replay screen.
+
+`tailsafe.analysis.agreement` runs both engines on the same scenarios and
+reports bias (with a bootstrap CI), relative bias, correlation, RMSE and the
+largest difference for the times by which half, 95% and all of the walkers
+are out. CLI: `tailsafe micro run | compare | fd`. API: `POST /api/micro`,
+then `GET /api/micro/{job}/level/{level}` for one floor's frames.
+
+## Floor-plan ingestion (`tailsafe/vision/`)
+
+| File | Role |
+|---|---|
+| `raster.py` | Load PNG / JPEG / data URLs, and the first page of a PDF when the optional `pypdfium2` is installed |
+| `detect.py` | Walls, doorways, rooms, stairs, room types → `PlanDetection` (plain JSON in image pixels) |
+| `graph.py` | `plan_to_building`: stack the corrected floor into N storeys; `assign_doors` for doorways drawn in the editor |
+| `synth.py` | Render plans from buildings with ground truth (tests, evaluation, the "sample plan" in the UI) |
+| `evaluate.py` | Precision / recall of doorways and stairs on the rendered suite |
+| `overlay.py` | Detection drawn over the image (CLI) |
+
+Pipeline (classical image processing; NumPy / SciPy only):
+
+1. **Ink** by Otsu's threshold (inverted if the paper is dark).
+2. **Wall thickness** = upper quartile of the lengths of ink runs that cross a
+   line continuing on both sides; thin lines (text, treads, furniture,
+   door swings) give crossings of one or two pixels.
+3. **Walls** = ink after a morphological opening a little smaller than that
+   thickness.
+4. **Scale** from a reference line drawn by the user; otherwise from the
+   wall thickness assuming `vision.default_wall_thickness` (with a warning).
+5. **Doorways**: gaps between `door_width_min` and `door_width_max` along a
+   column or row whose two ends are the *ends of a wall running that way*
+   (a jamb, narrow across) — so the gap between the two walls of a corridor
+   is not mistaken for a door; plus **corridor mouths**, the gap between the
+   free ends of two parallel walls (an entrance filling the end of a
+   corridor).
+6. **Rooms** = connected free space with doorways sealed; spaces touching
+   the image border are outside. Each room is covered by up to a dozen
+   greedy largest rectangles, grown by half a wall where a wall runs along
+   the side, so rooms meet on wall centre lines and doorways lie on shared
+   boundaries (as in the templates; the micro engine can replay them).
+7. **Stairs**: thin lines inside a room that cross most of it and repeat at
+   `stair_tread_min`–`stair_tread_max` (autocorrelation of the line profile).
+8. **Types**: stair; void (no doorway); corridor (long and narrow); lobby
+   (three or more doorways); otherwise a flat, with the household-size prior
+   chosen by area (`unit_area_small_max`, `unit_area_medium_max`).
+9. **Doorway → rooms**: the room labels a little way out on either side.
+
+`plan_to_building` repeats the floor for every storey, makes one staircase
+per stair room (landings stacked and joined by flights), keeps doorways with
+their openings (stair doors fire-rated and self-closing), turns doorways to
+the outside on G/F into exits, and — when the plan has none (a typical floor)
+— assumes an exit at the foot of every staircase and records
+`metadata.exits_assumed`. The result is validated like any other building.
+
+**Human in the loop** (Building screen → *Floor plan image*): draw a reference
+line and give its length, read the plan, click a room to change its type
+(flat, corridor, lobby, staircase, refuge area, not walkable), click a
+doorway to delete it or draw new ones, choose the number of storeys, build.
+API: `POST /api/vision/detect` (base64 image, optional scale),
+`POST /api/vision/build`, `GET /api/vision/sample`. CLI:
+`tailsafe vision synth | detect | build | eval`.
+
 ## Web UI (`web/`)
 
 React + TypeScript (Vite), Tailwind, react-three-fiber. It talks only to the
@@ -353,10 +453,11 @@ job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
 
 | Screen | What it shows |
 |---|---|
-| 1 Building | Template gallery with options, or JSON upload; plan of any floor; a small correction editor (stair and exit widths, re-validated by the server); confirm |
+| 1 Building | Template gallery with options, a floor-plan image read by `tailsafe.vision` with a correction editor, or JSON upload; plan of any floor; stair and exit widths editable; confirm |
 | 2 Scenario | Time of day, age mix, vacancy, counter-flow, fire floor, smoke on/off, stair blockages (fixed or random time), random stair loss, lifts out, evacuation lifts, rescue teams; runs and seed |
 | 3 Stress results | Histogram with mean / P95 / CVaR₉₅ markers, stat tiles with CIs, P(RSET > ASET) meter, who is in the tail (risk ratios), floors that fail, stair queues by floor |
 | 4 3D stack | One scenario re-simulated with time series: translucent floors coloured by smoke, stair columns by queue length, blocked stairs, scrubber, people still on each floor, evacuation curve |
+| 5 Replay (people) | The micro engine's replay of one scenario, top-down, one floor at a time, with the meso/micro comparison for that scenario and people on each floor over time (M8) |
 | 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
 | 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
 
@@ -370,6 +471,5 @@ one hue (blue for queues, orange for smoke) and reverse in dark mode so that
 icon and a label. Light and dark themes are both specified (`styles.css`);
 the header toggle overrides the OS setting.
 
-Screens 5 (micro-simulation replay), 8 (surrogate what-if) and 9 (briefing)
-belong to milestones M8, M10 and M11. The full geometry editor (walls, doors,
-refuge tagging) comes with floor-plan vision in M9.
+Screens 8 (surrogate what-if) and 9 (briefing) belong to milestones M10 and
+M11.

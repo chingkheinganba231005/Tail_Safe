@@ -255,6 +255,9 @@ class _Prepared:
     args: tuple[Any, ...]
     group_class: NDArray[np.int32]
     n_rec: int
+    # Decisions and inputs by name, shared with the micro engine so both
+    # engines route, time and slow people identically.
+    named: dict[str, Any]
 
 
 def _waypoints(
@@ -492,7 +495,20 @@ def prepare(
         config.stuck_time,
     )
     del G
-    return _Prepared(args=args, group_class=group_class, n_rec=n_rec)
+    named = {
+        "tables": tables,
+        "blocked_from": blocked_from,
+        "home": home,
+        "ready": ready,
+        "group_class": group_class,
+        "mode": mode,
+        "wp_row": wp_row,
+        "wp_dwell": wp_dwell,
+        "wp_kind": wp_kind,
+        "hz_dt": hz_dt,
+        "hz_speed": hz_speed,
+    }
+    return _Prepared(args=args, group_class=group_class, n_rec=n_rec, named=named)
 
 
 def run_meso(

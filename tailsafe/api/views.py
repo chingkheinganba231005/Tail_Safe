@@ -12,7 +12,9 @@ from tailsafe.building.model import Building, NodeType
 from tailsafe.hazard.model import HazardResult
 from tailsafe.risk.breakdown import tail_breakdown
 from tailsafe.scenarios.montecarlo import LOSSES, MCResult
+from tailsafe.sim._micro_kernel import S_FLIGHT
 from tailsafe.sim.meso import MesoResult
+from tailsafe.sim.micro import MicroResult
 from tailsafe.sim.network import ARC_STAIR_DOWN
 
 _CIRC = {NodeType.CORRIDOR, NodeType.LOBBY, NodeType.LIFT_LOBBY, NodeType.PROTECTED_LOBBY}
@@ -127,4 +129,81 @@ def replay_view(res: MesoResult, info: dict[str, Any], every: float = 20.0) -> d
         "info": info,
         "summary": res.summary(),
         "disclaimer": DISCLAIMER,
+    }
+
+
+def micro_view(res: MicroResult, meso: MesoResult, info: dict[str, Any]) -> dict[str, Any]:
+    """Summary of a micro replay with the meso run of the same scenario."""
+    net = res.net
+    b = net.building
+    walked = res.agent_walked
+    ag = res.population.agent_group
+    t_meso = meso.group_exit[ag][walked]
+    t_micro = res.agent_exit[walked]
+
+    def q(t: np.ndarray, p: float) -> float:
+        t = np.sort(t)
+        return float(t[min(int(np.ceil(p * t.size)) - 1, t.size - 1)]) if t.size else 0.0
+
+    levels = [lv.index for lv in b.levels]
+    # People standing on each floor (those on a stair flight are between floors).
+    on_floor = res.frame_state != S_FLIGHT
+    present = np.stack([((res.frame_level == lv) & on_floor).sum(axis=1) for lv in levels], axis=1)
+    rooms = [
+        {
+            "id": n.id,
+            "type": n.type.value,
+            "level": n.level,
+            "label": n.label,
+            "polygon": n.polygon,
+        }
+        for n in b.nodes
+        if n.polygon
+    ]
+    return {
+        "levels": levels,
+        "frame_dt": float(res.frame_times[1] - res.frame_times[0])
+        if res.frame_times.size > 1
+        else 2.0,
+        "frames": int(res.frame_times.size),
+        "people_on_level": present.astype(int).tolist(),
+        "rooms": rooms,
+        "comparison": {
+            "walkers": int(walked.sum()),
+            "occupants": int(walked.size),
+            "meso": {"p50_s": q(t_meso, 0.5), "p95_s": q(t_meso, 0.95), "last_s": q(t_meso, 1.0)},
+            "micro": {
+                "p50_s": q(t_micro, 0.5),
+                "p95_s": q(t_micro, 0.95),
+                "last_s": q(t_micro, 1.0),
+            },
+        },
+        "summary": res.summary(),
+        "meso_summary": meso.summary(),
+        "info": info,
+        "disclaimer": DISCLAIMER,
+    }
+
+
+def micro_level_view(frames: dict[str, np.ndarray], level: int) -> dict[str, Any]:
+    """Frames of one floor: for each frame, [person, x_dm, y_dm, state] of those on it."""
+    lv = frames["level"]
+    on = lv == level
+    people = np.flatnonzero(on.any(axis=0))
+    out: list[list[list[int]]] = []
+    for k in range(lv.shape[0]):
+        idx = people[on[k, people]]
+        out.append(
+            np.stack(
+                [idx, frames["x"][k, idx], frames["y"][k, idx], frames["state"][k, idx]], axis=1
+            )
+            .astype(int)
+            .tolist()
+        )
+    return {
+        "level": level,
+        "times": frames["times"].tolist(),
+        "frames": out,
+        "scale": 0.1,
+        "states": {"waiting": 0, "walking": 1, "stairs": 2, "dwell": 3, "stranded": 6},
     }

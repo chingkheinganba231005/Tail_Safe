@@ -11,9 +11,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
+from matplotlib.patches import Rectangle
 
 from tailsafe import DISCLAIMER
 from tailsafe.sim.meso import MesoResult
+from tailsafe.sim.micro import MicroResult
 from tailsafe.sim.network import ARC_STAIR_DOWN
 
 
@@ -80,5 +82,62 @@ def save_run_plot(res: MesoResult, out: Path, title: str | None = None) -> Path:
     out.parent.mkdir(parents=True, exist_ok=True)
     fig = plot_run(res, title)
     fig.savefig(out, dpi=130)
+    plt.close(fig)
+    return out
+
+
+def plot_micro_frame(res: MicroResult, level: int, time: float, title: str | None = None) -> Figure:
+    """Top-down snapshot of one floor in a micro replay at ``time`` (s)."""
+    from tailsafe.sim._micro_kernel import S_FLIGHT, S_WAIT
+    from tailsafe.sim.micro import compile_geometry
+
+    net = res.net
+    g = compile_geometry(net)
+    k = int(np.clip(np.searchsorted(res.frame_times, time), 0, res.frame_times.size - 1))
+    fig, ax = plt.subplots(figsize=(7.5, 6.5))
+    for v in range(net.n_nodes):
+        if net.node_level[v] != level or net.node_is_exit[v]:
+            continue
+        x0, x1, y0, y1 = g.n_x0[v], g.n_x1[v], g.n_y0[v], g.n_y1[v]
+        shade = "#e8e7e1" if net.node_type[v].value != "unit" else "#fcfcfb"
+        ax.add_patch(
+            Rectangle((x0, y0), x1 - x0, y1 - y0, fc=shade, ec="#b0afa7", lw=0.6, zorder=1)
+        )
+    here = res.frame_level[k] == level
+    st = res.frame_state[k]
+    groups = (
+        ("walking", here & (st != S_WAIT) & (st != S_FLIGHT), "#2a78d6", "o"),
+        ("on the stairs", here & (st == S_FLIGHT), "#2a78d6", "^"),
+        ("not yet moving", here & (st == S_WAIT), "#898781", "o"),
+    )
+    for label, sel, color, marker in groups:
+        if sel.any():
+            ax.scatter(
+                res.frame_x[k, sel],
+                res.frame_y[k, sel],
+                s=14,
+                c=color,
+                marker=marker,
+                label=f"{label} ({int(sel.sum())})",
+                zorder=3,
+                linewidths=0,
+            )
+    ax.set_aspect("equal")
+    ax.autoscale_view()
+    ax.set_xlabel("m")
+    ax.legend(loc="upper right", fontsize=8, frameon=False)
+    ax.set_title(title or f"Level {level} at {res.frame_times[k] / 60:.1f} min", fontsize=10)
+    fig.text(0.01, 0.005, DISCLAIMER, fontsize=5.5, color="#666666", wrap=True)
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    return fig
+
+
+def save_micro_frame(
+    res: MicroResult, level: int, time: float, out: Path, title: str | None = None
+) -> Path:
+    """Write :func:`plot_micro_frame` to ``out``."""
+    fig = plot_micro_frame(res, level, time, title)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=150)
     plt.close(fig)
     return out
