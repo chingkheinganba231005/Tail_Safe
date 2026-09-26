@@ -8,7 +8,7 @@ from tailsafe.building.builder import BuildingBuilder, rect
 from tailsafe.building.model import Building, EdgeKind, LevelKind, NodeType
 from tailsafe.building.templates import generate
 from tailsafe.population.synth import Mode, PopulationConfig, TimeSlot, sample_population
-from tailsafe.scenarios.spec import demo_spec
+from tailsafe.scenarios.spec import reference_spec
 from tailsafe.sim import _micro_kernel as MK
 from tailsafe.sim.cases import corridor_building, stair_tower, uniform_population
 from tailsafe.sim.meso import SimScenario, run_meso, stair_blockage
@@ -154,7 +154,7 @@ def test_fundamental_diagram_is_reasonable() -> None:
 @pytest.mark.slow
 def test_meso_micro_agreement_small_tower() -> None:
     b = generate("cruciform", storeys=10, flats_per_wing=3)
-    res = meso_micro_agreement(b, demo_spec().model_copy(update={"fire_level": 6}), 8)
+    res = meso_micro_agreement(b, reference_spec().model_copy(update={"fire_level": 6}), 8)
     assert res["not_out_total"] == 0
     last = res["summary"]["last_s"]
     assert abs(last["relative_bias"]) < 0.1 and last["correlation"] > 0.9

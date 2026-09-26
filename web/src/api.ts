@@ -1,5 +1,6 @@
 // Thin client for the TailSafe API. Long work runs as jobs: submit, follow the
 // server-sent progress events (with a polling fallback), then fetch the result.
+import { STATIC, staticBlob, staticRequest } from "./static/site";
 import type { Job } from "./types";
 
 export class ApiError extends Error {
@@ -27,10 +28,12 @@ async function handle<T>(res: Response): Promise<T> {
 }
 
 export async function get<T>(path: string): Promise<T> {
+  if (STATIC) return staticRequest<T>("GET", path);
   return handle<T>(await fetch(path));
 }
 
 export async function post<T>(path: string, body: unknown): Promise<T> {
+  if (STATIC) return staticRequest<T>("POST", path, body);
   return handle<T>(
     await fetch(path, {
       method: "POST",
@@ -38,6 +41,18 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
       body: JSON.stringify(body),
     }),
   );
+}
+
+/** POST and receive a file (the briefing PDF). */
+export async function postBlob(path: string, body: unknown): Promise<Blob> {
+  if (STATIC) return staticBlob(path, body);
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new ApiError(res.status, `request failed (${res.status})`);
+  return res.blob();
 }
 
 /** Wait for a job to finish, reporting every status change. */

@@ -1,7 +1,7 @@
-import { ticks } from "../../lib/stats";
-import { useWidth } from "../hooks";
 import { Legend } from "../Legend";
 import { useTooltip } from "../Tooltip";
+import { useWidth } from "../hooks";
+import { ticks } from "../../lib/stats";
 
 export interface RangeSeries {
   name: string;

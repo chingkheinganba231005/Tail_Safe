@@ -12,7 +12,7 @@ from tailsafe.scenarios.spec import (
     RandomStairBlockage,
     ScenarioSpec,
     StairBlockage,
-    demo_spec,
+    reference_spec,
 )
 
 
@@ -43,8 +43,8 @@ def test_dist_ppf() -> None:
         Dist(dist="lognormal", median=10.0)
 
 
-def test_demo_spec_sampling(tower: Building) -> None:
-    sampler = ScenarioSampler(tower, demo_spec())
+def test_reference_spec_sampling(tower: Building) -> None:
+    sampler = ScenarioSampler(tower, reference_spec())
     u = scenario_uniforms(0, 0, 1)[0]
     sc = sampler.sample(0, 0, u)
     assert sc.info["fire_level"] == 14
@@ -58,8 +58,8 @@ def test_demo_spec_sampling(tower: Building) -> None:
 
 def test_common_random_numbers_across_specs(tower: Building) -> None:
     """An intervention changes behaviour, not who is home or when they react."""
-    base = ScenarioSampler(tower, demo_spec())
-    lifts = ScenarioSampler(tower, demo_spec().model_copy(update={"evacuation_lifts": True}))
+    base = ScenarioSampler(tower, reference_spec())
+    lifts = ScenarioSampler(tower, reference_spec().model_copy(update={"evacuation_lifts": True}))
     u = scenario_uniforms(3, 0, 4)
     for i in range(4):
         a, b = base.sample(3, i, u[i]), lifts.sample(3, i, u[i])
@@ -95,7 +95,7 @@ def test_invalid_specs(tower: Building) -> None:
 
 
 def test_spec_roundtrip() -> None:
-    spec = demo_spec()
+    spec = reference_spec()
     again = ScenarioSpec.model_validate_json(spec.model_dump_json())
     assert again == spec
     assert "name" not in again.digest_payload()

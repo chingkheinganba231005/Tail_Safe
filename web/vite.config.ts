@@ -3,6 +3,8 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // The browser version is served from a sub-path (GitHub Pages: /<repo>/).
+  base: process.env.VITE_BASE ?? "/",
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { extent, ticks } from "../../lib/stats";
-import { useWidth } from "../hooks";
 import { Legend } from "../Legend";
 import { useTooltip } from "../Tooltip";
+import { useWidth } from "../hooks";
+import { extent, ticks } from "../../lib/stats";
 
 export interface LineSeries {
   name: string;

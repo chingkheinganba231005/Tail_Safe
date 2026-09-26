@@ -8,7 +8,7 @@ PORT   ?= 8000
 WEB_STAMP := web/node_modules/.installed
 
 .DEFAULT_GOAL := help
-.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo stress-demo pitch-demo clean web web-install web-dev web-check
+.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema example stress-example clean web web-install web-dev web-check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -70,7 +70,7 @@ web-check: $(WEB_STAMP) ## Type-check and unit-test the web UI (what CI runs for
 schema: $(STAMP) ## Regenerate schemas/*.json from the Pydantic models
 	$(BIN)/tailsafe schema export
 
-demo: $(STAMP) ## Generate and render the 40-storey cruciform demo building
+example: $(STAMP) ## Generate and render the 40-storey cruciform example building
 	$(BIN)/tailsafe building generate cruciform --storeys 40 --out out/cruciform_40.json
 	$(BIN)/tailsafe building render out/cruciform_40.json --out out/cruciform_40.png
 
@@ -78,8 +78,5 @@ clean: ## Remove caches and build outputs (keeps .venv)
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov build dist out
 	find . -name __pycache__ -type d -prune -not -path './$(VENV)/*' -exec rm -rf {} +
 
-stress-demo: $(STAMP) ## Monte Carlo stress test of the pitch scenario (1,000 runs)
-	$(BIN)/tailsafe stress run cruciform --spec demo --runs 1000 --out out/stress-demo
-
-pitch-demo: $(STAMP) ## The pitch end to end (stress, bottlenecks, plan, replay, briefing; ~4 min)
-	$(BIN)/tailsafe demo --out out/pitch
+stress-example: $(STAMP) ## Monte Carlo stress test of the reference scenario (1,000 runs)
+	$(BIN)/tailsafe stress run cruciform --spec reference --runs 1000 --out out/stress-example

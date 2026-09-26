@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import type { Building, EdgeDef, NodeDef, Point } from "../types";
 import { ORANGE } from "../lib/color";
 import { levelLabel } from "../lib/format";
-import { useWidth } from "./hooks";
+import type { Building, EdgeDef, NodeDef, Point } from "../types";
 import { useTooltip } from "./Tooltip";
+import { useWidth } from "./hooks";
 
 interface Props {
   building: Building;

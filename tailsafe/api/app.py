@@ -37,7 +37,7 @@ from tailsafe.config import get_params
 from tailsafe.optimize.search import LEVERS, Objective, OptimizeConfig, optimize
 from tailsafe.scenarios.montecarlo import MCConfig, MCResult, run_monte_carlo
 from tailsafe.scenarios.sampler import ScenarioSampler, scenario_uniforms
-from tailsafe.scenarios.spec import ScenarioSpec, demo_spec
+from tailsafe.scenarios.spec import ScenarioSpec, reference_spec
 from tailsafe.sim.meso import SimConfig, run_meso
 from tailsafe.sim.network import compile_network
 from tailsafe.vision.detect import PlanDetection, Scale
@@ -106,7 +106,7 @@ class StressRequest(_Req):
     """Monte Carlo stress test."""
 
     building_id: str
-    spec: ScenarioSpec = Field(default_factory=demo_spec)
+    spec: ScenarioSpec = Field(default_factory=reference_spec)
     runs: int = Field(default=300, ge=10, le=MAX_RUNS)
     seed: int = Field(default=0, ge=0)
 
@@ -123,7 +123,7 @@ class OptimizeRequest(_Req):
     """Search for an operational plan."""
 
     building_id: str
-    spec: ScenarioSpec = Field(default_factory=demo_spec)
+    spec: ScenarioSpec = Field(default_factory=reference_spec)
     objective: Objective = Field(default_factory=Objective)
     n_scenarios: int = Field(default=60, ge=10, le=1000)
     confirm_scenarios: int = Field(default=200, ge=10, le=MAX_RUNS)
@@ -137,7 +137,7 @@ class ReplayRequest(_Req):
     """Re-simulate one scenario with full time series."""
 
     building_id: str
-    spec: ScenarioSpec = Field(default_factory=demo_spec)
+    spec: ScenarioSpec = Field(default_factory=reference_spec)
     index: int = Field(default=0, ge=0)
     seed: int = Field(default=0, ge=0)
     runs: int = Field(default=300, ge=1, le=MAX_RUNS, description="Runs of the stress test")
@@ -183,10 +183,10 @@ def templates() -> list[dict[str, Any]]:
     return out
 
 
-@app.get("/api/specs/demo")
-def get_demo_spec() -> dict[str, Any]:
-    """The pitch scenario specification."""
-    return demo_spec().model_dump(mode="json")
+@app.get("/api/specs/reference")
+def get_reference_spec() -> dict[str, Any]:
+    """The reference scenario specification."""
+    return reference_spec().model_dump(mode="json")
 
 
 # ============================================================================ buildings
@@ -371,7 +371,7 @@ class MicroRequest(_Req):
     """Replay one scenario person by person (and compare with the meso engine)."""
 
     building_id: str
-    spec: ScenarioSpec = Field(default_factory=demo_spec)
+    spec: ScenarioSpec = Field(default_factory=reference_spec)
     index: int = Field(default=0, ge=0)
     seed: int = Field(default=0, ge=0)
     batch_size: int = Field(default=100, ge=1, le=1000)
@@ -531,7 +531,7 @@ class SurrogateRequest(_Req):
     """Instant estimate for a building and scenario."""
 
     building_id: str
-    spec: ScenarioSpec = Field(default_factory=demo_spec)
+    spec: ScenarioSpec = Field(default_factory=reference_spec)
 
 
 _SURROGATE: dict[str, Any] = {}

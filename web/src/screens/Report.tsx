@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode, useState } from "react";
-import { post } from "../api";
 import type { StressRun } from "../App";
+import { post, postBlob } from "../api";
+import { Callout } from "../components/Icon";
 import type { BottleneckResult, BuildingView, Briefing, OptimizeResult } from "../types";
 
 interface Props {
@@ -81,16 +82,14 @@ export function Report({ building, stress, bottlenecks, optimization }: Props) {
     const distributions: Record<string, number[]> = optimization
       ? { Baseline: optimization.before_after.total_time.before, "With plan": optimization.before_after.total_time.after }
       : { Baseline: stress.result.losses.total_time };
-    const res = await fetch("/api/briefing/pdf", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ markdown: brief.markdown, distributions }),
-    });
-    if (!res.ok) {
-      setError(`PDF export failed (${res.status})`);
+    let blob: Blob;
+    try {
+      blob = await postBlob("/api/briefing/pdf", { markdown: brief.markdown, distributions });
+    } catch (e) {
+      setError(`PDF export failed: ${(e as Error).message}`);
       return;
     }
-    const url = URL.createObjectURL(await res.blob());
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "tailsafe-briefing.pdf";
@@ -102,7 +101,7 @@ export function Report({ building, stress, bottlenecks, optimization }: Props) {
   return (
     <div className="space-y-4">
       <section className="card space-y-3 p-4">
-        <h2 className="text-lg font-semibold">Briefing</h2>
+        <h2 className="page-title">Briefing</h2>
         <p className="secondary max-w-3xl text-sm">
           A one-page summary for the building manager, written only from the numbers computed here. When an LLM is
           configured on the server it drafts the text, and every number in its draft is checked against the results;
@@ -128,32 +127,19 @@ export function Report({ building, stress, bottlenecks, optimization }: Props) {
         </div>
       </section>
       {error && (
-        <p className="card p-3 text-sm" role="alert">
-          <span aria-hidden style={{ color: "var(--critical)" }}>
-            ⛔{" "}
-          </span>
-          {error}
-        </p>
+        <Callout tone="critical">{error}</Callout>
       )}
       {brief && (
         <>
-          <section className="card flex flex-wrap items-center gap-3 p-3 text-sm" role="status">
-            <span>
-              <span aria-hidden style={{ color: "var(--good)" }}>
-                ✓{" "}
-              </span>
-              {brief.source === "llm" ? "Drafted by the LLM; " : "Template briefing; "}
-              every number checked against the results.
-            </span>
-            {brief.note && (
-              <span className="secondary">
-                <span aria-hidden style={{ color: "var(--warning)" }}>
-                  ⚠{" "}
-                </span>
-                {brief.note}
-              </span>
-            )}
-          </section>
+          <Callout tone="good">
+            {brief.source === "llm" ? "Drafted by the language model; " : "Written from the results; "}
+            every number checked against them.
+          </Callout>
+          {brief.note && (
+            <Callout tone="warning" role="note">
+              <span className="secondary">{brief.note}</span>
+            </Callout>
+          )}
           <section className="card p-6">
             <Markdown text={brief.markdown} />
           </section>

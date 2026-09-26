@@ -1,0 +1,15 @@
+.git
+.venv
+**/__pycache__
+**/.pytest_cache
+.mypy_cache
+.ruff_cache
+out
+runs
+notebooks
+docs
+tests
+data
+web/node_modules
+web/dist
+web/public/data

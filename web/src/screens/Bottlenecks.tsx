@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
-import { RankChart } from "../components/charts/RankChart";
 import { JobProgress } from "../components/JobProgress";
 import { PlanView } from "../components/PlanView";
 import { StackView3D } from "../components/StackView3D";
+import { RankChart } from "../components/charts/RankChart";
 import { useJob } from "../components/useJob";
 import { LOSS_SHORT, levelLabel, pct, signedMin } from "../lib/format";
 import { LOSSES, type BottleneckResult, type BuildingView, type Loss } from "../types";
@@ -57,7 +57,7 @@ export function Bottlenecks({ building, stress, result, setResult }: Props) {
     <div className="space-y-4">
       <section className="card flex flex-wrap items-end justify-between gap-3 p-4">
         <div>
-          <h2 className="text-lg font-semibold">Bottlenecks</h2>
+          <h2 className="page-title">Bottlenecks</h2>
           <p className="secondary max-w-2xl text-sm">
             Each candidate element (a whole stair, its doors, an exit, the places where queues form) is given more
             capacity — or a blocked stair is kept usable — and the tail scenarios are re-simulated with the same

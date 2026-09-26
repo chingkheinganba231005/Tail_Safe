@@ -1,17 +1,15 @@
+import { NOT_RECORDED } from "../static/site";
 import type { Job } from "../types";
+import { Callout } from "./Icon";
 
 /** Progress of a background job (status, bar, message). */
 export function JobProgress({ job, error, label }: { job: Job | null; error: string | null; label: string }) {
+  if (error === NOT_RECORDED) return <Callout tone="info">{error}</Callout>;
   if (error) {
     return (
-      <div className="card flex items-start gap-2 p-3 text-sm" role="alert">
-        <span aria-hidden style={{ color: "var(--critical)" }}>
-          ⛔
-        </span>
-        <div>
-          <strong>{label} failed.</strong> <span className="secondary">{error}</span>
-        </div>
-      </div>
+      <Callout tone="critical">
+        <strong className="font-medium">{label} failed.</strong> <span className="secondary">{error}</span>
+      </Callout>
     );
   }
   if (!job) return null;

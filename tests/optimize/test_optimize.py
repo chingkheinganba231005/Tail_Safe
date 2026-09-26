@@ -20,7 +20,7 @@ from tailsafe.optimize.search import (
 from tailsafe.population.synth import Mode
 from tailsafe.scenarios.montecarlo import MCConfig, run_monte_carlo
 from tailsafe.scenarios.sampler import ScenarioSampler, apply_wardens, scenario_uniforms
-from tailsafe.scenarios.spec import HazardSpec, ScenarioSpec, demo_spec
+from tailsafe.scenarios.spec import HazardSpec, ScenarioSpec, reference_spec
 
 
 @pytest.fixture(scope="module")
@@ -133,19 +133,19 @@ def test_objectives_and_confirm(tower: Building) -> None:
 
 
 def test_screening_plans(tower: Building) -> None:
-    plans = screening_plans(tower, demo_spec(), OptimizeConfig())
+    plans = screening_plans(tower, reference_spec(), OptimizeConfig())
     assert {"lifts", "hold_open", "stair_assignment", "phasing"} <= set(plans)
     assert all(pl.evacuation_lifts for pl in plans["lifts"])
     who = {pl.lift_eligibility for pl in plans["lifts"]}
     assert who == {"mobility_impaired", "wheelchair_users"}
-    only = screening_plans(tower, demo_spec(), OptimizeConfig(levers=("lifts",)))
+    only = screening_plans(tower, reference_spec(), OptimizeConfig(levers=("lifts",)))
     assert set(only) == {"lifts"}
 
 
 def test_optimize_small(tower: Building) -> None:
     res = optimize(
         tower,
-        demo_spec().model_copy(update={"fire_level": 6}),
+        reference_spec().model_copy(update={"fire_level": 6}),
         Objective(),
         OptimizeConfig(
             n_scenarios=16,

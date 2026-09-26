@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
-import { FloorChart } from "../components/charts/FloorChart";
-import { LineChart } from "../components/charts/LineChart";
 import { JobProgress } from "../components/JobProgress";
 import { StackLegend, StackView3D } from "../components/StackView3D";
+import { FloorChart } from "../components/charts/FloorChart";
+import { LineChart } from "../components/charts/LineChart";
 import { useJob } from "../components/useJob";
 import { clock, levelLabel, minutes } from "../lib/format";
 import { useMode } from "../lib/theme";
@@ -114,7 +114,7 @@ export function Stack3D({ building, stress, index, setIndex }: Props) {
     <div className="space-y-4">
       <section className="card flex flex-wrap items-center justify-between gap-2 p-4">
         <div>
-          <h2 className="text-lg font-semibold">3D stack view</h2>
+          <h2 className="page-title">3D stack view</h2>
           <p className="secondary text-sm">
             Scenario {idx} re-simulated with full time series (same random draws as in the stress test).
           </p>

@@ -1,11 +1,12 @@
+import type React from "react";
 import { useMemo, useState } from "react";
 import type { StressRun } from "../App";
 import { ChartCard } from "../components/ChartCard";
+import { StatTile } from "../components/StatTile";
 import { FloorChart } from "../components/charts/FloorChart";
 import { Histogram, histogramTable } from "../components/charts/Histogram";
 import { Meter } from "../components/charts/Meter";
 import { RankChart } from "../components/charts/RankChart";
-import { StatTile } from "../components/StatTile";
 import { LOSS_LABELS, LOSS_SHORT, levelLabel, min, minutes, pct } from "../lib/format";
 import { LOSSES, type BuildingView, type Loss } from "../types";
 
@@ -32,7 +33,7 @@ export function StressResults({ stress, building, onReplay }: Props) {
       <section className="card p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold">Stress-test results</h2>
+            <h2 className="page-title">Stress-test results</h2>
             <p className="secondary text-sm">
               {building.summary.name} · {r.runs} scenarios (seed {r.seed}) · ≈{r.occupants_mean.toFixed(0)} occupants ·
               computed in {r.elapsed_s.toFixed(0)} s
@@ -139,7 +140,10 @@ export function StressResults({ stress, building, onReplay }: Props) {
             rows: congestion.flatMap(([s, rows]) => rows.map((x) => [s, levelLabel(x.level), (x.person_seconds / 60).toFixed(1)])),
           }}
         >
-          <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${congestion.length}, minmax(0, 1fr))` }}>
+          <div
+            className="stair-grid grid gap-4"
+            style={{ "--cols": congestion.length } as React.CSSProperties}
+          >
             {congestion.map(([s, rows]) => (
               <div key={s}>
                 <div className="text-sm font-semibold">Stair {s}</div>

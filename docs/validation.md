@@ -60,7 +60,7 @@ still to come.
 ## 3. Monte Carlo convergence (M3)
 
 CVaR₉₅ estimates and 95% bootstrap CIs from the first *n* scenarios of the
-1,000-run demo (`make stress-demo`, seed 0, Latin Hypercube batches of 100),
+1,000-run reference stress test (`make stress-example`, seed 0, Latin Hypercube batches of 100),
 in minutes:
 
 | n | CVaR₉₅ total time | 95% CI | half-width | CVaR₉₅ self-evacuation | 95% CI | half-width |
@@ -171,7 +171,7 @@ either model against measurements.
 ### Meso–micro agreement
 
 `tailsafe micro compare` runs both engines on the same sampled scenarios of
-the pitch scenario (fire on 14/F, Stair A smoke-logged at 4 min, one lift
+the reference scenario (fire on 14/F, Stair A smoke-logged at 4 min, one lift
 out, Sunday 3 a.m.) and compares the people the micro engine walks.
 Correlation is across scenarios; where a metric hardly varies between
 scenarios, differences between the engines dominate and the correlation is
@@ -185,7 +185,7 @@ low even when the bias is small.
 | Time for 95% of the walkers to get out | 29.5 min | 31.5 min | +1.9 min (+0.9 to +3.1) | +7% | 0.58 | 3.2 min | 7.5 min |
 | Time the last walker gets out | 60.3 min | 60.4 min | +0.1 min (+0.0 to +0.2) | +0% | 1.00 | 0.2 min | 0.4 min |
 
-**40-storey cruciform block** (the pitch building, seed 0):
+**40-storey cruciform block** (the reference building, seed 0):
 
 | Metric | Meso mean | Micro mean | Bias micro − meso (95% CI) | Relative bias | Correlation | RMSE | Largest difference |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -198,8 +198,8 @@ Reading: the engines agree closely on when the last walker gets out in the
 times). The micro engine is a few minutes slower for the bulk of occupants —
 merging at landings and doorways costs more when queues are physical — and
 in the 40-storey block its stair lanes let the last walkers out somewhat
-sooner than the meso engine's hydraulic stair capacity. Tail results in the
-pitch come from the meso engine; the micro engine is for replay and for
+sooner than the meso engine's hydraulic stair capacity. Tail results
+come from the meso engine; the micro engine is for replay and for
 this cross-check.
 
 ## 9. Floor-plan reader (M9)
@@ -328,7 +328,7 @@ all 800 cases (10% held back for validation; 120 epochs with a cosine
 learning-rate schedule, keeping the weights with the lowest validation loss);
 their metadata stores the numbers above, which the what-if screen quotes.
 
-## 11. Briefing and demo (M11)
+## 11. Briefing (M11)
 
 | Check | Test | Status |
 |---|---|---|
@@ -338,7 +338,6 @@ their metadata stores the numbers above, which the what-if screen quotes.
 | The scenario sentence comes from the settings, not from stale free text | `tests/report/test_briefing.py` | ✅ |
 | One-page PDF (and PNG preview) with the before/after distribution | `tests/report/test_briefing.py` | ✅ |
 | CLI `tailsafe brief` and the API (`/api/briefing`, `/api/briefing/pdf`) | `tests/report/test_briefing.py`, `tests/test_api.py` | ✅ |
-| `tailsafe demo` runs end to end | `tests/report/test_briefing.py` (slow) | ✅ |
 
 The number check reads digits only: a number written as a word ("three
 floors") is not checked, which is why the prompt asks for digits. It checks
@@ -346,8 +345,6 @@ that each number *exists* in the facts, not that it is attached to the right
 quantity; the template is safe by construction, an LLM draft is only as
 faithful as its wording.
 
-`tailsafe demo` on a 4-core laptop: 238 s end to end, within the 5-minute
-target (step timings in [demo.md](demo.md)).
 
 ## 12. Parameter registry
 

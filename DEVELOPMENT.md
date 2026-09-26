@@ -1,9 +1,9 @@
-# CLAUDE.md — TailSafe project guide
+# TailSafe — developer guide
 
 TailSafe stress-tests evacuation of Hong Kong high-rise buildings under uncertain,
 worst-case conditions and ranks cheap operational interventions by how much they
 shrink the **tail** (CVaR₉₅, P(RSET > ASET)), not the mean. The full product spec
-is [`Tailsafeidea.md`](Tailsafeidea.md); this file records conventions, commands
+is [`docs/spec.md`](docs/spec.md); this file records conventions, commands
 and current status.
 
 ## Commands
@@ -16,20 +16,21 @@ make check       # ruff lint + format check + mypy --strict + tests  (= CI)
 make format      # ruff format + safe autofixes
 make dev         # FastAPI backend on :8000 + Vite UI on :5173 (hot reload)
 make web         # build web/dist (served by the API at /)
+.venv/bin/tailsafe export-site --out web/public/data  # recorded results for the browser version
+cd web && VITE_STATIC=1 npx vite    # the browser version locally (no Python server)
+docker build -t tailsafe . && docker run -p 7860:7860 tailsafe   # the full app in a container
 make web-check   # web type-check + vitest (CI job "Web UI")
 make schema      # regenerate schemas/*.json from the Pydantic models
-make demo        # generate + render the 40-storey cruciform block
-make pitch-demo  # the whole pitch, timed (= tailsafe demo --out out/pitch, ~4 min on 4 cores)
+make example     # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe validate --markdown        # analytical checks of the simulator
 .venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
     --block-stair A@240 --plot out/run.png  # one scenario, summary JSON + plot
 .venv/bin/tailsafe sim run cruciform --fire L14.unit.N3 --fire-door-open --plot out/fire.png
-.venv/bin/tailsafe stress run cruciform --spec demo --runs 1000 --out out/demo
-.venv/bin/tailsafe stress report out/demo --loss self_evacuation_time
-.venv/bin/tailsafe stress bottlenecks out/demo       # counterfactual ranking (re-runs)
-.venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo   # plan search + confirmation
-.venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo # regenerate pitch_metrics.md
-.venv/bin/tailsafe brief --stress out/demo --optimization out/opt-demo # briefing .md + .pdf (checked)
+.venv/bin/tailsafe stress run cruciform --spec reference --runs 1000 --out out/stress
+.venv/bin/tailsafe stress report out/stress --loss self_evacuation_time
+.venv/bin/tailsafe stress bottlenecks out/stress     # counterfactual ranking (re-runs)
+.venv/bin/tailsafe optimize cruciform --out out/plan # plan search + confirmation
+.venv/bin/tailsafe brief --stress out/stress --optimization out/plan # briefing .md + .pdf (checked)
 .venv/bin/tailsafe micro run cruciform --index 3 --plot out/floor.png --level 14 --time 420
 .venv/bin/tailsafe micro compare cruciform --runs 20      # meso–micro agreement table
 .venv/bin/tailsafe micro fd                              # micro speed–density vs hydraulic
@@ -63,8 +64,7 @@ make pitch-demo  # the whole pitch, timed (= tailsafe demo --out out/pitch, ~4 m
   live in `tests/validation/` and are summarised in `docs/validation.md`.
 - **Responsible use:** show the disclaimer (`tailsafe.DISCLAIMER`) in the UI,
   API and reports. All occupants are synthetic.
-- **Git:** commits are authored by the repository owner; do not add AI
-  co-author or session trailers to commit messages.
+- **Git:** commits are authored by the repository owner.
 
 ## Layout
 
@@ -82,36 +82,56 @@ tailsafe/analysis/     bottlenecks: queue recurrence, min-cut/load, counterfactu
 tailsafe/risk/         VaR/CVaR with bootstrap CIs, paired differences, tail breakdowns,
                        RSET vs ASET, plots
 tailsafe/optimize/     InterventionPlan levers, SAA search with CRN, CMA-ES, paired confirmation
-tailsafe/report/       pitch_metrics.md generator and the briefing (facts → template or LLM,
-                       number check, one-page PDF); numbers only from saved results
+tailsafe/report/       the briefing (facts → template or LLM, number check, one-page PDF);
+                       numbers only from saved results
 tailsafe/vision/       floor-plan reader (detect.py), plan → building (graph.py),
                        rendered plans with truth (synth.py), evaluation
 tailsafe/building/geometry.py  rectangle helpers shared by vision and micro
 tailsafe/surrogate/    graph surrogate: training data, features, JAX GNN, evaluation,
                        predictor + shipped weights (weights/surrogate.npz)
 tailsafe/api/          FastAPI app: jobs (progress over SSE, disk cache), views for the UI
+                       static_site.py records responses for the browser version
 web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–9)
 config/params.yaml     parameter registry
 schemas/               generated JSON schemas (do not edit by hand; `make schema`)
-docs/                  architecture, validation, assumptions, pitch metrics
+docs/                  specification, architecture, validation, assumptions
 ```
 
 ## Status
 
 | # | Milestone | State |
 |---|---|---|
-| M0 | Scaffolding: tooling, CI, CLAUDE.md, params.yaml | ✅ done |
-| M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make demo`) |
+| M0 | Scaffolding: tooling, CI, DEVELOPMENT.md, params.yaml | ✅ done |
+| M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make example`) |
 | M2 | Meso simulator + population model | ✅ done (`tailsafe validate`, `tailsafe sim run`) |
-| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-demo`: 1,000 runs ≈ 1 min on 4 cores) |
+| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-example`: 1,000 runs ≈ 1 min on 4 cores) |
 | M4 | Hazard model (smoke, visibility, FED, ASET) | ✅ done (P(RSET>ASET) in `stress run`; `sim run --fire`) |
 | M5 | Bottleneck attribution | ✅ done (`tailsafe stress bottlenecks DIR`) |
-| M6 | Intervention optimiser | ✅ done (`tailsafe optimize`, `tailsafe pitch`) |
+| M6 | Intervention optimiser | ✅ done (`tailsafe optimize`) |
 | M7 | Web app (job API + React UI) | ✅ done (`make dev`, screens 1–4, 6, 7) |
 | M8 | Micro simulator + replay screen | ✅ done (`tailsafe micro`, web screen 5) |
 | M9 | Floor-plan ingestion + correction editor | ✅ done (`tailsafe vision`, Building → Floor plan image) |
 | M10 | GNN surrogate + live what-if | ✅ done (`tailsafe surrogate`, web screen 8) |
-| M11 | Briefing, PDF export, polish | ✅ done (`tailsafe brief`, `tailsafe demo` in 238 s, web screen 9) |
+| M11 | Briefing, PDF export, polish | ✅ done (`tailsafe brief`, web screen 9) |
+
+## Publishing
+
+Two ways for anyone to use TailSafe from a browser, on any device:
+
+- **Browser version (GitHub Pages).** `.github/workflows/pages.yml` records the
+  results (`tailsafe export-site`), builds the UI with `VITE_STATIC=1` and deploys
+  on every push to `main`. One-time setup: Settings → Pages → Build and
+  deployment → Source: **GitHub Actions**. Address:
+  `https://<owner>.github.io/<repo>/`. Nothing runs on a server; the what-if
+  network runs in the visitor's browser.
+- **Full app (Hugging Face Space).** The `Dockerfile` runs the simulator, API and
+  UI on port 7860. `.github/workflows/space.yml` pushes it to a Space on every
+  push to `main` once configured: create a Space with the Docker SDK on
+  huggingface.co, create a write token, then add the repository secret
+  `HF_TOKEN` and the variable `HF_SPACE` (`<user>/<space>`). The free CPU tier
+  has 2 cores, so expect roughly twice the run times of a 4-core laptop (not
+  yet measured on a Space). Jobs run one at a time, so simultaneous visitors
+  queue.
 
 ## Decisions taken (open for review)
 
@@ -187,5 +207,10 @@ started and are easy to revisit while the codebase is small:
 - Briefing text must only contain numbers present in `briefing_facts(...)`.
   When adding a sentence to `template_briefing`, put any new number in the facts
   first; `make_briefing` raises if the template breaks the rule.
+- The browser version answers requests from recorded files keyed by a hash of the
+  request (`canon` in `tailsafe/api/static_site.py` and `web/src/static/key.ts`
+  must stay identical). If a screen changes the body it sends on the standard
+  path, re-record (`tailsafe export-site`) or the browser version will say it has
+  no results for those settings.
 - `Building` caches lookups (`node_by_id` ...). Treat it as immutable; use
   `model_copy(update=...)`, which drops the caches.

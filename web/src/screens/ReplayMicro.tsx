@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { get } from "../api";
 import type { StressRun } from "../App";
+import { get } from "../api";
 import { ChartCard } from "../components/ChartCard";
+import { JobProgress } from "../components/JobProgress";
 import { FloorChart } from "../components/charts/FloorChart";
 import { LineChart } from "../components/charts/LineChart";
 import { useWidth } from "../components/hooks";
-import { JobProgress } from "../components/JobProgress";
 import { useJob } from "../components/useJob";
 import { clock, levelLabel, minutes } from "../lib/format";
 import { dotsAt, frameAt } from "../lib/interp";
@@ -100,7 +100,7 @@ export function ReplayMicro({ building, stress, index, setIndex }: Props) {
     <div className="space-y-4">
       <section className="card flex flex-wrap items-center justify-between gap-2 p-4">
         <div>
-          <h2 className="text-lg font-semibold">Replay, person by person</h2>
+          <h2 className="page-title">Replay, person by person</h2>
           <p className="secondary max-w-3xl text-sm">
             The microscopic engine re-runs scenario {idx} with every person as a disc on the floor plan — same people,
             reaction times and route choices as the fast engine, but physical queues at doors and on stairs.
