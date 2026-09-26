@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BLUE, ramp, smokeLevel } from "../src/lib/color";
 import { clock, levelLabel, minutes, signedMin } from "../src/lib/format";
+import { dotsAt, frameAt } from "../src/lib/interp";
 import { extent, histogram, quantile, ticks } from "../src/lib/stats";
 
 describe("format", () => {
@@ -60,5 +61,31 @@ describe("colour", () => {
     expect(smokeLevel(2)).toBe(1);
     expect(smokeLevel(null)).toBe(0);
     expect(smokeLevel(11)).toBeCloseTo(0.5);
+  });
+});
+
+
+describe("replay interpolation", () => {
+  const times = [0, 2, 4];
+  const frames: [number, number, number, number][][] = [
+    [
+      [1, 0, 0, 1],
+      [2, 10, 10, 0],
+    ],
+    [[1, 20, 0, 1]],
+    [],
+  ];
+  it("finds the frame before t", () => {
+    expect(frameAt(times, -1)).toBe(0);
+    expect(frameAt(times, 3)).toBe(1);
+    expect(frameAt(times, 9)).toBe(2);
+  });
+  it("interpolates people present in both frames and holds the others", () => {
+    const dots = dotsAt(times, frames, 1, 0.1);
+    const one = dots.find((d) => d.id === 1)!;
+    expect(one.x).toBeCloseTo(1.0);
+    const two = dots.find((d) => d.id === 2)!;
+    expect(two.x).toBeCloseTo(1.0);
+    expect(dotsAt(times, frames, 4, 0.1)).toEqual([]);
   });
 });

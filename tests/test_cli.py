@@ -116,3 +116,39 @@ def test_sim_run_with_fire(tmp_path: Path) -> None:
     data = json.loads(out.read_text())
     assert data["tenability"] is not None
     assert (tmp_path / "fire_smoke.png").exists()
+
+
+def test_micro_run_compare_and_fd(tmp_path: Path) -> None:
+    import json
+
+    png = tmp_path / "floor.png"
+    out = tmp_path / "micro.json"
+    base = ["cruciform", "--storeys", "6"]
+    res = runner.invoke(
+        app,
+        [
+            "micro",
+            "run",
+            *base,
+            "--index",
+            "1",
+            "--plot",
+            str(png),
+            "--level",
+            "3",
+            "--out",
+            str(out),
+        ],
+    )
+    assert res.exit_code == 0, res.stdout
+    data = json.loads(out.read_text())
+    assert data["micro"]["not_out"] == 0 and png.exists()
+
+    agree = tmp_path / "agree.json"
+    res = runner.invoke(app, ["micro", "compare", *base, "--runs", "2", "--out", str(agree)])
+    assert res.exit_code == 0, res.stdout
+    assert "| Time the last walker gets out |" in res.stdout
+    assert json.loads(agree.read_text())["runs"] == 2
+
+    res = runner.invoke(app, ["micro", "fd"])
+    assert res.exit_code == 0 and "| Density" in res.stdout

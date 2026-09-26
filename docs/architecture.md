@@ -345,6 +345,52 @@ without simulating. Non-finite floats are sent as `null` (strict JSON).
 Buildings are stored by digest; uploaded JSON is validated before use.
 Every result carries the responsible-use disclaimer.
 
+## Microscopic replay engine (`tailsafe/sim/micro.py`, `_micro_kernel.py`)
+
+The meso engine is fast enough for thousands of Monte Carlo runs; the micro
+engine replays *selected* scenarios (median, worst, before/after) person by
+person, for animation and to cross-check the meso engine.
+
+- **Movement:** a collision-free speed model (model form after Tordeux,
+  Chraibi & Seyfried, 2016). Each person is a disc; the walking direction is
+  the direction to the next doorway plus exponential repulsion from
+  neighbours and walls; the speed is `min(v0, max(0, gap / T))`, where `gap`
+  is the free distance to the nearest person ahead *in the direction actually
+  taken*. `v0` is the household's speed times the smoke factor of the room.
+- **Space:** each node's polygon (axis-aligned rectangles in the templates)
+  is a room. Rooms connect through *portals*: door openings, or the shared
+  boundary of adjacent corridor segments clipped to the walkway width.
+  People outside a doorway's span first walk to a point in front of it.
+- **Doorways** have lanes (width ÷ `movement.micro.lane_width`, at least
+  one); each lane lets the next person through only one headway
+  (`T + 2r / v`) after the previous one — the same headway the speed model
+  keeps in a queue — so a door's capacity grows with its width. A person
+  enters the next room only if there is room at the entry point.
+- **Stairs:** a flight is a strip of lanes between side-by-side points at
+  the end of the landings (dog-leg geometry): people step onto the flight
+  from a line across its width, keep the time gap to whoever is ahead in
+  their lane, and step off at the next landing when there is room.
+- **Decisions are shared** with the meso engine through `meso.prepare()`:
+  reaction times, stair choice and assignments, counter-flow and refuge
+  waypoints, blockages and when each person discovers them, smoke-reduced
+  speeds. The two engines differ only in movement and queueing, so their
+  comparison isolates the flow model.
+- **Not walked:** households waiting for an evacuation lift or for
+  fire-service rescue take their exit times from the meso run of the same
+  scenario; toxic dose is not recomputed.
+- **Robustness rules** (documented because they shape results): forced
+  moves after 30 s of being blocked, but only into rooms below jam density;
+  a small overlap-resolution step; two people facing each other in a doorway,
+  or stuck face to face for 5 s, squeeze past each other (swap places).
+- **Output:** exit and left-floor times per person, and frames every 2 s
+  (floor, x, y, state per person) for the replay screen.
+
+`tailsafe.analysis.agreement` runs both engines on the same scenarios and
+reports bias (with a bootstrap CI), relative bias, correlation, RMSE and the
+largest difference for the times by which half, 95% and all of the walkers
+are out. CLI: `tailsafe micro run | compare | fd`. API: `POST /api/micro`,
+then `GET /api/micro/{job}/level/{level}` for one floor's frames.
+
 ## Web UI (`web/`)
 
 React + TypeScript (Vite), Tailwind, react-three-fiber. It talks only to the
@@ -357,6 +403,7 @@ job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
 | 2 Scenario | Time of day, age mix, vacancy, counter-flow, fire floor, smoke on/off, stair blockages (fixed or random time), random stair loss, lifts out, evacuation lifts, rescue teams; runs and seed |
 | 3 Stress results | Histogram with mean / P95 / CVaR₉₅ markers, stat tiles with CIs, P(RSET > ASET) meter, who is in the tail (risk ratios), floors that fail, stair queues by floor |
 | 4 3D stack | One scenario re-simulated with time series: translucent floors coloured by smoke, stair columns by queue length, blocked stairs, scrubber, people still on each floor, evacuation curve |
+| 5 Replay (people) | The micro engine's replay of one scenario, top-down, one floor at a time, with the meso/micro comparison for that scenario and people on each floor over time (M8) |
 | 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
 | 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
 
@@ -370,6 +417,6 @@ one hue (blue for queues, orange for smoke) and reverse in dark mode so that
 icon and a label. Light and dark themes are both specified (`styles.css`);
 the header toggle overrides the OS setting.
 
-Screens 5 (micro-simulation replay), 8 (surrogate what-if) and 9 (briefing)
-belong to milestones M8, M10 and M11. The full geometry editor (walls, doors,
+Screens 8 (surrogate what-if) and 9 (briefing) belong to milestones M10 and
+M11. The full geometry editor (walls, doors,
 refuge tagging) comes with floor-plan vision in M9.

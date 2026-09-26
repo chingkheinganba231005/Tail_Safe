@@ -23,7 +23,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from tailsafe import DISCLAIMER, __version__
 from tailsafe.api.jobs import JobManager, cache_dir, cache_key, finite
-from tailsafe.api.views import building_view, replay_view, stress_view
+from tailsafe.api.views import (
+    building_view,
+    micro_level_view,
+    micro_view,
+    replay_view,
+    stress_view,
+)
 from tailsafe.building.model import Building
 from tailsafe.building.templates import TEMPLATES, generate
 from tailsafe.building.validate import check_building
@@ -358,6 +364,85 @@ def submit_replay(req: ReplayRequest) -> dict[str, Any]:
         return finite(replay_view(res, sc.info))  # type: ignore[no-any-return]
 
     return JOBS.submit("replay", key, work).public()
+
+
+class MicroRequest(_Req):
+    """Replay one scenario person by person (and compare with the meso engine)."""
+
+    building_id: str
+    spec: ScenarioSpec = Field(default_factory=demo_spec)
+    index: int = Field(default=0, ge=0)
+    seed: int = Field(default=0, ge=0)
+    batch_size: int = Field(default=100, ge=1, le=1000)
+
+
+def _micro_path(key: str) -> Path:
+    return cache_dir() / f"micro-{key}.npz"
+
+
+@app.post("/api/micro")
+def submit_micro(req: MicroRequest) -> dict[str, Any]:
+    """Micro replay of one scenario; frames are served per floor afterwards."""
+    from tailsafe.sim.micro import micro_problems, run_micro
+
+    b = _building(req.building_id)
+    _check_spec(b, req.spec)
+    problems = micro_problems(b)
+    if problems:
+        raise HTTPException(422, "; ".join(problems))
+    p = get_params()
+    key = cache_key(
+        "micro",
+        b.digest(),
+        req.spec.model_dump(mode="json"),
+        req.index,
+        req.seed,
+        req.batch_size,
+        p.digest,
+    )
+
+    def work(progress: Any) -> dict[str, Any]:
+        progress(0, 2)
+        u = scenario_uniforms(req.seed, req.index, 1, batch_size=req.batch_size)[0]
+        sc = ScenarioSampler(b, req.spec, p).sample(req.seed, req.index, u)
+        net = compile_network(b, p)
+        me = run_meso(net, sc.population, sc.sim, params=p)
+        progress(1, 2)
+        mi = run_micro(
+            net, sc.population, sc.sim, params=p, meso=me, seed=req.seed, index=req.index
+        )
+        _micro_path(key).parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            _micro_path(key),
+            times=mi.frame_times,
+            level=mi.frame_level,
+            x=np.round(mi.frame_x * 10).astype(np.int16),
+            y=np.round(mi.frame_y * 10).astype(np.int16),
+            state=mi.frame_state,
+        )
+        progress(2, 2)
+        return finite(micro_view(mi, me, sc.info))  # type: ignore[no-any-return]
+
+    return JOBS.submit("micro", key, work).public()
+
+
+@app.get("/api/micro/{job_id}/level/{level}")
+def micro_level(job_id: str, level: int) -> dict[str, Any]:
+    """Positions on one floor for every frame of a finished micro replay."""
+    job = JOBS.get(job_id)
+    if job is None or job.kind != "micro":
+        raise HTTPException(404, f"unknown micro job {job_id}")
+    if job.status != "done":
+        raise HTTPException(409, "micro replay not finished")
+    path = _micro_path(job.key)
+    if not path.exists():
+        raise HTTPException(410, "replay frames no longer available; run it again")
+    cached = JOBS.objects.get(f"micro-frames-{job_id}")
+    if cached is None:
+        with np.load(path) as z:
+            cached = {k: z[k] for k in z.files}
+        JOBS.objects[f"micro-frames-{job_id}"] = cached
+    return micro_level_view(cached, level)
 
 
 @app.get("/api/jobs")

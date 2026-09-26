@@ -365,3 +365,31 @@ export interface Job {
   cached: boolean;
   elapsed_s: number;
 }
+
+export interface MicroTimes {
+  p50_s: number;
+  p95_s: number;
+  last_s: number;
+}
+
+export interface MicroResult {
+  levels: number[];
+  frame_dt: number;
+  frames: number;
+  people_on_level: number[][]; // [frame][level position]
+  rooms: { id: string; type: string; level: number; label?: string; polygon: Point[] }[];
+  comparison: { walkers: number; occupants: number; meso: MicroTimes; micro: MicroTimes };
+  summary: { occupants: number; walked: number; total_time_s: number; not_out: number; forced_moves: number };
+  meso_summary: { total_time_s: number };
+  info: Replay["info"];
+  disclaimer: string;
+}
+
+/** One floor of a micro replay: per frame, [person, x (dm), y (dm), state] of those on it. */
+export interface MicroLevel {
+  level: number;
+  times: number[];
+  frames: [number, number, number, number][][];
+  scale: number;
+  states: Record<string, number>;
+}

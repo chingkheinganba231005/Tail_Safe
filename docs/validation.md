@@ -131,7 +131,78 @@ doors and exits, which add capacity without changing path lengths.
 | Bottleneck rows point at real building edges (for highlighting) | `tests/test_api.py` | ✅ |
 | Chart helpers: histogram keeps every value on shared bins, quantiles match NumPy, ramps and floor labels | `web/test/lib.test.ts` | ✅ |
 
-## 8. Parameter registry
+## 8. Microscopic engine (M8)
+
+| Check | Test | Status |
+|---|---|---|
+| Door openings and shared boundaries become portals on the source room, facing out | `tests/sim/test_micro.py` | ✅ |
+| Buildings without room geometry are refused with a reason | `tests/sim/test_micro.py` | ✅ |
+| One walker's exit time matches the walking distance at its speed | `tests/sim/test_micro.py` | ✅ |
+| A 0.8 m exit door takes over 20% longer to clear than a 1.8 m one; flow 0.3–2 persons/s | `tests/sim/test_micro.py` | ✅ |
+| Stair tower: everyone out, total time within 35% of the meso engine | `tests/sim/test_micro.py` | ✅ |
+| 8-storey night scenario with a blocked stair: everyone out, deterministic, lift/rescue households keep meso times | `tests/sim/test_micro.py` | ✅ |
+| Speed falls with density (fundamental diagram) | `tests/sim/test_micro.py` | ✅ |
+| Meso–micro agreement on a 10-storey tower (last walker within 10%, correlation > 0.9) | `tests/sim/test_micro.py` (slow) | ✅ |
+
+### Fundamental diagram
+
+`tailsafe micro fd`: able adults (radius 0.2 m, free speed 1.40 m/s) in a
+16 m × 2 m periodic corridor, 30 s warm-up then 30 s measured, against the
+hydraulic model `S = k (1 − a D)`:
+
+| Density (persons/m²) | Micro speed (m/s) | Hydraulic speed (m/s) | Micro flow (persons/m/s) | Hydraulic flow (persons/m/s) |
+|---:|---:|---:|---:|---:|
+| 0.25 | 1.40 | 1.40 | 0.35 | 0.35 |
+| 0.50 | 1.05 | 1.40 | 0.53 | 0.70 |
+| 1.00 | 0.60 | 1.03 | 0.60 | 1.03 |
+| 1.50 | 0.60 | 0.84 | 0.90 | 1.26 |
+| 2.00 | 0.35 | 0.66 | 0.70 | 1.31 |
+| 2.50 | 0.24 | 0.47 | 0.59 | 1.17 |
+| 3.00 | 0.22 | 0.28 | 0.67 | 0.85 |
+| 3.50 | 0.17 | 0.10 | 0.60 | 0.34 |
+
+Free walking matches. Between about 0.5 and 2.5 persons/m² the micro model
+is slower than the hydraulic model and its flow peaks lower (≈ 0.9 against
+1.3 persons/m/s); at 3.5 persons/m² it still creeps where the hydraulic
+model is near standstill. The micro parameters are uncalibrated assumptions
+(`movement.micro.*`), so this is a known difference, not a validation of
+either model against measurements.
+
+### Meso–micro agreement
+
+`tailsafe micro compare` runs both engines on the same sampled scenarios of
+the pitch scenario (fire on 14/F, Stair A smoke-logged at 4 min, one lift
+out, Sunday 3 a.m.) and compares the people the micro engine walks.
+Correlation is across scenarios; where a metric hardly varies between
+scenarios, differences between the engines dominate and the correlation is
+low even when the bias is small.
+
+**20-storey cruciform block** (seed 0):
+
+| Metric | Meso mean | Micro mean | Bias micro − meso (95% CI) | Relative bias | Correlation | RMSE | Largest difference |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Time for half of the walkers to get out | 14.1 min | 15.5 min | +1.4 min (+0.8 to +2.2) | +10% | 0.11 | 2.2 min | 6.7 min |
+| Time for 95% of the walkers to get out | 29.5 min | 31.5 min | +1.9 min (+0.9 to +3.1) | +7% | 0.58 | 3.2 min | 7.5 min |
+| Time the last walker gets out | 60.3 min | 60.4 min | +0.1 min (+0.0 to +0.2) | +0% | 1.00 | 0.2 min | 0.4 min |
+
+**40-storey cruciform block** (the pitch building, seed 0):
+
+| Metric | Meso mean | Micro mean | Bias micro − meso (95% CI) | Relative bias | Correlation | RMSE | Largest difference |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Time for half of the walkers to get out | 25.3 min | 29.1 min | +3.8 min (+2.4 to +5.8) | +15% | 0.14 | 5.4 min | 18.4 min |
+| Time for 95% of the walkers to get out | 57.7 min | 61.5 min | +3.8 min (+0.6 to +7.3) | +7% | -0.11 | 8.4 min | 20.5 min |
+| Time the last walker gets out | 91.2 min | 85.3 min | -5.9 min (-8.5 to -3.4) | -7% | 0.92 | 8.3 min | 21.4 min |
+
+Reading: the engines agree closely on when the last walker gets out in the
+20-storey block (driven by the slowest households' reaction and walking
+times). The micro engine is a few minutes slower for the bulk of occupants —
+merging at landings and doorways costs more when queues are physical — and
+in the 40-storey block its stair lanes let the last walkers out somewhat
+sooner than the meso engine's hydraulic stair capacity. Tail results in the
+pitch come from the meso engine; the micro engine is for replay and for
+this cross-check.
+
+## 9. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

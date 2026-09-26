@@ -125,3 +125,21 @@ or pessimistic. Numeric values and their sources live in
   assigned stair is blocked they fall back to the fastest route.
 - **Holding stair doors open** restores their full flow capacity and lets smoke
   pass freely (both through the zone model).
+
+## Microscopic replay engine
+
+- People are discs of radius `movement.micro.body_radius` × √(space factor);
+  households do not hold together once they have left their flat (they
+  start together and walk at the household's pace).
+- Rooms are the bounding rectangles of node polygons; walls are the
+  rectangle sides; there is no furniture. Buildings without room polygons
+  (graph-only cases) cannot be replayed.
+- A stair flight is a straight strip of lanes; turning at half-landings is
+  folded into the flight length (as in the meso engine). Up and down
+  movement use separate lanes, so counter-flow on stairs does not collide.
+- Doorway capacity comes from lanes and headways, not from a specific-flow
+  table; the fundamental diagram and the agreement study in
+  `docs/validation.md` show how this compares with the hydraulic model.
+- Lift trips, fire-service rescues and toxic dose come from the meso run of
+  the same scenario.
+- All `movement.micro.*` values are assumptions (no calibration yet).

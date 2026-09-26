@@ -44,6 +44,8 @@ The `tailsafe` command is installed into `.venv/bin`:
 .venv/bin/tailsafe stress bottlenecks out/demo   # what drives the tail?
 .venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo  # which plan fixes it?
 .venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo
+.venv/bin/tailsafe micro run cruciform --index 3 --plot out/floor.png --level 14  # one scenario, person by person
+.venv/bin/tailsafe micro compare cruciform --runs 20   # how far the two engines agree
 ```
 
 ![40-storey cruciform public-housing block: typical-floor plan and 3D stack](docs/img/cruciform_40.png)
@@ -89,6 +91,11 @@ the bottleneck ranking and the optimiser's before/after comparison.
 
 ![Stress-test results in the web UI: CVaR95 and P(RSET > ASET) with confidence intervals, the distribution with mean, P95 and CVaR95 markers](docs/img/web_results.png)
 
+The *Replay (people)* screen re-runs one scenario person by person with the
+microscopic engine and compares it with the fast engine:
+
+![Person-by-person replay of the fire floor in the worst scenario, with the fast and microscopic engines' times side by side](docs/img/web_replay.png)
+
 ## What is in the box
 
 | Area | Module | Status |
@@ -102,8 +109,9 @@ the bottleneck ranking and the optimiser's before/after comparison.
 | Bottleneck attribution: recurrence, min-cut, counterfactual ΔCVaR₉₅ | `tailsafe/analysis/` | ✅ |
 | Intervention optimiser (lifts, door hold-open, stair assignment, phasing, wardens) with paired confirmation | `tailsafe/optimize/` | ✅ |
 | Background-job API (FastAPI, SSE progress, result cache) | `tailsafe/api/` | ✅ |
-| Web UI: building setup, scenario builder, results, 3D stack, bottlenecks, optimise (before/after) | `web/` | ✅ |
-| Micro-simulation, surrogate, vision, briefing | | planned |
+| Web UI: building setup, scenario builder, results, 3D stack, person-by-person replay, bottlenecks, optimise (before/after) | `web/` | ✅ |
+| Microscopic replay engine (people as discs on the floor plan) with a meso–micro agreement study | `tailsafe/sim/micro.py`, `tailsafe/analysis/agreement.py` | ✅ |
+| Surrogate, vision, briefing | | planned |
 
 ## Status
 

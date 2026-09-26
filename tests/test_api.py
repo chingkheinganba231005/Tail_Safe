@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from tailsafe.api import app as api
 from tailsafe.api.jobs import finite
+from tailsafe.sim.cases import corridor_building
 
 client = TestClient(api.app)
 
@@ -174,3 +175,30 @@ def test_finite_replaces_infinities() -> None:
         "a": [1.0, None, None],
         "b": "x",
     }
+
+
+def test_micro_replay_and_floor_frames() -> None:
+    bid = building_id()
+    body = {"building_id": bid, "spec": SPEC, "index": 2}
+    job = client.post("/api/micro", json=body).json()
+    out = wait(job)
+    assert out["summary"]["not_out"] == 0
+    cmp = out["comparison"]
+    assert cmp["walkers"] > 0 and cmp["micro"]["last_s"] > cmp["micro"]["p50_s"] > 0
+    assert len(out["people_on_level"]) == out["frames"]
+    assert out["rooms"] and all(r["polygon"] for r in out["rooms"])
+    json.dumps(out, allow_nan=False)
+
+    level = client.get(f"/api/micro/{job['id']}/level/3").json()
+    assert len(level["frames"]) == len(level["times"]) == out["frames"]
+    first = level["frames"][0]
+    assert first and all(len(row) == 4 for row in first)
+    # everyone on 3/F at the start is accounted for in the per-level counts
+    k = out["levels"].index(3)
+    assert len(first) == out["people_on_level"][0][k]
+    assert client.get("/api/micro/nope/level/3").status_code == 404
+
+    corridor = corridor_building().model_dump(mode="json", exclude_none=True)
+    graph_only = client.post("/api/buildings/upload", json=corridor).json()
+    bad = client.post("/api/micro", json={"building_id": graph_only["id"], "spec": {"name": "x"}})
+    assert bad.status_code == 422
