@@ -57,7 +57,32 @@ still to come.
 | A counter-flow detour uses upward stair arcs and delays the household | ✅ |
 | Hazard speed multipliers slow evacuation; FED ≥ 1 incapacitates | ✅ |
 
-## 3. Parameter registry
+## 3. Monte Carlo convergence (M3)
+
+CVaR₉₅ estimates and 95% bootstrap CIs from the first *n* scenarios of the
+1,000-run demo (`make stress-demo`, seed 0, Latin Hypercube batches of 100),
+in minutes:
+
+| n | CVaR₉₅ total time | 95% CI | half-width | CVaR₉₅ self-evacuation | 95% CI | half-width |
+|---:|---:|---|---:|---:|---|---:|
+| 100 | 206.1 | [191.2, 216.9] | 12.8 | 113.6 | [102.4, 122.9] | 10.2 |
+| 200 | 218.2 | [200.8, 234.0] | 16.6 | 113.6 | [105.7, 119.4] | 6.8 |
+| 500 | 222.3 | [212.8, 230.6] | 8.9 | 112.3 | [108.0, 116.3] | 4.2 |
+| 1000 | 219.4 | [211.9, 226.4] | 7.2 | 113.5 | [109.9, 117.0] | 3.5 |
+
+Estimates settle within the earlier intervals and the intervals narrow as runs
+grow. The total-time tail (driven by the rescue model) converges more slowly
+than the self-evacuation tail. `tests/validation/test_convergence.py` checks the
+narrowing on a smaller building; `MCConfig(target_halfwidth=...)` stops a run
+once the CI is tight enough.
+
+Also tested (`tests/scenarios/`, `tests/risk/`): results are identical for 1 or 2
+worker processes; Latin Hypercube columns are stratified; an intervention spec
+sees exactly the same households, pre-movement times, lift failures and rescue
+start as the baseline on each scenario; CVaR matches its closed form for a
+normal distribution; a paired bootstrap detects a uniform 2% improvement.
+
+## 4. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

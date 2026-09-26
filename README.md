@@ -27,6 +27,7 @@ make test        # fast test suite
 make check       # lint + format check + mypy + tests (what CI runs)
 make dev         # start the API on http://localhost:8000 (docs at /docs)
 make demo        # generate and render a 40-storey cruciform public-housing block
+make stress-demo # 1,000-scenario stress test of the pitch scenario (~1 min on 4 cores)
 ```
 
 The `tailsafe` command is installed into `.venv/bin`:
@@ -45,6 +46,19 @@ The `tailsafe` command is installed into `.venv/bin`:
 *A procedurally generated 40-storey cruciform public-housing block (`make demo`):
 typical-floor plan with the egress graph, and the 3D stack with the refuge floor.*
 
+### Example: the pitch scenario
+
+*Sunday 3 a.m., 40-storey public housing block, 22% of residents aged 65+,
+Stair A smoke-logged at 4 minutes, one lift out of service* — 1,000 sampled
+scenarios (`make stress-demo`):
+
+![Distribution of total evacuation time with mean, P95 and CVaR95, and who is still inside in the worst 5%](docs/img/stress_demo.png)
+
+> These numbers come from parameters that are still largely **assumptions**
+> (walking speeds of frail residents, pre-movement at night, fire-service
+> rescue logistics). Treat them as a demonstration of the method until the
+> registry is calibrated.
+
 ## What is in the box
 
 | Area | Module | Status |
@@ -53,7 +67,7 @@ typical-floor plan with the egress graph, and the 3D stack with the refuge floor
 | Building model, JSON schema, HK typologies | `tailsafe/building/` | ✅ |
 | Synthetic population and behaviour | `tailsafe/population/` | ✅ |
 | Mesoscopic queue-network simulator (validated against hydraulic calculations) | `tailsafe/sim/` | ✅ |
-| Scenario sampler, Monte Carlo, risk metrics | `tailsafe/scenarios/`, `tailsafe/risk/` | see [status](#status) |
+| Scenario sampler, parallel Monte Carlo, CVaR₉₅ with CIs, tail breakdowns | `tailsafe/scenarios/`, `tailsafe/risk/` | ✅ |
 | Hazard (smoke / FED / ASET), bottlenecks, optimiser, surrogate, vision, briefing, web UI | | planned |
 
 ## Status

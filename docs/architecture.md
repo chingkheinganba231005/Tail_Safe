@@ -161,3 +161,53 @@ pedestrians:
 
 Performance: a 40-storey, ~1,850-occupant night scenario runs in 0.1–0.3 s on
 one core after the one-off JIT compile (cached on disk).
+
+## Scenarios, Monte Carlo and risk (`tailsafe/scenarios/`, `tailsafe/risk/`)
+
+**Scenario specification** (`spec.py`). A `ScenarioSpec` (Pydantic, JSON/YAML)
+fixes what is known — time slot, population mix, operational measures (phased
+release, stair assignment, evacuation lifts and their priority rule) — and
+describes what is uncertain with `Dist` objects: when named stairs become
+impassable, whether a random stair is lost and when, how many lifts are out of
+service, when fire-service rescue starts. `demo_spec()` is the pitch scenario.
+
+**Sampler** (`sampler.py`). Scenario-level draws use a fixed 16-slot uniform
+vector per scenario (rescue start, fire level, random blockage ×3, lifts out ×3,
+named blockage times ×4, 4 reserved for the hazard model). Slots never move, so
+any two specs evaluated on scenario *i* share draws. With LHS each batch of
+indices is one Latin Hypercube design (`scipy.stats.qmc`), otherwise the vector
+comes from the scenario's own stream. Occupant-level randomness comes from the
+population streams of `(seed, i)`. Together these give **common random numbers**:
+a baseline and an intervention see the same households, speeds, pre-movement
+times and failures.
+
+**Monte Carlo runner** (`montecarlo.py`). Batches of scenarios are split into
+chunks and run in a process pool (fork on Linux, after compiling the kernel in
+the parent). Each worker builds the network and a caching `Router` once.
+Results are identical for any number of workers. Each run is reduced to a
+`RunOutput`: scalar losses, sampled scenario info, per-household outcomes
+(optional) and per-arc max queue and queue integral. With `target_halfwidth` the
+runner stops once the bootstrap CI of CVaR₉₅ is narrow enough. `MCResult` saves
+to `result.json` + `arrays.npz`.
+
+**Losses.** Three per-scenario loss variables are reported:
+- `total_time` — last occupant out, including fire-service rescue;
+- `self_evacuation_time` — last occupant out on foot or by lift;
+- `p95_occupant_time` — 95th percentile of occupants' exit times (robust to one
+  straggler).
+
+**Risk metrics** (`risk/metrics.py`). VaR (inverted empirical CDF) and CVaR by
+the Rockafellar–Uryasev formula (exactly the mean of the worst 5% when that is
+a whole number of runs), mean/median/P95/P99, all with vectorised percentile
+bootstrap CIs. `paired_difference()` gives a paired-bootstrap CI for the change
+in CVaR between two interventions evaluated with common random numbers.
+
+**Who carries the tail** (`risk/breakdown.py`). In each tail scenario (loss ≥
+VaR₉₅), the *stragglers* are households exiting after 90% of that scenario's
+loss. Shares of stragglers by the household's most dependent member and by
+floor band are compared with shares of all occupants (risk ratio), which gives
+a plain-language headline.
+
+Performance: 1,000 scenarios of the 40-storey demo block (~1,830 occupants)
+take ~41 s on 4 cores (`make stress-demo`; target < 120 s, checked by the slow
+test).

@@ -67,3 +67,18 @@ or pessimistic. Numeric values and their sources live in
   the stairs without interfering with the crowd.
 - Lifts board households first come, first served and carry them to the
   discharge level without intermediate pick-ups.
+
+## Scenarios and risk metrics
+
+- In the baseline, lifts are **not** used for evacuation (usual Hong Kong
+  practice; lifts are homed for fire-service use). "Lifts out of service"
+  therefore only matters when a spec puts lifts into evacuation service.
+- A named stair blockage makes every flight of that stair impassable from its
+  time onward (e.g. "smoke-logged"). Occupants already on it keep going.
+- The fire floor is sampled and recorded but only affects outcomes once the
+  hazard model (M4) is enabled.
+- Fire-service rescue starts at a time drawn from
+  `rescue.operations_start`; rescue parameters are assumptions and dominate the
+  `total_time` tail. Read `self_evacuation_time` alongside it.
+- Non-finite losses (nobody should be left inside without hazards) would be
+  counted as censored and capped, making tail statistics lower bounds.

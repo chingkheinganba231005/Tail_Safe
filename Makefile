@@ -7,7 +7,7 @@ STAMP  := $(VENV)/.installed
 PORT   ?= 8000
 
 .DEFAULT_GOAL := help
-.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo clean
+.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema demo stress-demo clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -60,3 +60,6 @@ demo: $(STAMP) ## Generate and render the 40-storey cruciform demo building
 clean: ## Remove caches and build outputs (keeps .venv)
 	rm -rf .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov build dist out
 	find . -name __pycache__ -type d -prune -not -path './$(VENV)/*' -exec rm -rf {} +
+
+stress-demo: $(STAMP) ## Monte Carlo stress test of the pitch scenario (1,000 runs)
+	$(BIN)/tailsafe stress run cruciform --spec demo --runs 1000 --out out/stress-demo

@@ -25,6 +25,8 @@ schema_app = typer.Typer(help="JSON schemas generated from the data models.")
 app.add_typer(schema_app, name="schema")
 sim_app = typer.Typer(help="Run the evacuation simulator.")
 app.add_typer(sim_app, name="sim")
+stress_app = typer.Typer(help="Monte Carlo stress tests and tail-risk metrics.")
+app.add_typer(stress_app, name="stress")
 
 
 @app.command()
@@ -234,6 +236,121 @@ def sim_run(
     if plot:
         save_run_plot(res, plot, title=f"{b.name} — {slot}, seed {seed}")
         typer.echo(f"Wrote {plot}")
+
+
+def _load_spec(spec: str) -> Any:
+    import yaml
+
+    from tailsafe.scenarios.spec import ScenarioSpec, demo_spec
+
+    if spec == "demo":
+        return demo_spec()
+    path = Path(spec)
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    return ScenarioSpec.model_validate(data)
+
+
+def _fmt_minutes(seconds: float) -> str:
+    return f"{seconds / 60:.1f}"
+
+
+def _print_risk(result: Any) -> None:
+    from tailsafe.scenarios.montecarlo import LOSSES
+
+    typer.echo(
+        f"\n{result.n} scenarios in {result.elapsed:.1f} s — {result.building_name}, "
+        f"'{result.spec.name}' (minutes; [95% CI])"
+    )
+    header = f"{'loss':<24}{'mean':>8}{'median':>8}{'P95':>8}{'P99':>8}{'CVaR95':>10}  CVaR95 CI"
+    typer.echo(header)
+    for name in LOSSES:
+        r = result.risk(name)
+        typer.echo(
+            f"{name:<24}{_fmt_minutes(r.mean.value):>8}{_fmt_minutes(r.median.value):>8}"
+            f"{_fmt_minutes(r.p95.value):>8}{_fmt_minutes(r.p99.value):>8}"
+            f"{_fmt_minutes(r.cvar.value):>10}  "
+            f"[{_fmt_minutes(r.cvar.lo)}, {_fmt_minutes(r.cvar.hi)}]"
+        )
+
+
+@stress_app.command("spec")
+def stress_spec() -> None:
+    """Print the demo scenario specification (a starting point for your own)."""
+    from tailsafe.scenarios.spec import demo_spec
+
+    typer.echo(demo_spec().model_dump_json(indent=2, exclude_none=True))
+
+
+@stress_app.command("run")
+def stress_run(
+    building: Annotated[str, typer.Argument(help="Building JSON path or a template name.")],
+    spec: Annotated[str, typer.Option(help="'demo' or a JSON/YAML ScenarioSpec file.")] = "demo",
+    storeys: Annotated[int | None, typer.Option(help="Storeys, when using a template.")] = None,
+    runs: Annotated[int, typer.Option(help="Number of scenarios.")] = 1000,
+    seed: Annotated[int, typer.Option(help="Random seed.")] = 0,
+    workers: Annotated[int | None, typer.Option(help="Processes (default: all CPUs).")] = None,
+    lhs: Annotated[bool, typer.Option(help="Latin Hypercube scenario design.")] = True,
+    target_halfwidth: Annotated[
+        float | None,
+        typer.Option(help="Stop early when the CVaR95 CI half-width (s) is below this."),
+    ] = None,
+    loss: Annotated[str, typer.Option(help="Loss for the breakdown and plot.")] = "total_time",
+    out: Annotated[Path | None, typer.Option(help="Directory for results and plots.")] = None,
+) -> None:
+    """Run a Monte Carlo stress test and report tail-risk metrics."""
+    from tailsafe.risk.breakdown import tail_breakdown
+    from tailsafe.risk.plot import save_stress_plot
+    from tailsafe.scenarios.montecarlo import MCConfig, run_monte_carlo
+
+    b = _load_or_generate(building, storeys)
+    sc = _load_spec(spec)
+    cfg = MCConfig(
+        n_runs=runs, seed=seed, workers=workers, lhs=lhs, target_halfwidth=target_halfwidth
+    )
+
+    def progress(done: int, total: int) -> None:
+        if done % max(total // 10, 1) == 0 or done == total:
+            typer.echo(f"  {done}/{total} scenarios", err=True)
+
+    result = run_monte_carlo(b, sc, cfg, progress=progress)
+    _print_risk(result)
+    breakdowns = {
+        name: tail_breakdown(result, name) for name in ("total_time", "self_evacuation_time")
+    }
+    for name, bdn in breakdowns.items():
+        if bdn["headline"]:
+            typer.echo(f"\n[{name}] {bdn['headline']}")
+    bd = breakdowns.get(loss) or tail_breakdown(result, loss)
+    if out:
+        result.save(out)
+        report = {**result.summary(), "breakdown": breakdowns, "disclaimer": DISCLAIMER}
+        (out / "metrics.json").write_text(
+            json.dumps(report, indent=2, default=float, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        save_stress_plot(result, out / "distribution.png", bd, loss)
+        typer.echo(f"\nWrote {out}/result.json, arrays.npz, metrics.json, distribution.png")
+
+
+@stress_app.command("report")
+def stress_report(
+    directory: Annotated[Path, typer.Argument(help="Directory written by `stress run --out`.")],
+    loss: Annotated[str, typer.Option(help="Loss for the breakdown.")] = "total_time",
+) -> None:
+    """Re-print metrics and the tail breakdown of a saved stress test."""
+    from tailsafe.risk.breakdown import tail_breakdown
+    from tailsafe.scenarios.montecarlo import MCResult
+
+    result = MCResult.load(directory)
+    _print_risk(result)
+    bd = tail_breakdown(result, loss)
+    typer.echo("")
+    for row in bd["profiles"]:
+        typer.echo(
+            f"  {row['category']:<28} occupants {100 * row['occupant_share']:5.1f}%   "
+            f"tail stragglers {100 * row['straggler_share']:5.1f}%   ratio {row['risk_ratio']:.1f}"
+        )
+    if bd["headline"]:
+        typer.echo("\n" + bd["headline"])
 
 
 @app.command()

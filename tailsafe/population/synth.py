@@ -134,7 +134,7 @@ class Population:
             "groups": self.n_groups,
             "profiles": dict(prof),
             "modes": dict(modes),
-            "share_65_plus": float(older.sum() / max(census.sum(), 1)),
+            "share_65_plus": float(older.sum()) / max(int(census.sum()), 1),
             "counter_flow_groups": sum(w is not None for w in self.group_waypoint),
             "refuge_rest_groups": int((self.group_refuge_rest > 0).sum()),
         }

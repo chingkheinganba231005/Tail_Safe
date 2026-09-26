@@ -20,6 +20,8 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe validate --markdown        # analytical checks of the simulator
 .venv/bin/tailsafe sim run cruciform --slot weekend_night --share-65 0.22 \
     --block-stair A@240 --plot out/run.png  # one scenario, summary JSON + plot
+.venv/bin/tailsafe stress run cruciform --spec demo --runs 1000 --out out/demo
+.venv/bin/tailsafe stress report out/demo --loss self_evacuation_time
 .venv/bin/tailsafe --help
 ```
 
@@ -54,8 +56,8 @@ tailsafe/building/     egress graph model, schema, validation, HK templates, ren
 tailsafe/population/   profiles, synthetic households, occupancy priors
 tailsafe/rng.py        named random streams (common random numbers)
 tailsafe/sim/          mesoscopic queue-network engine (Numba kernel in _kernel.py)
-tailsafe/scenarios/    scenario sampler, Monte Carlo runner (CRN, LHS, convergence)
-tailsafe/risk/         tail metrics with bootstrap CIs, breakdowns
+tailsafe/scenarios/    ScenarioSpec, sampler (16 fixed uniform slots, LHS), Monte Carlo runner
+tailsafe/risk/         VaR/CVaR with bootstrap CIs, paired differences, tail breakdowns, plots
 tailsafe/api/          FastAPI app
 config/params.yaml     parameter registry
 schemas/               generated JSON schemas (do not edit by hand; `make schema`)
@@ -69,8 +71,9 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | M0 | Scaffolding: tooling, CI, CLAUDE.md, params.yaml | ✅ done |
 | M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make demo`) |
 | M2 | Meso simulator + population model | ✅ done (`tailsafe validate`, `tailsafe sim run`) |
-| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ⏳ next |
-| M4–M11 | Hazard, bottlenecks, optimiser, web, micro-sim, vision, surrogate, briefing | not started |
+| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-demo`: 1,000 runs ≈ 41 s on 4 cores) |
+| M4 | Hazard model (smoke, visibility, FED, ASET) | ⏳ next |
+| M5–M11 | Bottlenecks, optimiser, web, micro-sim, vision, surrogate, briefing | not started |
 
 ## Decisions taken (open for review)
 
