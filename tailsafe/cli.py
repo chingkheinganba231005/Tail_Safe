@@ -529,6 +529,35 @@ def optimize_cmd(
 
 
 @app.command()
+def pitch(
+    stress: Annotated[Path, typer.Option(help="Directory from `stress run --out`.")] = Path(
+        "out/demo1000"
+    ),
+    optimization: Annotated[
+        Path | None, typer.Option(help="Directory from `optimize --out`.")
+    ] = Path("out/opt-demo"),
+    out: Annotated[Path, typer.Option(help="Markdown file to write.")] = Path(
+        "docs/pitch_metrics.md"
+    ),
+) -> None:
+    """Regenerate docs/pitch_metrics.md from the latest saved results."""
+    from tailsafe.report.pitch import load_json, pitch_markdown
+
+    metrics = load_json(stress / "metrics.json")
+    if metrics is None:
+        raise typer.BadParameter(f"{stress}/metrics.json not found; run `stress run --out` first")
+    bottlenecks = load_json(stress / "bottlenecks.json")
+    opt = load_json(optimization / "optimization.json") if optimization else None
+    sources = {"stress test": str(stress / "metrics.json")}
+    if bottlenecks:
+        sources["bottlenecks"] = str(stress / "bottlenecks.json")
+    if opt and optimization:
+        sources["optimisation"] = str(optimization / "optimization.json")
+    out.write_text(pitch_markdown(metrics, bottlenecks, opt, sources=sources), encoding="utf-8")
+    typer.echo(f"Wrote {out}")
+
+
+@app.command()
 def validate(
     markdown: Annotated[bool, typer.Option(help="Print a Markdown table.")] = False,
 ) -> None:

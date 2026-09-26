@@ -10,7 +10,8 @@ between plans are not swamped by scenario noise. The search:
    objective keeps improving.
 3. **Wardens**: add wardens one at a time (greedy, up to ``max_wardens``) on the
    most promising floors.
-4. **Refine** the phased-release delays with a small CMA-ES.
+4. **Refine** the phased-release delays with a small CMA-ES (only when some
+   phasing preset beat the baseline during screening).
 5. **Confirm** the final plan against the baseline on *fresh* scenarios (a
    different seed), reporting paired-bootstrap confidence intervals. In-sample
    improvements are optimistically biased (winner's curse); the confirmation is
@@ -363,7 +364,11 @@ def optimize(
 
         # 4. refine phasing delays
         levels = _residential_levels(building)
-        if "phasing" in cfg.levers and cfg.cmaes_iterations > 0 and levels:
+        phasing_helps = "phasing" in current.plan.levers() or (
+            "phasing" in best_by_lever
+            and best_by_lever["phasing"].value < base.value - cfg.tolerance
+        )
+        if "phasing" in cfg.levers and cfg.cmaes_iterations > 0 and levels and phasing_helps:
             say("Refining phased release (CMA-ES)")
             edges = current.plan.band_edges or _bands(levels, cfg.phasing_bands)
             k = len(edges) + 1

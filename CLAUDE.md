@@ -24,6 +24,8 @@ make demo        # generate + render the 40-storey cruciform block
 .venv/bin/tailsafe stress run cruciform --spec demo --runs 1000 --out out/demo
 .venv/bin/tailsafe stress report out/demo --loss self_evacuation_time
 .venv/bin/tailsafe stress bottlenecks out/demo       # counterfactual ranking (re-runs)
+.venv/bin/tailsafe optimize cruciform --spec demo --out out/opt-demo   # plan search + confirmation
+.venv/bin/tailsafe pitch --stress out/demo --optimization out/opt-demo # regenerate pitch_metrics.md
 .venv/bin/tailsafe --help
 ```
 
@@ -63,6 +65,8 @@ tailsafe/hazard/       zone smoke network, tenability (visibility, FED), ASET, C
 tailsafe/analysis/     bottlenecks: queue recurrence, min-cut/load, counterfactual ΔCVaR
 tailsafe/risk/         VaR/CVaR with bootstrap CIs, paired differences, tail breakdowns,
                        RSET vs ASET, plots
+tailsafe/optimize/     InterventionPlan levers, SAA search with CRN, CMA-ES, paired confirmation
+tailsafe/report/       pitch_metrics.md generator (numbers only from saved results)
 tailsafe/api/          FastAPI app
 config/params.yaml     parameter registry
 schemas/               generated JSON schemas (do not edit by hand; `make schema`)
@@ -79,8 +83,9 @@ docs/                  architecture, validation, assumptions, pitch metrics
 | M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-demo`: 1,000 runs ≈ 41 s on 4 cores) |
 | M4 | Hazard model (smoke, visibility, FED, ASET) | ✅ done (P(RSET>ASET) in `stress run`; `sim run --fire`) |
 | M5 | Bottleneck attribution | ✅ done (`tailsafe stress bottlenecks DIR`) |
-| M6 | Intervention optimiser | ⏳ next |
-| M7–M11 | Web, micro-sim, vision, surrogate, briefing | not started |
+| M6 | Intervention optimiser | ✅ done (`tailsafe optimize`, `tailsafe pitch`) |
+| M7 | Web app (job API + React UI) | ⏳ in progress: API done |
+| M8–M11 | Micro-sim, vision, surrogate, briefing | not started |
 
 ## Decisions taken (open for review)
 

@@ -283,3 +283,45 @@ combines three views into one ranked table with plain-English labels:
    (tested). A capacity improvement shifts every scenario, so most get re-run.
    Re-running only the old tail would cap the estimated benefit at the
    80th-percentile baseline, a trap the first version fell into.
+
+## Intervention optimiser (`tailsafe/optimize/`)
+
+| File | Role |
+|---|---|
+| `plan.py` | `InterventionPlan`: evacuation lifts + dispatch rule, stair-door hold-open, stair assignment by floor band, phased release by band, floor wardens; `apply()` to a `ScenarioSpec`, `describe()` in plain English |
+| `search.py` | `Objective` (CVaR, P(RSET > ASET), or weighted mean + CVaR), `optimize()`, paired confirmation |
+| `cmaes.py` | Small deterministic CMA-ES for the continuous phasing delays |
+| `plot.py` | Before/after distributions on the same scenarios |
+
+**Sample-average approximation with common random numbers.** Every candidate
+plan is simulated on the same `n_scenarios` draws (seed fixed), through one
+reusable `MonteCarloPool`, so differences between plans are not swamped by
+scenario noise. The search:
+
+1. *Screen* single levers: three lift dispatch rules, door hold-open, stair
+   assignments (split level × stair order), three phasing presets (upper floors
+   first, lower floors first, fire floor and the floor above first), and a
+   warden on each of a few candidate floors (the fire floor, floors whose
+   residents most often wait for rescue, slowest-clearing floors).
+2. *Combine* greedily: start from the best lever, add each other improving
+   lever's best setting while the objective improves.
+3. *Wardens*: add more, greedily, up to `max_wardens`.
+4. *Refine* phasing delays with CMA-ES (delays rounded to 30 s so repeated
+   points hit the cache) — only when a phasing preset beat the baseline during
+   screening. Otherwise CMA-ES tends to "find" tiny in-sample gains from
+   holding floors back that do not survive confirmation and raise
+   P(RSET > ASET), because held residents wait in their flats while smoke
+   spreads.
+5. *Confirm* baseline vs best plan on **fresh** scenarios (a different seed):
+   paired-bootstrap CIs for ΔCVaR₉₅ of each loss and for ΔP(RSET > ASET). The
+   in-sample optimum is biased low (winner's curse); the confirmation is what
+   `optimize` reports as significant or not.
+
+**Wardens** (`scenarios/sampler.apply_wardens`) are a deterministic transform
+of the sampled population, so common random numbers are kept. Households on
+covered floors react no later than the warden's sweep time, and each warden
+escorts one household that would otherwise wait for rescue down the stairs.
+
+CLI: `tailsafe optimize cruciform --spec demo --scenarios 100 --confirm 400 --out out/opt`.
+The GNN surrogate (M10) will pre-screen candidates here; the simulator will
+still confirm finalists.

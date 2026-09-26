@@ -110,7 +110,18 @@ doors and exits, which add capacity without changing path lengths.
 | Adaptive re-running gives exactly the CVaR of re-running every scenario | `tests/analysis/test_bottlenecks.py` | ✅ |
 | "Unblocking" keeps random-number slots aligned (common random numbers) | `tests/analysis/test_bottlenecks.py` | ✅ |
 
-## 6. Parameter registry
+## 6. Optimiser (M6)
+
+| Check | Test | Status |
+|---|---|---|
+| CMA-ES finds the minimum of a box-constrained quadratic, deterministically | `tests/optimize/test_optimize.py` | ✅ |
+| Plans map exactly onto scenario fields and leave the baseline spec untouched | `tests/optimize/test_optimize.py` | ✅ |
+| Wardens change only the covered floors' pre-movement; every other draw is identical (common random numbers) | `tests/optimize/test_optimize.py` | ✅ |
+| An escorted household switches from waiting for rescue to being carried down | `tests/optimize/test_optimize.py` | ✅ |
+| Comparing a result with itself gives ΔCVaR = 0 and "not significant" | `tests/optimize/test_optimize.py` | ✅ |
+| The optimiser never returns a plan worse than the baseline in-sample, and confirms on fresh scenarios | `tests/optimize/test_optimize.py` | ✅ |
+
+## 7. Parameter registry
 
 | Check | Test | Status |
 |---|---|---|

@@ -104,3 +104,21 @@ or pessimistic. Numeric values and their sources live in
 - Numbers are only as good as the assumed parameters in `params.yaml`
   (`hazard.*`). Import CFD results through `tailsafe.hazard.external` when
   available.
+
+## Interventions
+
+- **Evacuation lifts** carry only households with a mobility-impaired member
+  (wheelchair users, frail older adults) who choose to wait for them
+  (`behaviour.use_evacuation_lift_probability`). The firefighting lift is never
+  used, lifts are not affected by smoke, and they start after a fixed
+  switch-over delay.
+- **Floor wardens** are trained residents or staff already on their floor at
+  the alarm. They knock on every door of their floor and the floors next to
+  it within a fixed sweep time, and escort one household that cannot use the
+  stairs alone. Wardens themselves are not simulated as extra occupants.
+- **Phased release** holds whole floor bands for a delay; held residents wait
+  in their flats (and still accumulate smoke dose there).
+- **Stair assignment** is followed by everyone on the assigned floors; if the
+  assigned stair is blocked they fall back to the fastest route.
+- **Holding stair doors open** restores their full flow capacity and lets smoke
+  pass freely (both through the zone model).
