@@ -33,7 +33,7 @@ or pessimistic. Numeric values and their sources live in
   two separate cores, a second core can be added to the template.
 - Every lift stops at every level; one lift per building is the firefighting lift.
 - Doors are always openable; their fire rating and self-closing flags are
-  recorded for the hazard model (M4).
+  used by the smoke model.
 
 ## Population and behaviour
 
@@ -62,7 +62,7 @@ or pessimistic. Numeric values and their sources live in
 - Everyone knows the fastest route to an exit (by estimated travel time) and
   learns about blockages only on reaching them.
 - Doors are always open to flow; closing and hold-open policies act only through
-  the hazard model (M4).
+  the smoke model.
 - The fire service rescues households one at a time, lowest floor first, using
   the stairs without interfering with the crowd.
 - Lifts board households first come, first served and carry them to the
@@ -75,8 +75,8 @@ or pessimistic. Numeric values and their sources live in
   therefore only matters when a spec puts lifts into evacuation service.
 - A named stair blockage makes every flight of that stair impassable from its
   time onward (e.g. "smoke-logged"). Occupants already on it keep going.
-- The fire floor is sampled and recorded but only affects outcomes once the
-  hazard model (M4) is enabled.
+- The fire floor is sampled and recorded but only affects outcomes when the
+  smoke model is switched on.
 - Fire-service rescue starts at a time drawn from
   `rescue.operations_start`; rescue parameters are assumptions and dominate the
   `total_time` tail. Read `self_evacuation_time` alongside it.

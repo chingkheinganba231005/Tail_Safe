@@ -26,7 +26,7 @@ COPY pyproject.toml README.md ./
 COPY config ./config
 COPY schemas ./schemas
 COPY tailsafe ./tailsafe
-RUN pip install -e ".[surrogate]"
+RUN pip install -e ".[surrogate,vision]"
 COPY --from=web /web/dist ./web/dist
 RUN useradd --create-home --uid 1000 tailsafe && chown -R tailsafe /app
 USER tailsafe

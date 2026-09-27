@@ -8,7 +8,7 @@ PORT   ?= 8000
 WEB_STAMP := web/node_modules/.installed
 
 .DEFAULT_GOAL := help
-.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema example stress-example clean web web-install web-dev web-check
+.PHONY: help install test test-slow test-all cov lint format typecheck check dev api schema example stress-example clean web web-install web-dev web-check guide
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -16,7 +16,7 @@ help: ## Show this help
 $(STAMP): pyproject.toml
 	$(PYTHON) -m venv $(VENV)
 	$(BIN)/python -m pip install -q --upgrade pip
-	$(BIN)/python -m pip install -q -e ".[dev,surrogate]"
+	$(BIN)/python -m pip install -q -e ".[dev,surrogate,vision]"
 	@touch $(STAMP)
 
 install: $(STAMP) ## Create .venv and install tailsafe with dev dependencies
@@ -66,6 +66,9 @@ web: $(WEB_STAMP) ## Build the web UI into web/dist (then `make api` serves it o
 
 web-check: $(WEB_STAMP) ## Type-check and unit-test the web UI (what CI runs for web/)
 	cd web && npm run typecheck && npm test
+
+guide: $(WEB_STAMP) ## Rebuild docs/TailSafe-User-Guide.pdf (needs Playwright: npm install -g playwright)
+	NODE_PATH="$$(npm root -g)" node docs/guide/build.mjs
 
 schema: $(STAMP) ## Regenerate schemas/*.json from the Pydantic models
 	$(BIN)/tailsafe schema export

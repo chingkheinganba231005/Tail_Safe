@@ -1,4 +1,4 @@
-"""GNN surrogate for instant what-if estimates (milestone M10)."""
+"""GNN surrogate for instant what-if estimates."""
 
 from pathlib import Path
 

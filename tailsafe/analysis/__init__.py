@@ -1,1 +1,1 @@
-"""Bottleneck attribution: recurrence, structural and counterfactual criticality (milestone M5)."""
+"""Bottleneck attribution: recurrence, structural and counterfactual criticality."""

@@ -196,7 +196,7 @@ export function App() {
             <p className="secondary mt-2 max-w-3xl leading-relaxed">
               This browser version shows results recorded from the simulator for the reference scenario of
               each building type. To simulate your own building and settings,{" "}
-              <a href={`${REPO}#run-the-full-app`} target="_blank" rel="noreferrer">
+              <a href={`${REPO}#full-app`} target="_blank" rel="noreferrer">
                 run the full app
               </a>
               .
@@ -294,6 +294,11 @@ export function App() {
             <li>
               <a href={`${REPO}#readme`} target="_blank" rel="noreferrer">
                 About
+              </a>
+            </li>
+            <li>
+              <a href={`${REPO}/blob/main/docs/TailSafe-User-Guide.pdf`} target="_blank" rel="noreferrer">
+                User guide (PDF)
               </a>
             </li>
             <li>

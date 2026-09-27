@@ -1,1 +1,1 @@
-"""Intervention optimizer over cheap operational measures (milestone M6)."""
+"""Intervention optimizer over cheap operational measures."""

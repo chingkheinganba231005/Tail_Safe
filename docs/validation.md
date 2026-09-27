@@ -4,7 +4,7 @@ Validation checks are executable. `tests/validation/` asserts them in CI, and
 `tailsafe validate --markdown` regenerates the table below from the current
 code and parameters.
 
-## 1. Analytical checks of the mesoscopic engine (M2)
+## 1. Analytical checks of the mesoscopic engine
 
 Idealised cases (`tailsafe/sim/cases.py`) with identical occupants moving at
 the hydraulic model's unimpeded speeds (0.85 k: 1.19 m/s level, 0.92 m/s on
@@ -38,8 +38,8 @@ the hydraulic model's unimpeded speeds (0.85 k: 1.19 m/s level, 0.92 m/s on
 method's flow capacities, travel times and merge behaviour, and is insensitive
 to the time step. It does *not* show that the hydraulic method, or the occupant
 parameters in `params.yaml` (many still assumptions), are right for Hong Kong
-towers. Comparison with drill data and with the microscopic engine (M8) is
-still to come.
+towers. Comparison with drill data is still to come; the comparison with the
+person-by-person engine is in section 8.
 
 ## 2. Behavioural and monotonicity checks (`tests/sim/`)
 
@@ -57,7 +57,7 @@ still to come.
 | A counter-flow detour uses upward stair arcs and delays the household | ✅ |
 | Hazard speed multipliers slow evacuation; FED ≥ 1 incapacitates | ✅ |
 
-## 3. Monte Carlo convergence (M3)
+## 3. Monte Carlo convergence
 
 CVaR₉₅ estimates and 95% bootstrap CIs from the first *n* scenarios of the
 1,000-run reference stress test (`make stress-example`, seed 0, Latin Hypercube batches of 100),
@@ -65,14 +65,17 @@ in minutes:
 
 | n | CVaR₉₅ total time | 95% CI | half-width | CVaR₉₅ self-evacuation | 95% CI | half-width |
 |---:|---:|---|---:|---:|---|---:|
-| 100 | 206.1 | [191.2, 216.9] | 12.8 | 113.6 | [102.4, 122.9] | 10.2 |
-| 200 | 218.2 | [200.8, 234.0] | 16.6 | 113.6 | [105.7, 119.4] | 6.8 |
-| 500 | 222.3 | [212.8, 230.6] | 8.9 | 112.3 | [108.0, 116.3] | 4.2 |
-| 1000 | 219.4 | [211.9, 226.4] | 7.2 | 113.5 | [109.9, 117.0] | 3.5 |
+| 100 | 206.1 | [191.1, 215.1] | 12.0 | 114.0 | [103.0, 125.8] | 11.4 |
+| 200 | 218.2 | [200.3, 232.9] | 16.3 | 113.9 | [106.0, 119.9] | 7.0 |
+| 500 | 222.0 | [212.8, 231.7] | 9.4 | 112.5 | [107.9, 116.2] | 4.1 |
+| 1000 | 219.2 | [212.3, 226.2] | 7.0 | 113.7 | [110.2, 117.3] | 3.6 |
 
-Estimates settle within the earlier intervals and the intervals narrow as runs
-grow. The total-time tail (driven by the rescue model) converges more slowly
-than the self-evacuation tail. `tests/validation/test_convergence.py` checks the
+For the self-evacuation tail, every later estimate lies inside the earlier
+intervals and the intervals narrow steadily as runs grow. The total-time tail,
+driven by the rescue model, converges more slowly: at 100 runs its CVaR₉₅ is the
+average of only five runs, and the bootstrap interval is too narrow (it misses
+all the later estimates), so small studies can understate the tail. From 200
+runs on, later estimates fall inside the earlier intervals. `tests/validation/test_convergence.py` checks the
 narrowing on a smaller building; `MCConfig(target_halfwidth=...)` stops a run
 once the CI is tight enough.
 
@@ -82,7 +85,7 @@ sees exactly the same households, pre-movement times, lift failures and rescue
 start as the baseline on each scenario; CVaR matches its closed form for a
 normal distribution; a paired bootstrap detects a uniform 2% improvement.
 
-## 4. Hazard model and monotonicity (M4)
+## 4. Hazard model and monotonicity
 
 | Check | Test | Status |
 |---|---|---|
@@ -101,7 +104,7 @@ walking line around each dog-leg turn (π·W/2), so for uncongested scenarios a
 wider stair can be slightly slower. The monotonicity test therefore widens
 doors and exits, which add capacity without changing path lengths.
 
-## 5. Bottleneck attribution (M5)
+## 5. Bottleneck attribution
 
 | Check | Test | Status |
 |---|---|---|
@@ -110,7 +113,7 @@ doors and exits, which add capacity without changing path lengths.
 | Adaptive re-running gives exactly the CVaR of re-running every scenario | `tests/analysis/test_bottlenecks.py` | ✅ |
 | "Unblocking" keeps random-number slots aligned (common random numbers) | `tests/analysis/test_bottlenecks.py` | ✅ |
 
-## 6. Optimiser (M6)
+## 6. Optimiser
 
 | Check | Test | Status |
 |---|---|---|
@@ -121,7 +124,7 @@ doors and exits, which add capacity without changing path lengths.
 | Comparing a result with itself gives ΔCVaR = 0 and "not significant" | `tests/optimize/test_optimize.py` | ✅ |
 | The optimiser never returns a plan worse than the baseline in-sample, and confirms on fresh scenarios | `tests/optimize/test_optimize.py` | ✅ |
 
-## 7. Web API and UI (M7)
+## 7. Web API and UI
 
 | Check | Test | Status |
 |---|---|---|
@@ -131,7 +134,7 @@ doors and exits, which add capacity without changing path lengths.
 | Bottleneck rows point at real building edges (for highlighting) | `tests/test_api.py` | ✅ |
 | Chart helpers: histogram keeps every value on shared bins, quantiles match NumPy, ramps and floor labels | `web/test/lib.test.ts` | ✅ |
 
-## 8. Microscopic engine (M8)
+## 8. Microscopic engine
 
 | Check | Test | Status |
 |---|---|---|
@@ -202,7 +205,7 @@ sooner than the meso engine's hydraulic stair capacity. Tail results
 come from the meso engine; the micro engine is for replay and for
 this cross-check.
 
-## 9. Floor-plan reader (M9)
+## 9. Floor-plan reader
 
 | Check | Test | Status |
 |---|---|---|
@@ -250,7 +253,7 @@ At 12 px/m a 0.2 m wall rasterises to three or four pixels, so the guessed
 scale is 40% off; door and stair finding still works, but widths and areas
 are wrong until a reference line is drawn.
 
-## 10. Graph surrogate (M10)
+## 10. Graph surrogate
 
 | Check | Test | Status |
 |---|---|---|
@@ -321,14 +324,14 @@ How to read this:
 A prediction takes about 37 ms on one CPU core (including building the graph
 features); a 1,000-run stress test of the same buildings takes about 31 s on
 one core — about 835× faster, and still about 200× against a perfectly
-parallel 4-core run. The milestone target was ≥ 100×.
+parallel 4-core run. The design target was ≥ 100×.
 
 The shipped weights (`tailsafe/surrogate/weights/`, 614 KiB) are trained on
 all 800 cases (10% held back for validation; 120 epochs with a cosine
 learning-rate schedule, keeping the weights with the lowest validation loss);
 their metadata stores the numbers above, which the what-if screen quotes.
 
-## 11. Briefing (M11)
+## 11. Briefing
 
 | Check | Test | Status |
 |---|---|---|

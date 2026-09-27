@@ -1,0 +1,2055 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TailSafe: The plain-language guide</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="guide.css">
+</head>
+<body>
+
+<!-- Icons used in the boxes (same drawings as the web app). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-info" viewBox="0 0 20 20"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.2"/><path d="M10 9v4.5"/><circle cx="10" cy="6.4" r="0.5" fill="currentColor"/></g></symbol>
+    <symbol id="i-play" viewBox="0 0 20 20"><path d="M6.5 4.5v11l9-5.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 20 20"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.2l7.3 12.6a1 1 0 0 1-.9 1.5H3.6a1 1 0 0 1-.9-1.5L10 3.2z"/><path d="M10 8v3.8"/><circle cx="10" cy="14.4" r="0.5" fill="currentColor"/></g></symbol>
+    <symbol id="i-check" viewBox="0 0 20 20"><path d="M4.5 10.5l3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- ================================================================ COVER -->
+<section class="cover">
+  <div class="band">
+    <svg width="40" height="40" viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="6" y="3.5" width="11" height="25" fill="none" stroke="#ffffff" stroke-width="2"/>
+      <g stroke="#ffffff" stroke-width="1.2" opacity="0.6"><line x1="8.2" x2="14.8" y1="8" y2="8"/><line x1="8.2" x2="14.8" y1="12" y2="12"/><line x1="8.2" x2="14.8" y1="16" y2="16"/><line x1="8.2" x2="14.8" y1="20" y2="20"/><line x1="8.2" x2="14.8" y1="24" y2="24"/></g>
+      <path d="M17 5.5c1.2 0 2 3.5 3 8.5s2.8 9.6 5.2 11.9c.9.9 2 1.4 3.3 1.6" fill="none" stroke="#3ccf7f" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+    <span class="word">TailSafe</span>
+  </div>
+
+  <svg class="art" viewBox="0 0 100 190" aria-hidden="true">
+    <rect x="4" y="8" width="40" height="172" fill="none" stroke="#ffffff" stroke-width="1.4"/>
+    <g stroke="#ffffff" stroke-width="0.5" opacity="0.32"><line x1="7" x2="41" y1="12.3" y2="12.3"/><line x1="7" x2="41" y1="16.6" y2="16.6"/><line x1="7" x2="41" y1="20.9" y2="20.9"/><line x1="7" x2="41" y1="25.2" y2="25.2"/><line x1="7" x2="41" y1="29.5" y2="29.5"/><line x1="7" x2="41" y1="33.8" y2="33.8"/><line x1="7" x2="41" y1="38.1" y2="38.1"/><line x1="7" x2="41" y1="42.4" y2="42.4"/><line x1="7" x2="41" y1="46.7" y2="46.7"/><line x1="7" x2="41" y1="51.0" y2="51.0"/><line x1="7" x2="41" y1="55.3" y2="55.3"/><line x1="7" x2="41" y1="59.6" y2="59.6"/><line x1="7" x2="41" y1="63.9" y2="63.9"/><line x1="7" x2="41" y1="68.2" y2="68.2"/><line x1="7" x2="41" y1="72.5" y2="72.5"/><line x1="7" x2="41" y1="76.8" y2="76.8"/><line x1="7" x2="41" y1="81.1" y2="81.1"/><line x1="7" x2="41" y1="85.4" y2="85.4"/><line x1="7" x2="41" y1="89.7" y2="89.7"/><line x1="7" x2="41" y1="94.0" y2="94.0"/><line x1="7" x2="41" y1="98.3" y2="98.3"/><line x1="7" x2="41" y1="102.6" y2="102.6"/><line x1="7" x2="41" y1="106.9" y2="106.9"/><line x1="7" x2="41" y1="111.2" y2="111.2"/><line x1="7" x2="41" y1="115.5" y2="115.5"/><line x1="7" x2="41" y1="119.8" y2="119.8"/><line x1="7" x2="41" y1="124.1" y2="124.1"/><line x1="7" x2="41" y1="128.4" y2="128.4"/><line x1="7" x2="41" y1="132.7" y2="132.7"/><line x1="7" x2="41" y1="137.0" y2="137.0"/><line x1="7" x2="41" y1="141.3" y2="141.3"/><line x1="7" x2="41" y1="145.6" y2="145.6"/><line x1="7" x2="41" y1="149.9" y2="149.9"/><line x1="7" x2="41" y1="154.2" y2="154.2"/><line x1="7" x2="41" y1="158.5" y2="158.5"/><line x1="7" x2="41" y1="162.8" y2="162.8"/><line x1="7" x2="41" y1="167.1" y2="167.1"/><line x1="7" x2="41" y1="171.4" y2="171.4"/><line x1="7" x2="41" y1="175.7" y2="175.7"/></g>
+    <rect x="7" y="116.1" width="11" height="3" fill="#d9730d"/>
+    <path d="M44 12c4 0 7 14 9.5 36s6 54 12 84c5 24 12 40 19.5 45.5c2.5 1.8 5.5 2.3 8.5 2.5" fill="none" stroke="#3ccf7f" stroke-width="3" stroke-linecap="round"/>
+  </svg>
+
+  <div class="title">
+    <span class="kicker">User guide</span>
+    <h1>The plain-<br>language guide</h1>
+    <p class="sub">What TailSafe does, why it matters, and how to use it, step by step and in simple words.</p>
+  </div>
+
+  <div class="meta">
+    <div><strong>For TailSafe 0.1</strong><br>September 2026</div>
+    <div style="text-align:right">Decision support only. Not a fire-safety assessment.<br>Every resident in TailSafe is made up.</div>
+  </div>
+</section>
+
+<!-- ============================================================= CONTENTS -->
+<section class="toc">
+  <p class="eyebrow">Inside this guide</p>
+  <h2 id="contents">Contents</h2>
+  <ol>
+    <li class="ch"><span class="n"></span><a href="#howto">How to use this guide</a><span class="dots"></span><span class="pg" data-page-of="howto">00</span></li>
+  </ol>
+
+  <div class="part-row"><span><span class="k">Part 1</span><a href="#p1">The background</a></span><span class="pg" data-page-of="p1">00</span></div>
+  <ol>
+    <li class="ch"><span class="n">1</span><a href="#c1">Tall buildings, fires and people</a><span class="dots"></span><span class="pg" data-page-of="c1">00</span></li>
+    <li class="ch"><span class="n">2</span><a href="#c2">The race against smoke</a><span class="dots"></span><span class="pg" data-page-of="c2">00</span></li>
+    <li class="ch"><span class="n">3</span><a href="#c3">Why the average is not enough</a><span class="dots"></span><span class="pg" data-page-of="c3">00</span></li>
+    <li class="ch"><span class="n">4</span><a href="#c4">Who is most at risk</a><span class="dots"></span><span class="pg" data-page-of="c4">00</span></li>
+    <li class="ch"><span class="n">5</span><a href="#c5">What TailSafe is, and what it is not</a><span class="dots"></span><span class="pg" data-page-of="c5">00</span></li>
+  </ol>
+
+  <div class="part-row"><span><span class="k">Part 2</span><a href="#p2">How TailSafe works</a></span><span class="pg" data-page-of="p2">00</span></div>
+  <ol>
+    <li class="ch"><span class="n">6</span><a href="#c6">The big picture</a><span class="dots"></span><span class="pg" data-page-of="c6">00</span></li>
+    <li class="ch"><span class="n">7</span><a href="#c7">The building as a map</a><span class="dots"></span><span class="pg" data-page-of="c7">00</span></li>
+    <li class="ch"><span class="n">8</span><a href="#c8">The people</a><span class="dots"></span><span class="pg" data-page-of="c8">00</span></li>
+    <li class="ch"><span class="n">9</span><a href="#c9">One night in the simulator</a><span class="dots"></span><span class="pg" data-page-of="c9">00</span></li>
+    <li class="ch"><span class="n">10</span><a href="#c10">Hundreds of nights</a><span class="dots"></span><span class="pg" data-page-of="c10">00</span></li>
+    <li class="ch"><span class="n">11</span><a href="#c11">The numbers TailSafe reports</a><span class="dots"></span><span class="pg" data-page-of="c11">00</span></li>
+    <li class="ch"><span class="n">12</span><a href="#c12">Finding the cause</a><span class="dots"></span><span class="pg" data-page-of="c12">00</span></li>
+    <li class="ch"><span class="n">13</span><a href="#c13">Testing fixes</a><span class="dots"></span><span class="pg" data-page-of="c13">00</span></li>
+    <li class="ch"><span class="n">14</span><a href="#c14">Four helpers</a><span class="dots"></span><span class="pg" data-page-of="c14">00</span></li>
+  </ol>
+
+  <div class="part-row"><span><span class="k">Part 3</span><a href="#p3">Getting TailSafe running</a></span><span class="pg" data-page-of="p3">00</span></div>
+  <ol>
+    <li class="ch"><span class="n">15</span><a href="#c15">Two ways to use TailSafe</a><span class="dots"></span><span class="pg" data-page-of="c15">00</span></li>
+    <li class="ch"><span class="n">16</span><a href="#c16">The browser version, step by step</a><span class="dots"></span><span class="pg" data-page-of="c16">00</span></li>
+    <li class="ch"><span class="n">17</span><a href="#c17">The full app with Docker, step by step</a><span class="dots"></span><span class="pg" data-page-of="c17">00</span></li>
+    <li class="ch"><span class="n">18</span><a href="#c18">Other ways to run the full app</a><span class="dots"></span><span class="pg" data-page-of="c18">00</span></li>
+  </ol>
+
+  <div class="part-row"><span><span class="k">Part 4</span><a href="#p4">Screen by screen</a></span><span class="pg" data-page-of="p4">00</span></div>
+  <ol>
+    <li class="ch"><span class="n">19</span><a href="#c19">Finding your way around</a><span class="dots"></span><span class="pg" data-page-of="c19">00</span></li>
+    <li class="ch"><span class="n">20</span><a href="#c20">Step 1: Choose the building</a><span class="dots"></span><span class="pg" data-page-of="c20">00</span></li>
+    <li class="ch"><span class="n">21</span><a href="#c21">Step 2: Set the scenario</a><span class="dots"></span><span class="pg" data-page-of="c21">00</span></li>
+    <li class="ch"><span class="n">22</span><a href="#c22">Step 3: See how bad the tail is</a><span class="dots"></span><span class="pg" data-page-of="c22">00</span></li>
+    <li class="ch"><span class="n">23</span><a href="#c23">Step 4: Watch it floor by floor</a><span class="dots"></span><span class="pg" data-page-of="c23">00</span></li>
+    <li class="ch"><span class="n">24</span><a href="#c24">Step 5: Replay people moving</a><span class="dots"></span><span class="pg" data-page-of="c24">00</span></li>
+    <li class="ch"><span class="n">25</span><a href="#c25">Step 6: Find what causes it</a><span class="dots"></span><span class="pg" data-page-of="c25">00</span></li>
+    <li class="ch"><span class="n">26</span><a href="#c26">Step 7: Test operational fixes</a><span class="dots"></span><span class="pg" data-page-of="c26">00</span></li>
+    <li class="ch"><span class="n">27</span><a href="#c27">Step 8: Try changes instantly</a><span class="dots"></span><span class="pg" data-page-of="c27">00</span></li>
+    <li class="ch"><span class="n">28</span><a href="#c28">Step 9: Get the one-page briefing</a><span class="dots"></span><span class="pg" data-page-of="c28">00</span></li>
+    <li class="ch"><span class="n">29</span><a href="#c29">Reading a floor-plan image</a><span class="dots"></span><span class="pg" data-page-of="c29">00</span></li>
+  </ol>
+
+  <div class="part-row"><span><span class="k">Part 5</span><a href="#p5">Putting it together</a></span><span class="pg" data-page-of="p5">00</span></div>
+  <ol>
+    <li class="ch"><span class="n">30</span><a href="#c30">A worked example: one night at 3 a.m.</a><span class="dots"></span><span class="pg" data-page-of="c30">00</span></li>
+    <li class="ch"><span class="n">31</span><a href="#c31">The command line</a><span class="dots"></span><span class="pg" data-page-of="c31">00</span></li>
+    <li class="ch"><span class="n">32</span><a href="#c32">Limits and responsible use</a><span class="dots"></span><span class="pg" data-page-of="c32">00</span></li>
+    <li class="ch"><span class="n">33</span><a href="#c33">Troubleshooting</a><span class="dots"></span><span class="pg" data-page-of="c33">00</span></li>
+    <li class="ch"><span class="n">34</span><a href="#c34">Questions people ask</a><span class="dots"></span><span class="pg" data-page-of="c34">00</span></li>
+    <li class="ch"><span class="n">35</span><a href="#c35">Word list</a><span class="dots"></span><span class="pg" data-page-of="c35">00</span></li>
+    <li class="ch"><span class="n">36</span><a href="#c36">Where to learn more</a><span class="dots"></span><span class="pg" data-page-of="c36">00</span></li>
+  </ol>
+</section>
+
+<!-- =========================================================== HOW TO USE -->
+<section class="chapter" style="break-before:auto">
+  <p class="eyebrow">Start here</p>
+  <h2 id="howto">How to use this guide</h2>
+  <p class="lead">This guide explains TailSafe from the very beginning. You do not need to know anything about fire safety, statistics or computers. Every new word is explained the first time it appears, and the <a href="#c35">word list</a> at the end explains them all again.</p>
+
+  <div class="box remember keep">
+    <div class="label"><svg><use href="#i-check"/></svg>TailSafe in one minute</div>
+    <ol>
+      <li>People leave tall buildings by the stairs. When a fire starts at night, many people are asleep, some are old or use a wheelchair, and a staircase can fill with smoke.</li>
+      <li>On most nights everyone gets out in good time. On a few bad nights it takes much, much longer. Those few bad nights are the ones that matter.</li>
+      <li>TailSafe plays out hundreds or thousands of possible nights on a computer, each one a little different.</li>
+      <li>It shows how bad the worst nights are, who is still inside, and what causes it.</li>
+      <li>Then it tests cheap changes, such as using lifts for people in wheelchairs or asking neighbours to knock on doors, and tells you honestly what helps and what makes things worse.</li>
+    </ol>
+  </div>
+
+  <h3>How the guide is organised</h3>
+  <ul>
+    <li><strong>Part 1, The background:</strong> the problem TailSafe was built for, and why the average hides the danger.</li>
+    <li><strong>Part 2, How TailSafe works:</strong> what happens inside, one idea at a time, with pictures and no maths.</li>
+    <li><strong>Part 3, Getting TailSafe running:</strong> the browser version and the full app, click by click.</li>
+    <li><strong>Part 4, Screen by screen:</strong> every one of the nine screens: what it is for, what to press, how to read it.</li>
+    <li><strong>Part 5, Putting it together:</strong> a worked example, the command line, the limits, troubleshooting, questions and the word list.</li>
+  </ul>
+
+  <h3>If you are in a hurry</h3>
+  <ul>
+    <li>To try TailSafe now, on any phone or computer, read <a href="#c16">chapter 16</a> and then follow Part 4.</li>
+    <li>To understand the one idea behind it all, read <a href="#c3">chapter 3</a>.</li>
+    <li>To run TailSafe for your own building, read <a href="#c15">chapter 15</a> and <a href="#c17">chapter 17</a>.</li>
+  </ul>
+
+  <h3>The boxes</h3>
+  <div class="legend4">
+    <div class="box plain"><div class="label"><svg><use href="#i-info"/></svg>In plain words</div><p>The idea again, in the simplest words possible.</p></div>
+    <div class="box try"><div class="label"><svg><use href="#i-play"/></svg>Try it</div><p>Something to do in TailSafe right now.</p></div>
+    <div class="box warn"><div class="label"><svg><use href="#i-alert"/></svg>Watch out</div><p>A common mistake, or a limit to keep in mind.</p></div>
+    <div class="box remember"><div class="label"><svg><use href="#i-check"/></svg>Remember</div><p>The one thing to take away.</p></div>
+  </div>
+
+  <h3>Two small conventions</h3>
+  <p><strong>Floors are written the Hong Kong way.</strong> <code>G/F</code> is the ground floor, <code>1/F</code> is the first floor above it, <code>14/F</code> is the fourteenth floor above the ground. A 40-storey building has the ground floor plus 39 floors above it, so its floors run from G/F to 39/F.</p>
+  <p><strong>Buttons and labels are printed in bold,</strong> exactly as they appear on the screen, for example <span class="ui">Run stress test</span>.</p>
+</section>
+
+<!-- =============================================================== PART 1 -->
+<section class="part">
+  <div class="top">
+    <span class="num">Part 1</span>
+    <h1 id="p1">The background</h1>
+  </div>
+  <div class="body">
+    <p>Before touching any buttons, it helps to understand the problem TailSafe was built for. This part needs no computer at all.</p>
+    <ol class="inpart">
+      <li><a href="#c1"><span class="n">1</span>Tall buildings, fires and people</a><span class="pg" data-page-of="c1">00</span></li>
+      <li><a href="#c2"><span class="n">2</span>The race against smoke</a><span class="pg" data-page-of="c2">00</span></li>
+      <li><a href="#c3"><span class="n">3</span>Why the average is not enough</a><span class="pg" data-page-of="c3">00</span></li>
+      <li><a href="#c4"><span class="n">4</span>Who is most at risk</a><span class="pg" data-page-of="c4">00</span></li>
+      <li><a href="#c5"><span class="n">5</span>What TailSafe is, and what it is not</a><span class="pg" data-page-of="c5">00</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- Chapter 1 -->
+<section class="chapter" style="break-before:auto">
+  <p class="eyebrow">Chapter 1</p>
+  <h2 id="c1">Tall buildings, fires and people</h2>
+  <p class="lead">Many people in Hong Kong live very high up. When there is a fire, almost all of them have to walk down the stairs.</p>
+
+  <h3>Hong Kong lives up high</h3>
+  <p>Hong Kong has a great many tall homes. Public housing blocks and private towers of 30 to 50 storeys, and more, are ordinary. Well over a thousand people can live in one building, and they share only a few staircases, often just two.</p>
+  <p>The building this guide uses as its main example is a 40-storey public housing block shaped like a cross. In TailSafe's model it has 760 flats, 2 staircases (called Stair A and Stair B), 3 lifts, and on a Sunday night at 3 a.m. about 1,825 residents at home. The building and its residents are made up by TailSafe; they are not a real block.</p>
+
+  <h3>How people leave a tall building in a fire</h3>
+  <p>An evacuation (everyone leaving a building because of danger) happens in a few stages:</p>
+  <ol class="do">
+    <li><strong>The alarm sounds.</strong></li>
+    <li><strong>People notice and decide to go.</strong> People who are awake notice quickly. People who are asleep take much longer. The time between the alarm and starting to move is called the <strong>pre-movement time</strong>.</li>
+    <li><strong>They get ready.</strong> They wake the family, find shoes and keys, and help a grandparent out of bed.</li>
+    <li><strong>They walk to a staircase</strong> along the corridor, sometimes through a lobby.</li>
+    <li><strong>They walk down,</strong> floor after floor. On a long staircase people get tired and slow down, and queues form where the staircase is full.</li>
+    <li><strong>They leave through an exit</strong> on the ground floor.</li>
+  </ol>
+
+  <p><strong>The lifts are normally not used to escape.</strong> In Hong Kong they are kept for the firefighters. One lift in every building is the <strong>firefighting lift</strong>, which only firefighters use. So almost everyone must use the stairs.</p>
+  <p><strong>Some people cannot use the stairs on their own,</strong> for example a person in a wheelchair. In TailSafe, such a person is carried down by their family or a live-in domestic helper if someone able is at home. Otherwise they wait for the firefighters to rescue them. Rescue can take a long time, because firefighters climb the stairs and bring people down one household at a time.</p>
+  <p><strong>Many tall buildings have refuge floors:</strong> an open floor, every so many storeys, where people can step out of the staircase into fresher air and rest before going on.</p>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>In plain words</div>
+    <p>A fire in a tall building is a slow walk down a narrow staircase, shared with hundreds of neighbours, some of whom are asleep, old or unable to walk.</p>
+  </div>
+</section>
+
+<!-- Chapter 2 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 2</p>
+  <h2 id="c2">The race against smoke</h2>
+  <p class="lead">Every fire is a race between two clocks: how long a place stays safe, and how long people need to leave it.</p>
+
+  <p>In a building fire, the smoke is often more dangerous than the flames. Smoke does two things. It makes the air <strong>dark</strong>, so you cannot see the way. And it is <strong>poisonous</strong>: breathing it makes people weak and confused, and in the end they cannot move. When a place has become too dangerous to be in, it is called <strong>untenable</strong>.</p>
+
+  <p>Fire engineers describe the race with two clocks:</p>
+  <ul>
+    <li><strong>ASET</strong>, the <em>available safe egress time</em>: how long a place stays safe before smoke makes it untenable. Think of it as the <strong>smoke clock</strong>. (Egress simply means going out.)</li>
+    <li><strong>RSET</strong>, the <em>required safe egress time</em>: how long the people there need to get out. Think of it as the <strong>walking clock</strong>.</li>
+  </ul>
+  <p>If the walking clock is shorter than the smoke clock, everyone leaves in time. If the walking clock is longer, someone is still there when it has become dangerous. TailSafe writes this as <strong>RSET &gt; ASET</strong> (&ldquo;RSET is bigger than ASET&rdquo;) and counts how often it happens.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 196" role="img" aria-label="Made-up example: the floor stays safe for 18 minutes, the last person leaves at 22 minutes, 4 minutes too late">
+      <defs>
+        <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#fbe3cc"/><line x1="0" y1="0" x2="0" y2="6" stroke="#d9730d" stroke-width="2"/></pattern>
+      </defs>
+      <rect x="396" y="26" width="74.7" height="118" fill="url(#hatch)"/>
+      <text x="433" y="18" font-size="11.5" font-weight="800" text-anchor="middle" fill="#0b0c0c">4 minutes too late</text>
+      <text x="60" y="44" font-size="11" font-weight="700" fill="#0b0c0c">Smoke clock (ASET) for 15/F</text>
+      <rect x="60" y="51" width="336" height="22" fill="#12805c"/>
+      <text x="390" y="66.5" font-size="10.5" font-weight="700" text-anchor="end" fill="#ffffff">safe until 18 min</text>
+      <text x="60" y="104" font-size="11" font-weight="700" fill="#0b0c0c">Walking clock (RSET) for 15/F</text>
+      <rect x="60" y="111" width="410.7" height="22" fill="#7a4a9e"/>
+      <text x="464" y="126.5" font-size="10.5" font-weight="700" text-anchor="end" fill="#ffffff">last person leaves at 22 min</text>
+      <line x1="60" x2="620" y1="156" y2="156" stroke="#bdbdbd"/>
+      <g font-size="10" fill="#737373" text-anchor="middle">
+        <text x="60" y="171">0</text><text x="153.3" y="171">5</text><text x="246.7" y="171">10</text><text x="340" y="171">15</text><text x="433.3" y="171">20</text><text x="526.7" y="171">25</text><text x="620" y="171">30</text>
+      </g>
+      <text x="340" y="190" font-size="10.5" text-anchor="middle" fill="#4f5154">minutes after the fire starts</text>
+    </svg>
+    <figcaption>A made-up example for one floor. The floor stays safe for 18 minutes, but the last person leaves after 22 minutes. For 4 minutes someone is on a floor that is already too dangerous. That is RSET &gt; ASET.</figcaption>
+  </figure>
+
+  <p>In TailSafe, a place becomes untenable at the first moment one of these is true:</p>
+  <ul>
+    <li>you can see <strong>less than 10 metres</strong> through the smoke;</li>
+    <li>the air is <strong>hotter than 60 &deg;C</strong>;</li>
+    <li>a person who had stood there since the fire started would already have breathed a <strong>harmful dose</strong> of smoke. (<a href="#c11">Chapter 11</a> explains the dose.)</li>
+  </ul>
+  <p>These limits follow ISO 13571, an international guideline on how long people can survive in a fire. The TailSafe settings file notes that the exact values still have to be checked against the edition of the guideline in use.</p>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>In plain words</div>
+    <p>ASET is how long you <em>have</em>. RSET is how long you <em>need</em>. Trouble starts when you need more time than you have.</p>
+  </div>
+</section>
+
+<!-- Chapter 3 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 3</p>
+  <h2 id="c3">Why the average is not enough</h2>
+  <p class="lead">This is the most important idea in TailSafe, and the reason for its name.</p>
+
+  <h3>A story about buses</h3>
+  <p>Think about your trip to school or work. Most days it takes 30 minutes. Some days 35. But now and then the bus breaks down and the trip takes an hour and a half. If someone asks how long your trip takes, the average (perhaps 33 minutes) is a fine answer for planning an ordinary day. But if you must never, ever be late for an important exam, the average is no use at all. You need to know about the bad days.</p>
+  <p>Fires are the same. A building checked only against an average night can look fine, while a few bad nights are very bad. And fires do not choose average nights: they happen at 3 a.m., when a staircase is full of smoke and a lift is broken.</p>
+
+  <h3>The long tail</h3>
+  <p>Imagine the same fire night happening 300 times, each time a little differently: different people at home, a different flat on fire, the smoke arriving at a different moment. Draw a bar for each of the 300 nights, from the quickest evacuation to the slowest:</p>
+
+  <figure>
+    <!-- svg:sorted -->
+<svg viewBox="0 0 640 300" role="img" aria-label="Three hundred simulated nights sorted from quickest to slowest; the worst five percent are highlighted">
+<line x1="46" x2="622" y1="256.0" y2="256.0" stroke="#e8e8e8" stroke-width="1"/>
+<text x="38.0" y="260.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >0</text>
+<line x1="46" x2="622" y1="214.9" y2="214.9" stroke="#e8e8e8" stroke-width="1"/>
+<text x="38.0" y="218.9" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >50</text>
+<line x1="46" x2="622" y1="173.8" y2="173.8" stroke="#e8e8e8" stroke-width="1"/>
+<text x="38.0" y="177.8" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >100</text>
+<line x1="46" x2="622" y1="132.7" y2="132.7" stroke="#e8e8e8" stroke-width="1"/>
+<text x="38.0" y="136.7" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >150</text>
+<line x1="46" x2="622" y1="91.6" y2="91.6" stroke="#e8e8e8" stroke-width="1"/>
+<text x="38.0" y="95.6" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >200</text>
+<line x1="46" x2="622" y1="50.4" y2="50.4" stroke="#e8e8e8" stroke-width="1"/>
+<text x="38.0" y="54.4" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >250</text>
+<line x1="46" x2="622" y1="256.0" y2="256.0" stroke="#bdbdbd" stroke-width="1"/>
+<polygon points="46.00,256.00 46.00,192.17 47.92,192.17 47.92,191.28 49.84,191.28 49.84,188.79 51.76,188.79 51.76,188.35 53.68,188.35 53.68,188.22 55.60,188.22 55.60,187.65 57.52,187.65 57.52,186.66 59.44,186.66 59.44,185.92 61.36,185.92 61.36,184.86 63.28,184.86 63.28,184.47 65.20,184.47 65.20,184.21 67.12,184.21 67.12,183.83 69.04,183.83 69.04,183.80 70.96,183.80 70.96,183.69 72.88,183.69 72.88,183.27 74.80,183.27 74.80,183.08 76.72,183.08 76.72,182.97 78.64,182.97 78.64,182.91 80.56,182.91 80.56,182.87 82.48,182.87 82.48,181.36 84.40,181.36 84.40,181.10 86.32,181.10 86.32,181.00 88.24,181.00 88.24,180.62 90.16,180.62 90.16,180.59 92.08,180.59 92.08,180.50 94.00,180.50 94.00,180.27 95.92,180.27 95.92,180.17 97.84,180.17 97.84,180.10 99.76,180.10 99.76,180.06 101.68,180.06 101.68,179.53 103.60,179.53 103.60,179.30 105.52,179.30 105.52,179.12 107.44,179.12 107.44,178.74 109.36,178.74 109.36,178.61 111.28,178.61 111.28,177.94 113.20,177.94 113.20,176.57 115.12,176.57 115.12,176.12 117.04,176.12 117.04,176.10 118.96,176.10 118.96,175.84 120.88,175.84 120.88,175.42 122.80,175.42 122.80,174.95 124.72,174.95 124.72,174.86 126.64,174.86 126.64,174.64 128.56,174.64 128.56,174.57 130.48,174.57 130.48,174.37 132.40,174.37 132.40,173.88 134.32,173.88 134.32,173.24 136.24,173.24 136.24,172.82 138.16,172.82 138.16,172.40 140.08,172.40 140.08,172.20 142.00,172.20 142.00,171.54 143.92,171.54 143.92,170.73 145.84,170.73 145.84,170.51 147.76,170.51 147.76,169.86 149.68,169.86 149.68,169.35 151.60,169.35 151.60,169.03 153.52,169.03 153.52,168.91 155.44,168.91 155.44,168.63 157.36,168.63 157.36,168.15 159.28,168.15 159.28,168.03 161.20,168.03 161.20,167.32 163.12,167.32 163.12,167.27 165.04,167.27 165.04,167.11 166.96,167.11 166.96,166.50 168.88,166.50 168.88,166.19 170.80,166.19 170.80,165.81 172.72,165.81 172.72,165.71 174.64,165.71 174.64,165.20 176.56,165.20 176.56,164.27 178.48,164.27 178.48,164.08 180.40,164.08 180.40,164.01 182.32,164.01 182.32,163.98 184.24,163.98 184.24,163.78 186.16,163.78 186.16,163.71 188.08,163.71 188.08,163.41 190.00,163.41 190.00,163.41 191.92,163.41 191.92,163.01 193.84,163.01 193.84,162.73 195.76,162.73 195.76,162.44 197.68,162.44 197.68,162.23 199.60,162.23 199.60,161.67 201.52,161.67 201.52,161.63 203.44,161.63 203.44,161.44 205.36,161.44 205.36,160.96 207.28,160.96 207.28,160.36 209.20,160.36 209.20,160.05 211.12,160.05 211.12,159.93 213.04,159.93 213.04,159.92 214.96,159.92 214.96,159.76 216.88,159.76 216.88,159.69 218.80,159.69 218.80,159.58 220.72,159.58 220.72,159.30 222.64,159.30 222.64,158.11 224.56,158.11 224.56,158.06 226.48,158.06 226.48,158.00 228.40,158.00 228.40,157.79 230.32,157.79 230.32,157.54 232.24,157.54 232.24,157.49 234.16,157.49 234.16,157.46 236.08,157.46 236.08,157.14 238.00,157.14 238.00,157.10 239.92,157.10 239.92,157.01 241.84,157.01 241.84,156.87 243.76,156.87 243.76,156.72 245.68,156.72 245.68,156.66 247.60,156.66 247.60,156.61 249.52,156.61 249.52,156.45 251.44,156.45 251.44,156.23 253.36,156.23 253.36,156.09 255.28,156.09 255.28,155.82 257.20,155.82 257.20,155.66 259.12,155.66 259.12,155.42 261.04,155.42 261.04,155.30 262.96,155.30 262.96,154.76 264.88,154.76 264.88,154.37 266.80,154.37 266.80,153.95 268.72,153.95 268.72,153.95 270.64,153.95 270.64,153.90 272.56,153.90 272.56,153.21 274.48,153.21 274.48,153.06 276.40,153.06 276.40,153.01 278.32,153.01 278.32,152.65 280.24,152.65 280.24,152.56 282.16,152.56 282.16,152.44 284.08,152.44 284.08,152.14 286.00,152.14 286.00,152.12 287.92,152.12 287.92,151.76 289.84,151.76 289.84,151.54 291.76,151.54 291.76,151.41 293.68,151.41 293.68,151.14 295.60,151.14 295.60,150.98 297.52,150.98 297.52,150.89 299.44,150.89 299.44,150.76 301.36,150.76 301.36,150.54 303.28,150.54 303.28,150.45 305.20,150.45 305.20,150.24 307.12,150.24 307.12,150.16 309.04,150.16 309.04,149.89 310.96,149.89 310.96,149.69 312.88,149.69 312.88,149.44 314.80,149.44 314.80,149.26 316.72,149.26 316.72,149.09 318.64,149.09 318.64,148.62 320.56,148.62 320.56,148.39 322.48,148.39 322.48,148.33 324.40,148.33 324.40,148.28 326.32,148.28 326.32,148.18 328.24,148.18 328.24,148.09 330.16,148.09 330.16,148.08 332.08,148.08 332.08,148.03 334.00,148.03 334.00,147.49 335.92,147.49 335.92,147.43 337.84,147.43 337.84,146.87 339.76,146.87 339.76,146.81 341.68,146.81 341.68,146.13 343.60,146.13 343.60,146.11 345.52,146.11 345.52,146.09 347.44,146.09 347.44,145.88 349.36,145.88 349.36,145.44 351.28,145.44 351.28,145.19 353.20,145.19 353.20,145.19 355.12,145.19 355.12,145.18 357.04,145.18 357.04,145.13 358.96,145.13 358.96,144.84 360.88,144.84 360.88,144.65 362.80,144.65 362.80,144.36 364.72,144.36 364.72,144.12 366.64,144.12 366.64,144.10 368.56,144.10 368.56,144.04 370.48,144.04 370.48,143.83 372.40,143.83 372.40,143.52 374.32,143.52 374.32,143.23 376.24,143.23 376.24,143.04 378.16,143.04 378.16,143.01 380.08,143.01 380.08,142.80 382.00,142.80 382.00,142.78 383.92,142.78 383.92,142.76 385.84,142.76 385.84,142.71 387.76,142.71 387.76,142.54 389.68,142.54 389.68,142.34 391.60,142.34 391.60,142.30 393.52,142.30 393.52,142.15 395.44,142.15 395.44,142.14 397.36,142.14 397.36,142.07 399.28,142.07 399.28,140.86 401.20,140.86 401.20,140.70 403.12,140.70 403.12,140.39 405.04,140.39 405.04,139.29 406.96,139.29 406.96,139.02 408.88,139.02 408.88,138.99 410.80,138.99 410.80,138.93 412.72,138.93 412.72,138.89 414.64,138.89 414.64,138.55 416.56,138.55 416.56,138.51 418.48,138.51 418.48,138.41 420.40,138.41 420.40,138.24 422.32,138.24 422.32,138.04 424.24,138.04 424.24,137.18 426.16,137.18 426.16,136.49 428.08,136.49 428.08,136.42 430.00,136.42 430.00,135.77 431.92,135.77 431.92,135.45 433.84,135.45 433.84,135.13 435.76,135.13 435.76,135.03 437.68,135.03 437.68,134.73 439.60,134.73 439.60,134.03 441.52,134.03 441.52,133.88 443.44,133.88 443.44,133.52 445.36,133.52 445.36,132.81 447.28,132.81 447.28,132.61 449.20,132.61 449.20,132.29 451.12,132.29 451.12,132.02 453.04,132.02 453.04,131.94 454.96,131.94 454.96,131.82 456.88,131.82 456.88,130.86 458.80,130.86 458.80,130.81 460.72,130.81 460.72,129.93 462.64,129.93 462.64,129.85 464.56,129.85 464.56,129.56 466.48,129.56 466.48,129.17 468.40,129.17 468.40,129.06 470.32,129.06 470.32,128.87 472.24,128.87 472.24,128.54 474.16,128.54 474.16,128.51 476.08,128.51 476.08,127.90 478.00,127.90 478.00,127.88 479.92,127.88 479.92,127.72 481.84,127.72 481.84,126.97 483.76,126.97 483.76,126.82 485.68,126.82 485.68,126.71 487.60,126.71 487.60,126.43 489.52,126.43 489.52,126.27 491.44,126.27 491.44,125.87 493.36,125.87 493.36,125.51 495.28,125.51 495.28,125.18 497.20,125.18 497.20,124.69 499.12,124.69 499.12,124.57 501.04,124.57 501.04,124.19 502.96,124.19 502.96,123.42 504.88,123.42 504.88,122.70 506.80,122.70 506.80,121.62 508.72,121.62 508.72,121.43 510.64,121.43 510.64,120.56 512.56,120.56 512.56,120.30 514.48,120.30 514.48,119.81 516.40,119.81 516.40,119.33 518.32,119.33 518.32,117.33 520.24,117.33 520.24,116.74 522.16,116.74 522.16,116.58 524.08,116.58 524.08,115.94 526.00,115.94 526.00,115.71 527.92,115.71 527.92,115.10 529.84,115.10 529.84,113.85 531.76,113.85 531.76,113.78 533.68,113.78 533.68,113.32 535.60,113.32 535.60,113.29 537.52,113.29 537.52,112.97 539.44,112.97 539.44,112.75 541.36,112.75 541.36,112.25 543.28,112.25 543.28,112.19 545.20,112.19 545.20,111.69 547.12,111.69 547.12,110.50 549.04,110.50 549.04,110.21 550.96,110.21 550.96,109.45 552.88,109.45 552.88,108.58 554.80,108.58 554.80,108.37 556.72,108.37 556.72,107.95 558.64,107.95 558.64,105.66 560.56,105.66 560.56,102.85 562.48,102.85 562.48,101.17 564.40,101.17 564.40,100.62 566.32,100.62 566.32,100.62 568.24,100.62 568.24,100.07 570.16,100.07 570.16,99.99 572.08,99.99 572.08,99.66 574.00,99.66 574.00,99.50 575.92,99.50 575.92,98.13 577.84,98.13 577.84,97.53 579.76,97.53 579.76,96.23 581.68,96.23 581.68,96.01 583.60,96.01 583.60,95.10 585.52,95.10 585.52,94.84 587.44,94.84 587.44,94.05 589.36,94.05 589.36,93.59 591.28,93.59 591.28,91.99 593.20,91.99 593.20,256.00" fill="#7a4a9e"/>
+<polygon points="593.20,256.00 593.20,91.21 595.12,91.21 595.12,90.93 597.04,90.93 597.04,89.57 598.96,89.57 598.96,87.05 600.88,87.05 600.88,84.24 602.80,84.24 602.80,82.38 604.72,82.38 604.72,82.28 606.64,82.28 606.64,80.66 608.56,80.66 608.56,76.06 610.48,76.06 610.48,74.89 612.40,74.89 612.40,74.54 614.32,74.54 614.32,67.70 616.24,67.70 616.24,63.09 618.16,63.09 618.16,60.82 620.08,60.82 620.08,45.28 622.00,45.28 622.00,256.00" fill="#d9730d"/>
+<line x1="593.20" x2="593.20" y1="256.0" y2="28" stroke="#ffffff" stroke-width="2"/>
+<line x1="46" x2="622" y1="143.8" y2="143.8" stroke="#0b0c0c" stroke-width="1.2" stroke-dasharray="4 3"/>
+<rect x="52" y="126.8" width="178" height="15" fill="#ffffff" opacity="0.85"/>
+<text x="54.0" y="138.8" font-size="10.5" text-anchor="start" font-weight="600" fill="#0b0c0c" >average of all nights: 136.5 min</text>
+<line x1="523.2" x2="622" y1="76.7" y2="76.7" stroke="#0b0c0c" stroke-width="1.6"/>
+<text x="519.2" y="70.7" font-size="10.5" text-anchor="end" font-weight="700" fill="#0b0c0c" >average of the worst 5% (CVaR₉₅): 218.1 min</text>
+<line x1="519.2" x2="523.2" y1="76.7" y2="76.7" stroke="#0b0c0c"/>
+<circle cx="593.20" cy="92.0" r="3.2" fill="#0b0c0c"/>
+<line x1="588.2" x2="579.2" y1="89.0" y2="85.0" stroke="#0b0c0c"/>
+<text x="577.2" y="86.0" font-size="10.5" text-anchor="end" font-weight="600" fill="#0b0c0c" >P95: 199.5 min</text>
+<text x="46.0" y="278.0" font-size="10" text-anchor="start" font-weight="400" fill="#737373" >quickest night</text>
+<text x="622.0" y="278.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >slowest night</text>
+<text x="334.0" y="292.0" font-size="10.5" text-anchor="middle" font-weight="400" fill="#4f5154" >300 simulated nights, sorted from quickest to slowest</text>
+<text x="12.0" y="20.0" font-size="10.5" text-anchor="start" font-weight="400" fill="#4f5154" >minutes until everyone is out</text>
+<rect x="372" y="10" width="11" height="11" fill="#7a4a9e"/>
+<text x="388.0" y="19.5" font-size="10.5" text-anchor="start" font-weight="400" fill="#0b0c0c" >95% of nights</text>
+<rect x="484" y="10" width="11" height="11" fill="#d9730d"/>
+<text x="500.0" y="19.5" font-size="10.5" text-anchor="start" font-weight="400" fill="#0b0c0c" >worst 5% (15 nights)</text>
+</svg>
+<!-- /svg:sorted -->
+    <figcaption>Each sliver is one simulated night in the 40-storey example (the reference scenario of <a href="#c30">chapter 30</a>, 300 nights, as in the browser version). The height is the time until everyone, including people rescued by firefighters, is out. Most nights end between 100 and 170 minutes. The slowest 5% of nights, in amber, are much slower.</figcaption>
+  </figure>
+
+  <p>The same 300 nights can be drawn another way, as a <strong>histogram</strong>: the nights are sorted into boxes by how long they took, and each bar shows how many nights landed in each box. Most nights pile up in the middle. A thin trail of slow nights stretches out to the right. That trail is called <strong>the tail</strong>, and it is where TailSafe gets its name.</p>
+
+  <figure>
+    <!-- svg:hist -->
+<svg viewBox="0 0 640 250" role="img" aria-label="Histogram of three hundred nights with the tail highlighted">
+<line x1="40" x2="622" y1="210.0" y2="210.0" stroke="#e8e8e8"/>
+<text x="32.0" y="214.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >0</text>
+<line x1="40" x2="622" y1="176.0" y2="176.0" stroke="#e8e8e8"/>
+<text x="32.0" y="180.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >10</text>
+<line x1="40" x2="622" y1="142.0" y2="142.0" stroke="#e8e8e8"/>
+<text x="32.0" y="146.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >20</text>
+<line x1="40" x2="622" y1="108.0" y2="108.0" stroke="#e8e8e8"/>
+<text x="32.0" y="112.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >30</text>
+<line x1="40" x2="622" y1="74.0" y2="74.0" stroke="#e8e8e8"/>
+<text x="32.0" y="78.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >40</text>
+<line x1="40" x2="622" y1="40.0" y2="40.0" stroke="#e8e8e8"/>
+<text x="32.0" y="44.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >50</text>
+<path d="M41.0,210.0V206.2Q41.0,203.2 44.0,203.2H66.6Q69.6,203.2 69.6,206.2V210.0Z" fill="#7a4a9e"/>
+<path d="M71.6,210.0V155.2Q71.6,152.2 74.6,152.2H97.3Q100.3,152.2 100.3,155.2V210.0Z" fill="#7a4a9e"/>
+<path d="M102.3,210.0V121.2Q102.3,118.2 105.3,118.2H127.9Q130.9,118.2 130.9,121.2V210.0Z" fill="#7a4a9e"/>
+<path d="M132.9,210.0V141.6Q132.9,138.6 135.9,138.6H158.5Q161.5,138.6 161.5,141.6V210.0Z" fill="#7a4a9e"/>
+<path d="M163.5,210.0V104.2Q163.5,101.2 166.5,101.2H189.2Q192.2,101.2 192.2,104.2V210.0Z" fill="#7a4a9e"/>
+<path d="M194.2,210.0V70.2Q194.2,67.2 197.2,67.2H219.8Q222.8,67.2 222.8,70.2V210.0Z" fill="#7a4a9e"/>
+<path d="M224.8,210.0V66.8Q224.8,63.8 227.8,63.8H250.4Q253.4,63.8 253.4,66.8V210.0Z" fill="#7a4a9e"/>
+<path d="M255.4,210.0V128.0Q255.4,125.0 258.4,125.0H281.1Q284.1,125.0 284.1,128.0V210.0Z" fill="#7a4a9e"/>
+<path d="M286.1,210.0V117.8Q286.1,114.8 289.1,114.8H311.7Q314.7,114.8 314.7,117.8V210.0Z" fill="#7a4a9e"/>
+<path d="M316.7,210.0V172.2Q316.7,169.2 319.7,169.2H342.3Q345.3,169.2 345.3,172.2V210.0Z" fill="#7a4a9e"/>
+<path d="M347.3,210.0V155.2Q347.3,152.2 350.3,152.2H372.9Q375.9,152.2 375.9,155.2V210.0Z" fill="#7a4a9e"/>
+<path d="M377.9,210.0V185.8Q377.9,182.8 380.9,182.8H403.6Q406.6,182.8 406.6,185.8V210.0Z" fill="#7a4a9e"/>
+<path d="M408.6,210.0V175.6Q408.6,172.6 411.6,172.6H434.2Q437.2,172.6 437.2,175.6V210.0Z" fill="#7a4a9e"/>
+<path d="M439.2,210.0V196.0Q439.2,193.0 442.2,193.0H464.8Q467.8,193.0 467.8,196.0V210.0Z" fill="#d9730d"/>
+<path d="M469.8,210.0V199.4Q469.8,196.4 472.8,196.4H495.5Q498.5,196.4 498.5,199.4V210.0Z" fill="#d9730d"/>
+<path d="M500.5,210.0V202.8Q500.5,199.8 503.5,199.8H526.1Q529.1,199.8 529.1,202.8V210.0Z" fill="#d9730d"/>
+<path d="M531.1,210.0V206.2Q531.1,203.2 534.1,203.2H556.7Q559.7,203.2 559.7,206.2V210.0Z" fill="#d9730d"/>
+<path d="M592.4,210.0V208.3Q592.4,206.6 594.1,206.6H619.3Q621.0,206.6 621.0,208.3V210.0Z" fill="#d9730d"/>
+<line x1="40" x2="622" y1="210.0" y2="210.0" stroke="#bdbdbd"/>
+<text x="70.6" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >80</text>
+<text x="162.5" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >110</text>
+<text x="254.4" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >140</text>
+<text x="346.3" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >170</text>
+<text x="438.2" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >200</text>
+<text x="530.1" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >230</text>
+<text x="622.0" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >260</text>
+<line x1="243.7" x2="243.7" y1="34" y2="210.0" stroke="#0b0c0c" stroke-width="1.2" stroke-dasharray="4 3"/>
+<text x="247.7" y="44.0" font-size="10.5" text-anchor="start" font-weight="600" fill="#0b0c0c" >average 136</text>
+<line x1="493.5" x2="493.5" y1="34" y2="210.0" stroke="#0b0c0c" stroke-width="1.8" stroke-dasharray=""/>
+<text x="497.5" y="44.0" font-size="10.5" text-anchor="start" font-weight="700" fill="#0b0c0c" >CVaR₉₅ 218</text>
+<text x="536.2" y="146.0" font-size="11" text-anchor="middle" font-weight="700" fill="#0b0c0c" >the tail</text>
+<path d="M536.2,152.0 L536.2,188.0" stroke="#0b0c0c" stroke-width="1"/>
+<text x="331.0" y="244.0" font-size="10.5" text-anchor="middle" font-weight="400" fill="#4f5154" >minutes until everyone is out (each bar: a 10-minute band)</text>
+<text x="12.0" y="22.0" font-size="10.5" text-anchor="start" font-weight="400" fill="#4f5154" >number of nights</text>
+</svg>
+<!-- /svg:hist -->
+    <figcaption>The same 300 nights as a histogram. Bars in amber are nights slower than 200 minutes. The dashed line is the average of all nights; the solid line is the average of the worst 5%.</figcaption>
+  </figure>
+
+  <h3>Four ways to describe the spread</h3>
+  <table>
+    <thead><tr><th style="width:24%">Name</th><th>What it means</th><th class="num" style="width:17%">In the example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Mean</strong> (average)</td><td>Add up the times of all nights and divide by the number of nights.</td><td class="num">136.5 min</td></tr>
+      <tr><td><strong>Median</strong></td><td>The night in the middle: half the nights are quicker, half are slower.</td><td class="num">131.6 min</td></tr>
+      <tr><td><strong>P95</strong> (95th percentile)</td><td>95 nights in every 100 are quicker than this. It is the border of the worst 5%.</td><td class="num">199.5 min</td></tr>
+      <tr><td><strong>CVaR<sub>95</sub></strong></td><td>Take the worst 5% of nights (here the worst 15 of 300) and average them. It answers: <em>when things go badly, how badly, on average?</em></td><td class="num"><strong>218.1 min</strong></td></tr>
+    </tbody>
+  </table>
+  <p><strong>CVaR<sub>95</sub></strong> is short for <em>conditional value at risk at 95%</em>. The name comes from banks, which use it to ask &ldquo;on our worst days, how much could we lose?&rdquo;. TailSafe borrows the idea and asks &ldquo;on the worst nights, how long does it take?&rdquo;. In this guide it is often called simply <strong>the average of the worst 5%</strong>.</p>
+  <p>Why not simply look at the single worst night? Because one night can be a freak. The average of the worst 5% is steadier, and still tells you about the bad nights.</p>
+
+  <div class="box remember">
+    <div class="label"><svg><use href="#i-check"/></svg>Remember</div>
+    <p>TailSafe cares most about CVaR<sub>95</sub>, the average of the worst 5% of nights, because the bad nights are where people get hurt. When it tests a change, it asks first how much the change shortens the bad nights, not the average one.</p>
+  </div>
+</section>
+
+<!-- Chapter 4 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 4</p>
+  <h2 id="c4">Who is most at risk</h2>
+  <p class="lead">Not everyone is equally likely to be among the last people out.</p>
+
+  <ul>
+    <li><strong>People who are asleep</strong> react later. At night, the time before people start to move is much longer.</li>
+    <li><strong>Older residents (65 to 79)</strong> walk more slowly, especially down many flights of stairs.</li>
+    <li><strong>Frail older residents (80 and over)</strong> walk very slowly and tire quickly.</li>
+    <li><strong>Wheelchair users</strong> cannot walk down. They must be carried, or wait for a lift or for the firefighters.</li>
+    <li><strong>People on high floors</strong> have the longest way down, and often meet queues on the way.</li>
+    <li><strong>Families move together,</strong> so a family is only as fast as its slowest member.</li>
+    <li><strong>Some households first go the wrong way:</strong> to fetch a relative or to check on a neighbour, walking against everyone else. This is called <strong>counter-flow</strong>.</li>
+  </ul>
+  <p>Hong Kong's population is ageing, so the slowest groups are growing. In TailSafe, some households also have a <strong>live-in domestic helper</strong>, who can help an older person move or carry a wheelchair user down.</p>
+
+  <h3>What the example shows</h3>
+  <p>In the 1,000-night study of the 40-storey example (<a href="#c30">chapter 30</a>):</p>
+  <ul>
+    <li>Households with a wheelchair user living on 30/F to 39/F are only <strong>1.2%</strong> of the residents, yet they are <strong>all</strong> of the people still inside at the very end of the worst nights, because they wait for the firefighters.</li>
+    <li>Among people who leave on their own, households with a frail resident aged 80 or over living on 30/F to 39/F are <strong>4.9%</strong> of the residents but <strong>70%</strong> of those still inside near the end of the worst nights.</li>
+  </ul>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>In plain words</div>
+    <p>The worst nights are mostly about a small number of people: the old, the frail and wheelchair users on high floors. A good plan has to work for them.</p>
+  </div>
+</section>
+
+<!-- Chapter 5 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 5</p>
+  <h2 id="c5">What TailSafe is, and what it is not</h2>
+
+  <div class="two">
+    <div>
+      <h3 style="margin-top:0">TailSafe is</h3>
+      <ul>
+        <li>a <strong>practice tool</strong>, like a flight simulator for evacuations;</li>
+        <li>a safe way to ask &ldquo;what if?&rdquo; without a real fire or a real drill;</li>
+        <li>a way to see <strong>where</strong> the risk comes from and <strong>who</strong> carries it;</li>
+        <li>a fair way to <strong>compare</strong> changes, on exactly the same nights.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">TailSafe is not</h3>
+      <ul>
+        <li>a <strong>fire-safety assessment</strong> of any building;</li>
+        <li>a replacement for a <strong>registered fire engineer</strong>, the <strong>Fire Services Department</strong>, or the Buildings Department's <em>Code of Practice for Fire Safety in Buildings</em>;</li>
+        <li>a picture of any <strong>real</strong> residents: everyone in it is made up, and no personal data is used.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p><strong>Many of the numbers inside TailSafe are educated guesses.</strong> TailSafe keeps every physical and population number in one settings file, <code>config/params.yaml</code>, and every number there says where it comes from. Of its 169 numbers, 146 are marked <code>ASSUMPTION — needs citation</code>: they are reasonable guesses that still need a proper source. The walking speed of frail residents, reaction times at night and how quickly firefighters rescue people are among them. The remaining numbers name a published source, which is still marked to be checked against the edition used.</p>
+  <p>That is why TailSafe is good for <strong>understanding and comparing</strong> (where does the risk come from? which change helps more?) and not for <strong>exact predictions</strong> (how many minutes will it take in my building?).</p>
+
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>Watch out</div>
+    <p>Never say &ldquo;TailSafe says our building is safe&rdquo;. Say instead: &ldquo;TailSafe suggests where the risk concentrates and which changes might help. A fire engineer should check this.&rdquo;</p>
+  </div>
+
+  <p>The full responsible-use notice, which TailSafe shows on every screen and in every report, is in <a href="#c32">chapter 32</a>.</p>
+</section>
+
+<!-- =============================================================== PART 2 -->
+<section class="part">
+  <div class="top">
+    <span class="num">Part 2</span>
+    <h1 id="p2">How TailSafe works</h1>
+  </div>
+  <div class="body">
+    <p>This part opens the box. It explains what TailSafe does behind the buttons, one idea at a time. There is no maths, only pictures and everyday examples.</p>
+    <ol class="inpart">
+      <li><a href="#c6"><span class="n">6</span>The big picture</a><span class="pg" data-page-of="c6">00</span></li>
+      <li><a href="#c7"><span class="n">7</span>The building as a map</a><span class="pg" data-page-of="c7">00</span></li>
+      <li><a href="#c8"><span class="n">8</span>The people</a><span class="pg" data-page-of="c8">00</span></li>
+      <li><a href="#c9"><span class="n">9</span>One night in the simulator</a><span class="pg" data-page-of="c9">00</span></li>
+      <li><a href="#c10"><span class="n">10</span>Hundreds of nights</a><span class="pg" data-page-of="c10">00</span></li>
+      <li><a href="#c11"><span class="n">11</span>The numbers TailSafe reports</a><span class="pg" data-page-of="c11">00</span></li>
+      <li><a href="#c12"><span class="n">12</span>Finding the cause</a><span class="pg" data-page-of="c12">00</span></li>
+      <li><a href="#c13"><span class="n">13</span>Testing fixes</a><span class="pg" data-page-of="c13">00</span></li>
+      <li><a href="#c14"><span class="n">14</span>Four helpers</a><span class="pg" data-page-of="c14">00</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- Chapter 6 -->
+<section class="chapter" style="break-before:auto">
+  <p class="eyebrow">Chapter 6</p>
+  <h2 id="c6">The big picture</h2>
+  <p class="lead">TailSafe works in seven stages. The web app follows the same order, so once you know these stages you know your way around.</p>
+
+  <div class="flow-steps">
+    <div><span class="n on">1</span><span class="t">The building <span class="where">Step 1</span></span><span class="d">Describe the building: its floors, flats, corridors, doors, staircases and lifts.</span></div>
+    <div><span class="n on">2</span><span class="t">The night <span class="where">Step 2</span></span><span class="d">Describe the night you are worried about: the time, the people, the fire, the smoke, a lost staircase, a broken lift.</span></div>
+    <div><span class="n">3</span><span class="t">Hundreds of nights</span><span class="d">TailSafe plays out hundreds or thousands of versions of that night, each slightly different. This is the <strong>stress test</strong>.</span></div>
+    <div><span class="n on">4</span><span class="t">The tail <span class="where">Steps 3, 4 and 5</span></span><span class="d">Look at the spread of results: how bad the worst nights are, who is still inside, where smoke catches people.</span></div>
+    <div><span class="n on">5</span><span class="t">The cause <span class="where">Step 6</span></span><span class="d">Find out which staircase, door or exit matters most on the bad nights.</span></div>
+    <div><span class="n on">6</span><span class="t">The fixes <span class="where">Steps 7 and 8</span></span><span class="d">Test cheap changes to how the building is run, and check that they really help on nights they have not seen.</span></div>
+    <div><span class="n on">7</span><span class="t">The briefing <span class="where">Step 9</span></span><span class="d">Write it all on one page for the building manager.</span></div>
+  </div>
+
+  <p>The chapters in this part follow the same stages: the building (<a href="#c7">7</a>), the people (<a href="#c8">8</a>), one night (<a href="#c9">9</a>), many nights (<a href="#c10">10</a>), the results (<a href="#c11">11</a>), the causes (<a href="#c12">12</a>) and the fixes (<a href="#c13">13</a>). <a href="#c14">Chapter 14</a> introduces four helpers that make it all easier to see and use.</p>
+</section>
+
+<!-- Chapter 7 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 7</p>
+  <h2 id="c7">The building as a map</h2>
+  <p class="lead">TailSafe does not see a building as a picture. It sees a map of places, and of the connections people use to move between them.</p>
+
+  <h3>Places and connections</h3>
+  <p>The <strong>places</strong> are flats, corridors, lobbies, stair landings, refuge areas and exits. The <strong>connections</strong> are the doors, the walkways and the stair flights between them. Every connection knows how long it is and how wide it is. Mathematicians call a map like this a <strong>graph</strong> (nothing to do with charts): the places are its <strong>nodes</strong> and the connections are its <strong>edges</strong>.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 250" role="img" aria-label="Places joined by connections, from two flats through a corridor, a lobby and the staircase down to the exit">
+      <g font-size="11" font-weight="700" fill="#0b0c0c" text-anchor="middle">
+        <g stroke="#0b0c0c" stroke-width="1.4">
+          <line x1="96" y1="47" x2="160" y2="87"/><line x1="96" y1="127" x2="160" y2="87"/>
+          <line x1="270" y1="87" x2="330" y2="87"/><line x1="420" y1="80" x2="470" y2="44"/>
+          <line x1="550" y1="54" x2="550" y2="100"/><line x1="550" y1="134" x2="550" y2="180" stroke-dasharray="4 4"/>
+          <line x1="470" y1="197" x2="420" y2="197"/>
+        </g>
+        <g fill="#ffffff" stroke="#0b0c0c" stroke-width="1.4">
+          <rect x="10" y="30" width="86" height="34" rx="3"/><rect x="10" y="110" width="86" height="34" rx="3"/>
+          <rect x="160" y="70" width="110" height="34" rx="3" fill="#f3f3f2"/><rect x="330" y="70" width="90" height="34" rx="3" fill="#f3f3f2"/>
+          <rect x="470" y="20" width="160" height="34" rx="3" fill="#f3f3f2"/><rect x="470" y="100" width="160" height="34" rx="3" fill="#f3f3f2"/>
+          <rect x="470" y="180" width="160" height="34" rx="3" fill="#f3f3f2"/><rect x="330" y="180" width="90" height="34" rx="3" fill="#e6f2eb" stroke="#0a7a3f"/>
+        </g>
+        <text x="53" y="51">Flat</text><text x="53" y="131">Flat</text>
+        <text x="215" y="91">Corridor</text><text x="375" y="91">Lobby</text>
+        <text x="550" y="41">Stair landing, 14/F</text><text x="550" y="121">Stair landing, 13/F</text>
+        <text x="550" y="201">Stair landing, G/F</text><text x="375" y="201" fill="#075c2f">Exit</text>
+      </g>
+      <g font-size="10" fill="#4f5154">
+        <text x="118" y="56">door</text><text x="118" y="126">door</text>
+        <text x="300" y="80" text-anchor="middle">walkway</text>
+        <text x="452" y="52" text-anchor="end">fire door</text>
+        <text x="544" y="81" text-anchor="end">stair flight</text>
+        <text x="544" y="161" text-anchor="end">12 more flights</text>
+        <text x="445" y="226" text-anchor="middle">exit door</text>
+      </g>
+      <text x="10" y="244" font-size="10" fill="#737373">Boxes are places (nodes). Lines are connections (edges). Every connection has a length and a width.</text>
+    </svg>
+    <figcaption>A tiny part of the map of one floor. Real maps are much bigger: the 40-storey example has 20 flats on every typical floor, two staircases and thousands of connections.</figcaption>
+  </figure>
+
+  <h3>Doors and stairs are like pipes</h3>
+  <p>Only so many people fit through a door or down a staircase each second, just as only so much water fits through a pipe. When more people arrive than can pass, the rest wait, and a <strong>queue</strong> forms, like at a supermarket checkout.</p>
+  <p>How many people can pass depends on the width. TailSafe uses a standard engineering method, the <strong>hydraulic model</strong> from the <em>SFPE Handbook of Fire Protection Engineering</em>. It says that a staircase lets roughly one person per second pass for each metre of <strong>usable width</strong>, and a door a little more. The usable width is a bit less than the real width, because people keep about 15&nbsp;cm away from the wall on each side.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 196" role="img" aria-label="People queueing at a door and walking down a stair">
+      <g fill="#7a4a9e">
+        <circle cx="52" cy="88" r="6"/><circle cx="68" cy="102" r="6"/><circle cx="84" cy="90" r="6"/><circle cx="98" cy="104" r="6"/><circle cx="112" cy="92" r="6"/>
+        <circle cx="126" cy="104" r="6"/><circle cx="60" cy="118" r="6"/><circle cx="80" cy="120" r="6"/><circle cx="100" cy="122" r="6"/><circle cx="118" cy="119" r="6"/>
+        <circle cx="46" cy="104" r="6"/><circle cx="136" cy="100" r="6"/><circle cx="176" cy="100" r="6"/><circle cx="214" cy="96" r="6"/><circle cx="252" cy="102" r="6"/>
+      </g>
+      <g stroke="#0b0c0c" stroke-width="5"><line x1="150" y1="30" x2="150" y2="82"/><line x1="150" y1="122" x2="150" y2="170"/></g>
+      <text x="150" y="187" font-size="11" font-weight="700" text-anchor="middle" fill="#0b0c0c">Door 1.0 m wide: about 55 people a minute</text>
+      <text x="92" y="60" font-size="10" text-anchor="middle" fill="#4f5154">a queue forms</text>
+      <g stroke="#0b0c0c" stroke-width="2" fill="none"><path d="M380 38h40v22h40v22h40v22h40v22h40v22"/></g>
+      <g fill="#7a4a9e"><circle cx="396" cy="30" r="6"/><circle cx="440" cy="52" r="6"/><circle cx="478" cy="74" r="6"/><circle cx="520" cy="96" r="6"/><circle cx="558" cy="118" r="6"/><circle cx="600" cy="140" r="6"/></g>
+      <text x="490" y="187" font-size="11" font-weight="700" text-anchor="middle" fill="#0b0c0c">Stair 1.1 m wide: about 48 people a minute</text>
+    </svg>
+    <figcaption>The flow through a door or a stair depends on its usable width. The numbers are what TailSafe's settings give for these widths.</figcaption>
+  </figure>
+
+  <p>Here is why this matters so much. The staircases in the 40-storey example are 1.1&nbsp;m wide. Take 15&nbsp;cm off each side and 0.8&nbsp;m is usable, which lets about 48 people a minute down. The block has about 1,825 residents at night. Just squeezing all of them through two such staircases takes about 19 minutes; through one staircase it takes about 38 minutes. So if smoke closes one staircase, the whole building has to squeeze through the other one.</p>
+
+  <h3>Walking speed</h3>
+  <p>People walk more slowly in a crowd, more slowly on stairs than on the flat, and more slowly still after many floors, because they get tired. Smoke slows them down too, because they cannot see well. TailSafe includes all four effects.</p>
+
+  <h3>Taking turns on the stairs</h3>
+  <p>On every floor, people coming out of the corridor have to squeeze into a staircase that is already carrying people from the floors above. TailSafe lets the two streams take turns in a fixed ratio, like cars merging where two lanes become one.</p>
+
+  <h3>The four building types</h3>
+  <p>TailSafe can build four kinds of Hong Kong building for you. They are <strong>generic designs</strong> made by the computer from a set of rules (TailSafe calls them <em>procedural</em>), not copies of real buildings.</p>
+  <div class="glyphs">
+    <div>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 4h12v14h14v12H30v14H18V30H4V18h14z" fill="none" stroke="#0b0c0c" stroke-width="1.4" stroke-linejoin="round"/><rect x="19" y="19" width="10" height="10" fill="#0b0c0c" opacity="0.18"/><path d="M24 6v10M24 32v10M6 24h10M32 24h10" stroke="#0b0c0c" stroke-width="0.8" opacity="0.6"/></svg>
+      <b>Cruciform</b>A cross-shaped public housing block: four wings of flats around a central core with the lifts and two staircases. Standard size: 40 storeys.
+    </div>
+    <div>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="3" y="17" width="42" height="14" rx="0.5" fill="none" stroke="#0b0c0c" stroke-width="1.4"/><path d="M5 24h38" stroke="#0b0c0c" stroke-width="0.8" opacity="0.6"/><rect x="3.7" y="17.7" width="4" height="12.6" fill="#0b0c0c" opacity="0.18"/><rect x="40.3" y="17.7" width="4" height="12.6" fill="#0b0c0c" opacity="0.18"/><rect x="21" y="17.7" width="6" height="5.6" fill="#0b0c0c" opacity="0.18"/></svg>
+      <b>Slab</b>A long, straight block: one long corridor with flats on both sides, a staircase at each end and the lifts in the middle. Standard size: 30 storeys.
+    </div>
+    <div>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="30" width="40" height="14" rx="0.5" fill="none" stroke="#0b0c0c" stroke-width="1.4" opacity="0.55"/><rect x="11" y="4" width="26" height="30" rx="0.5" fill="none" stroke="#0b0c0c" stroke-width="1.4"/><rect x="19" y="13" width="10" height="12" fill="#0b0c0c" opacity="0.18"/><path d="M20 15l8 8M28 15l-8 8" stroke="#0b0c0c" stroke-width="0.8" opacity="0.7"/></svg>
+      <b>Twin core</b>A private residential tower on a podium (a wide base without homes). Its core holds a pair of interlocking <em>scissor</em> staircases. Standard size: 45 storeys.
+    </div>
+    <div>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="12" width="40" height="24" rx="0.5" fill="none" stroke="#0b0c0c" stroke-width="1.4"/><path d="M6 24h36" stroke="#0b0c0c" stroke-width="0.8" opacity="0.6"/><rect x="4.7" y="12.7" width="5" height="22.6" fill="#0b0c0c" opacity="0.18"/></svg>
+      <b>Care home</b>A low-rise residential care home for the elderly, where many residents need help to move and staff help them. Standard size: 4 storeys.
+    </div>
+  </div>
+  <p>A <strong>scissor staircase</strong> is two staircases twisted around each other in the same shaft, so that each floor can reach two separate escape routes. A <strong>storey</strong> count includes the ground floor.</p>
+</section>
+
+<!-- Chapter 8 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 8</p>
+  <h2 id="c8">The people</h2>
+  <p class="lead">TailSafe fills the building with made-up people, called <strong>synthetic</strong> people. No real person's data is ever used.</p>
+
+  <h3>Six kinds of people</h3>
+  <table>
+    <thead><tr><th style="width:30%">Kind of person</th><th>What is special about them in TailSafe</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Able adult</strong></td><td>Walks at a normal pace and can help others.</td></tr>
+      <tr><td><strong>Child</strong></td><td>Moves together with the family.</td></tr>
+      <tr><td><strong>Older adult (65 to 79)</strong></td><td>Walks more slowly, especially down stairs, and tires sooner.</td></tr>
+      <tr><td><strong>Frail older adult (80 and over)</strong></td><td>Walks very slowly and tires quickly. Waits for an evacuation lift when lifts are in use.</td></tr>
+      <tr><td><strong>Wheelchair user</strong></td><td>Cannot walk down stairs. Is carried down by the household if an able person is at home, waits for an evacuation lift if lifts are in use, or waits for the firefighters.</td></tr>
+      <tr><td><strong>Domestic helper</strong></td><td>A live-in helper, who can help an older person move or carry a wheelchair user down.</td></tr>
+    </tbody>
+  </table>
+  <p>For each kind of person TailSafe knows a walking speed on the flat, going down stairs and going up stairs, how quickly they tire, how long they usually take to react to the alarm, and how much room they take up. Speeds and reaction times are not fixed: every person gets their own, drawn from a range.</p>
+
+  <h3>Households</h3>
+  <p>Every flat gets a <strong>household</strong>. Its size depends on the size of the flat. The ages of its members are drawn so that, over the whole building, the share of residents aged 65 and over matches the setting you choose. Some households have a live-in helper. Some flats are empty.</p>
+  <p><strong>Who is at home depends on the time.</strong> TailSafe knows four time slots: weekday day, weekday night, weekend day and weekend night. At night most people are at home and asleep; on a weekday afternoon many are out at work or school.</p>
+  <p>In a care home, residents live in rooms, and <strong>staff</strong> help them out: each member of staff escorts the residents of one room.</p>
+
+  <h3>How people behave</h3>
+  <ul>
+    <li><strong>Families stay together</strong> and move at the pace of their slowest member.</li>
+    <li><strong>Some go against the flow first</strong>: a share of households visit another flat, on their own floor or a few floors up, to fetch family or check on a neighbour, before they leave.</li>
+    <li><strong>Some rest on a refuge floor</strong> on the way down.</li>
+    <li><strong>Everyone knows the quickest way out</strong>, and learns that a staircase is blocked only when they reach it. Then they turn around and use another one.</li>
+  </ul>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>In plain words</div>
+    <p>Every night TailSafe invents a new set of neighbours for the building, with realistic ages, speeds and habits, and then watches how they get out.</p>
+  </div>
+</section>
+
+<!-- Chapter 9 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 9</p>
+  <h2 id="c9">One night in the simulator</h2>
+  <p class="lead">A <strong>simulator</strong> is a program that imitates something real. TailSafe's simulator plays out one fire night, second by second.</p>
+
+  <p>This is what happens during one simulated night:</p>
+  <ol class="do">
+    <li><strong>The fire starts and the alarm sounds.</strong> Everyone in the building hears it at once. The household in the burning flat reacts quickly.</li>
+    <li><strong>Everyone else waits for their reaction time,</strong> then starts to move. At night, many wait a long time.</li>
+    <li><strong>People move along the map.</strong> TailSafe moves them in small time steps, like the frames of a film. At every door and staircase it checks how many people can pass in that moment; the rest queue.</li>
+    <li><strong>Smoke spreads from the burning flat.</strong> It flows through open doors and into the corridors, and rises up the staircases and lift shafts, the way smoke rises up a chimney (this is called the <strong>stack effect</strong>). Doors that close by themselves slow it down. On some nights the burning flat's door is left open, which lets much more smoke out.</li>
+    <li><strong>Smoke slows people and harms them.</strong> Where it is dark people walk more slowly, and everyone keeps a count of how much smoke they have breathed.</li>
+    <li><strong>A staircase may fill with smoke</strong> at the time set in the scenario. From then on nobody can use it. People who reach it turn back and use another staircase. People already on it keep going.</li>
+    <li><strong>The firefighters start rescuing</strong> people who cannot leave on their own. The time they start differs from night to night. They go to the lowest floor where someone is waiting first, climb up, and bring the household down.</li>
+    <li><strong>The night ends</strong> when everyone is out. TailSafe follows the people who are moving for up to four hours after the alarm. Once only people waiting for the firefighters are left, it works out directly when each of them will be carried down, even if that is later still.</li>
+  </ol>
+
+  <p>A 40-storey night takes the computer between a tenth and a third of a second, which is what makes hundreds or thousands of nights possible.</p>
+
+  <h3>How the smoke is worked out</h3>
+  <p>TailSafe's smoke model is deliberately simple. Each room, corridor, lobby and staircase is treated as one box of air, with one smoke level. Smoke flows from box to box through the openings between them, more easily upwards in stairs and lift shafts. The fire itself grows faster and faster until it reaches its full size; how fast it grows and how big it gets are rolled for every night. This is an engineering estimate, not a detailed computer fire simulation. Results from a detailed fire simulation program can be loaded into TailSafe instead.</p>
+
+  <h3>Why it is called the &ldquo;fast&rdquo; simulator</h3>
+  <p>The main simulator does not follow every footstep. It moves groups of people along the map's connections and keeps a queue at the end of each one, a bit like water flowing through pipes. Engineers call this a <strong>mesoscopic</strong> model (&ldquo;meso&rdquo; means &ldquo;in the middle&rdquo;: more detailed than a single equation, less detailed than following every step). TailSafe also has a slower, person-by-person simulator for closer looks, described in <a href="#c14">chapter 14</a>.</p>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>In plain words</div>
+    <p>One simulated night is one possible version of the fire, played out second by second, with queues at every narrow place and smoke creeping through the building.</p>
+  </div>
+</section>
+
+<!-- Chapter 10 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 10</p>
+  <h2 id="c10">Hundreds of nights</h2>
+  <p class="lead">We never know exactly how a real fire night will go. So TailSafe does not play the night once: it plays it hundreds or thousands of times.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 176" role="img" aria-label="Roll the dice, play out the night, repeat and count">
+      <g stroke="#0b0c0c" stroke-width="1.6" fill="#ffffff">
+        <rect x="42" y="22" width="46" height="46" rx="7" transform="rotate(-8 65 45)"/>
+        <rect x="102" y="40" width="46" height="46" rx="7" transform="rotate(10 125 63)"/>
+      </g>
+      <g fill="#0b0c0c">
+        <circle cx="55" cy="36" r="3.6"/><circle cx="66" cy="45" r="3.6"/><circle cx="77" cy="54" r="3.6"/>
+        <circle cx="113" cy="52" r="3.6"/><circle cx="136" cy="56" r="3.6"/><circle cx="110" cy="70" r="3.6"/><circle cx="133" cy="74" r="3.6"/>
+      </g>
+      <g stroke="#0b0c0c" stroke-width="1.6" fill="none">
+        <rect x="282" y="16" width="36" height="84"/>
+        <path d="M286 30h28M286 44h28M286 58h28M286 72h28M286 86h28" stroke-width="0.8" opacity="0.5"/>
+        <circle cx="352" cy="58" r="20"/><path d="M352 44v14l9 6"/>
+      </g>
+      <rect x="287" y="60" width="10" height="4" fill="#d9730d"/>
+      <g fill="#7a4a9e">
+        <rect x="466" y="80" width="12" height="20"/><rect x="481" y="62" width="12" height="38"/><rect x="496" y="40" width="12" height="60"/><rect x="511" y="30" width="12" height="70"/>
+        <rect x="526" y="46" width="12" height="54"/><rect x="541" y="64" width="12" height="36"/><rect x="556" y="80" width="12" height="20"/>
+      </g>
+      <g fill="#d9730d"><rect x="571" y="88" width="12" height="12"/><rect x="586" y="94" width="12" height="6"/><rect x="601" y="96" width="12" height="4"/></g>
+      <line x1="460" x2="620" y1="100.5" y2="100.5" stroke="#bdbdbd"/>
+      <g stroke="#0b0c0c" stroke-width="1.6" fill="none"><path d="M178 58h70M240 52l8 6-8 6"/><path d="M398 58h48M438 52l8 6-8 6"/></g>
+      <g font-size="11" fill="#0b0c0c" text-anchor="middle">
+        <text x="95" y="128" font-weight="800">1. Roll the dice</text><text x="95" y="144">for everything we</text><text x="95" y="158">do not know</text>
+        <text x="318" y="128" font-weight="800">2. Play out the night</text><text x="318" y="144">second by second</text>
+        <text x="540" y="128" font-weight="800">3. Repeat and count</text><text x="540" y="144">300 or 1,000 times, then</text><text x="540" y="158">look at the spread</text>
+      </g>
+    </svg>
+    <figcaption>The Monte Carlo method in three steps.</figcaption>
+  </figure>
+
+  <p>Each time, TailSafe &ldquo;rolls the dice&rdquo; again for everything that is uncertain. This way of working things out by repeating a random experiment many times is called the <strong>Monte Carlo method</strong>, after the famous casino.</p>
+
+  <div class="two">
+    <div>
+      <h4 style="margin-top:0">Rolled again every night</h4>
+      <ul>
+        <li>who is at home, their ages, and whether a helper is there;</li>
+        <li>everyone's walking speed and reaction time;</li>
+        <li>which flat the fire starts in (and the floor, if you chose a random floor);</li>
+        <li>how fast the fire grows and how big it gets;</li>
+        <li>whether the burning flat's door is left open;</li>
+        <li>when a staircase is lost, if you gave a range of times;</li>
+        <li>which lifts are out of service;</li>
+        <li>when the firefighters start rescuing people.</li>
+      </ul>
+    </div>
+    <div>
+      <h4 style="margin-top:0">Kept the same every night</h4>
+      <ul>
+        <li>the building;</li>
+        <li>everything you set on the scenario screen, such as the time of day, the share of older residents, the fire floor and a staircase smoke-logged at a fixed time;</li>
+        <li>any fix being tested, such as evacuation lifts or wardens.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>How many nights?</h3>
+  <p>You can choose 100, 300, 1,000 or 2,000 nights. More nights give more trustworthy answers but take longer. The browser version always uses 300. On a four-core computer, 1,000 nights of the 40-storey example take a little over a minute.</p>
+
+  <h3>The seed: dice you can repeat</h3>
+  <p>A computer's dice are not truly random. They come from a starting number called the <strong>seed</strong>. The same seed always gives exactly the same nights. That means anyone can repeat your study and get exactly the same numbers, and it means you can change one setting and be sure that everything else stayed the same.</p>
+
+  <h3>Fair tests: the same nights for every plan</h3>
+  <p>When TailSafe compares two plans, it runs both on the very same nights: the same people, the same fire, the same broken lift. Only the plan is different. It is like testing two umbrellas in the same rain, instead of one in a drizzle and the other in a storm. Statisticians call this <strong>common random numbers</strong>.</p>
+
+  <figure>
+    <svg viewBox="0 0 640 184" role="img" aria-label="The same six nights with and without the plan">
+      <g font-size="11" font-weight="800" fill="#0b0c0c"><text x="0" y="52">Without</text><text x="0" y="66">the plan</text><text x="0" y="132">With</text><text x="0" y="146">the plan</text></g>
+      <g><rect x="96" y="22" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="102" y="35" font-size="9.5" font-weight="700" fill="#4f5154">Night 1</text><rect x="106" y="40" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="108" y="61.4" width="12" height="4" fill="#d9730d"/><circle cx="134" cy="52" r="4" fill="#7a4a9e"/><circle cx="145" cy="52" r="4" fill="#7a4a9e"/><circle cx="156" cy="52" r="4" fill="#7a4a9e"/><circle cx="134" cy="64" r="4" fill="#7a4a9e"/><circle cx="145" cy="64" r="4" fill="#7a4a9e"/><rect x="186" y="22" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="192" y="35" font-size="9.5" font-weight="700" fill="#4f5154">Night 2</text><rect x="196" y="40" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="198" y="48.8" width="12" height="4" fill="#d9730d"/><circle cx="224" cy="52" r="4" fill="#7a4a9e"/><circle cx="235" cy="52" r="4" fill="#7a4a9e"/><circle cx="246" cy="52" r="4" fill="#7a4a9e"/><rect x="276" y="22" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="282" y="35" font-size="9.5" font-weight="700" fill="#4f5154">Night 3</text><rect x="286" y="40" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="288" y="66.8" width="12" height="4" fill="#d9730d"/><circle cx="314" cy="52" r="4" fill="#7a4a9e"/><circle cx="325" cy="52" r="4" fill="#7a4a9e"/><circle cx="336" cy="52" r="4" fill="#7a4a9e"/><circle cx="314" cy="64" r="4" fill="#7a4a9e"/><circle cx="325" cy="64" r="4" fill="#7a4a9e"/><circle cx="336" cy="64" r="4" fill="#7a4a9e"/><rect x="366" y="22" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="372" y="35" font-size="9.5" font-weight="700" fill="#4f5154">Night 4</text><rect x="376" y="40" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="378" y="54.2" width="12" height="4" fill="#d9730d"/><circle cx="404" cy="52" r="4" fill="#7a4a9e"/><circle cx="415" cy="52" r="4" fill="#7a4a9e"/><circle cx="426" cy="52" r="4" fill="#7a4a9e"/><circle cx="404" cy="64" r="4" fill="#7a4a9e"/><rect x="456" y="22" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="462" y="35" font-size="9.5" font-weight="700" fill="#4f5154">Night 5</text><rect x="466" y="40" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="468" y="43.4" width="12" height="4" fill="#d9730d"/><circle cx="494" cy="52" r="4" fill="#7a4a9e"/><circle cx="505" cy="52" r="4" fill="#7a4a9e"/><circle cx="516" cy="52" r="4" fill="#7a4a9e"/><circle cx="494" cy="64" r="4" fill="#7a4a9e"/><circle cx="505" cy="64" r="4" fill="#7a4a9e"/><rect x="546" y="22" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="552" y="35" font-size="9.5" font-weight="700" fill="#4f5154">Night 6</text><rect x="556" y="40" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="558" y="57.8" width="12" height="4" fill="#d9730d"/><circle cx="584" cy="52" r="4" fill="#7a4a9e"/><circle cx="595" cy="52" r="4" fill="#7a4a9e"/><rect x="96" y="102" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="102" y="115" font-size="9.5" font-weight="700" fill="#4f5154">Night 1</text><rect x="106" y="120" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="108" y="141.4" width="12" height="4" fill="#d9730d"/><circle cx="134" cy="132" r="4" fill="#7a4a9e"/><circle cx="145" cy="132" r="4" fill="#7a4a9e"/><circle cx="156" cy="132" r="4" fill="#7a4a9e"/><circle cx="134" cy="144" r="4" fill="#7a4a9e"/><circle cx="145" cy="144" r="4" fill="#7a4a9e"/><rect x="186" y="102" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="192" y="115" font-size="9.5" font-weight="700" fill="#4f5154">Night 2</text><rect x="196" y="120" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="198" y="128.8" width="12" height="4" fill="#d9730d"/><circle cx="224" cy="132" r="4" fill="#7a4a9e"/><circle cx="235" cy="132" r="4" fill="#7a4a9e"/><circle cx="246" cy="132" r="4" fill="#7a4a9e"/><rect x="276" y="102" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="282" y="115" font-size="9.5" font-weight="700" fill="#4f5154">Night 3</text><rect x="286" y="120" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="288" y="146.8" width="12" height="4" fill="#d9730d"/><circle cx="314" cy="132" r="4" fill="#7a4a9e"/><circle cx="325" cy="132" r="4" fill="#7a4a9e"/><circle cx="336" cy="132" r="4" fill="#7a4a9e"/><circle cx="314" cy="144" r="4" fill="#7a4a9e"/><circle cx="325" cy="144" r="4" fill="#7a4a9e"/><circle cx="336" cy="144" r="4" fill="#7a4a9e"/><rect x="366" y="102" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="372" y="115" font-size="9.5" font-weight="700" fill="#4f5154">Night 4</text><rect x="376" y="120" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="378" y="134.2" width="12" height="4" fill="#d9730d"/><circle cx="404" cy="132" r="4" fill="#7a4a9e"/><circle cx="415" cy="132" r="4" fill="#7a4a9e"/><circle cx="426" cy="132" r="4" fill="#7a4a9e"/><circle cx="404" cy="144" r="4" fill="#7a4a9e"/><rect x="456" y="102" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="462" y="115" font-size="9.5" font-weight="700" fill="#4f5154">Night 5</text><rect x="466" y="120" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="468" y="123.4" width="12" height="4" fill="#d9730d"/><circle cx="494" cy="132" r="4" fill="#7a4a9e"/><circle cx="505" cy="132" r="4" fill="#7a4a9e"/><circle cx="516" cy="132" r="4" fill="#7a4a9e"/><circle cx="494" cy="144" r="4" fill="#7a4a9e"/><circle cx="505" cy="144" r="4" fill="#7a4a9e"/><rect x="546" y="102" width="78" height="60" fill="#ffffff" stroke="#bdbdbd"/><text x="552" y="115" font-size="9.5" font-weight="700" fill="#4f5154">Night 6</text><rect x="556" y="120" width="16" height="36" fill="none" stroke="#0b0c0c" stroke-width="1.1"/><rect x="558" y="137.8" width="12" height="4" fill="#d9730d"/><circle cx="584" cy="132" r="4" fill="#7a4a9e"/><circle cx="595" cy="132" r="4" fill="#7a4a9e"/></g>
+      <text x="96" y="178" font-size="10.5" fill="#4f5154">Same people, same fire, same broken lift in each pair of cards. Any difference in the result comes from the plan.</text>
+    </svg>
+    <figcaption>Six of the nights, tested without and with a plan. Each card shows where that night's fire started (amber) and who was at home (dots). The pairs are identical.</figcaption>
+  </figure>
+
+  <h3>How sure are we? Confidence intervals</h3>
+  <p>Every number worked out from a few hundred nights wobbles a little. Run another 300 nights with a different seed and you get a slightly different answer. So TailSafe gives each important number a range, the <strong>95% confidence interval</strong> (CI): we can be fairly sure the true value lies inside it. The more nights, the narrower the range.</p>
+
+  <figure>
+    <!-- svg:ci -->
+<svg viewBox="0 0 640 200" role="img" aria-label="Confidence intervals narrowing as the number of nights grows">
+<line x1="110.0" x2="110.0" y1="14" y2="168" stroke="#e8e8e8"/>
+<text x="110.0" y="182.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >100</text>
+<line x1="173.3" x2="173.3" y1="14" y2="168" stroke="#e8e8e8"/>
+<text x="173.3" y="182.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >105</text>
+<line x1="236.7" x2="236.7" y1="14" y2="168" stroke="#e8e8e8"/>
+<text x="236.7" y="182.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >110</text>
+<line x1="300.0" x2="300.0" y1="14" y2="168" stroke="#e8e8e8"/>
+<text x="300.0" y="182.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >115</text>
+<line x1="363.3" x2="363.3" y1="14" y2="168" stroke="#e8e8e8"/>
+<text x="363.3" y="182.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >120</text>
+<line x1="426.7" x2="426.7" y1="14" y2="168" stroke="#e8e8e8"/>
+<text x="426.7" y="182.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >125</text>
+<line x1="490.0" x2="490.0" y1="14" y2="168" stroke="#e8e8e8"/>
+<text x="490.0" y="182.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >130</text>
+<text x="98.0" y="40.2" font-size="11" text-anchor="end" font-weight="600" fill="#0b0c0c" >100 nights</text>
+<line x1="148.0" x2="436.8" y1="36.2" y2="36.2" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="148.0" x2="148.0" y1="30.2" y2="42.2" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="436.8" x2="436.8" y1="30.2" y2="42.2" stroke="#7a4a9e" stroke-width="2.2"/>
+<circle cx="287.3" cy="36.2" r="4.6" fill="#7a4a9e" stroke="#ffffff" stroke-width="2"/>
+<text x="502.0" y="40.2" font-size="10.5" text-anchor="start" font-weight="400" fill="#4f5154" >114.0  (103.0 to 125.8)</text>
+<text x="98.0" y="76.8" font-size="11" text-anchor="end" font-weight="600" fill="#0b0c0c" >200 nights</text>
+<line x1="186.0" x2="362.1" y1="72.8" y2="72.8" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="186.0" x2="186.0" y1="66.8" y2="78.8" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="362.1" x2="362.1" y1="66.8" y2="78.8" stroke="#7a4a9e" stroke-width="2.2"/>
+<circle cx="286.1" cy="72.8" r="4.6" fill="#7a4a9e" stroke="#ffffff" stroke-width="2"/>
+<text x="502.0" y="76.8" font-size="10.5" text-anchor="start" font-weight="400" fill="#4f5154" >113.9  (106.0 to 119.9)</text>
+<text x="98.0" y="113.2" font-size="11" text-anchor="end" font-weight="600" fill="#0b0c0c" >500 nights</text>
+<line x1="210.1" x2="315.2" y1="109.2" y2="109.2" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="210.1" x2="210.1" y1="103.2" y2="115.2" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="315.2" x2="315.2" y1="103.2" y2="115.2" stroke="#7a4a9e" stroke-width="2.2"/>
+<circle cx="268.3" cy="109.2" r="4.6" fill="#7a4a9e" stroke="#ffffff" stroke-width="2"/>
+<text x="502.0" y="113.2" font-size="10.5" text-anchor="start" font-weight="400" fill="#4f5154" >112.5  (107.9 to 116.2)</text>
+<text x="98.0" y="149.8" font-size="11" text-anchor="end" font-weight="600" fill="#0b0c0c" >1,000 nights</text>
+<line x1="239.2" x2="329.1" y1="145.8" y2="145.8" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="239.2" x2="239.2" y1="139.8" y2="151.8" stroke="#7a4a9e" stroke-width="2.2"/>
+<line x1="329.1" x2="329.1" y1="139.8" y2="151.8" stroke="#7a4a9e" stroke-width="2.2"/>
+<circle cx="283.5" cy="145.8" r="4.6" fill="#7a4a9e" stroke="#ffffff" stroke-width="2"/>
+<text x="502.0" y="149.8" font-size="10.5" text-anchor="start" font-weight="400" fill="#4f5154" >113.7  (110.2 to 117.3)</text>
+<text x="300.0" y="196.0" font-size="10.5" text-anchor="middle" font-weight="400" fill="#4f5154" >minutes: average of the worst 5% of nights for the last person out on their own</text>
+</svg>
+<!-- /svg:ci -->
+    <figcaption>The average of the worst 5% of nights for the last person out on their own, in the 40-storey example, worked out from the first 100, 200, 500 and 1,000 nights of one study. The dot is the estimate; the line is its 95% confidence interval. With 100 nights the range is about 23 minutes wide; with 1,000 nights about 7.</figcaption>
+  </figure>
+
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>Watch out</div>
+    <p>With few nights, &ldquo;the worst 5%&rdquo; is only a handful of nights, and their average can mislead. For the time until everyone is out in the 40-storey example, the first 100 nights gave 206 minutes and all 1,000 nights gave 219. Use at least 300 nights to explore, and 1,000 or more for comparisons that matter.</p>
+  </div>
+</section>
+
+<!-- Chapter 11 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 11</p>
+  <h2 id="c11">The numbers TailSafe reports</h2>
+  <p class="lead">After a stress test, TailSafe reports a handful of numbers. This chapter explains each one.</p>
+
+  <h3>Three ways to say &ldquo;how long&rdquo;</h3>
+  <figure>
+    <!-- svg:curve -->
+<svg viewBox="0 0 640 250" role="img" aria-label="Sketch of how many people are still inside over time, with three outcome markers">
+<line x1="52" x2="620" y1="210.0" y2="210.0" stroke="#e8e8e8"/>
+<text x="44.0" y="214.0" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >0</text>
+<line x1="52" x2="620" y1="161.6" y2="161.6" stroke="#e8e8e8"/>
+<text x="44.0" y="165.6" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >500</text>
+<line x1="52" x2="620" y1="113.2" y2="113.2" stroke="#e8e8e8"/>
+<text x="44.0" y="117.2" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >1,000</text>
+<line x1="52" x2="620" y1="64.7" y2="64.7" stroke="#e8e8e8"/>
+<text x="44.0" y="68.7" font-size="10" text-anchor="end" font-weight="400" fill="#737373" >1,500</text>
+<path d="M52.0,33.3 L67.1,35.7 L89.9,64.7 L120.2,98.6 L146.7,121.7 L184.5,155.8 L222.4,180.9 L248.9,193.5 L279.2,201.2 L317.1,204.2 L354.9,205.6 L377.7,206.1 L377.7,206.1 L411.7,206.1 L411.7,206.9 L445.8,206.9 L445.8,207.7 L479.9,207.7 L479.9,208.5 L514.0,208.5 L514.0,209.2 L544.3,209.2 L544.3,209.7 L574.6,209.7 L574.6,210.0 L620.0,210.0" fill="none" stroke="#7a4a9e" stroke-width="2.2" stroke-linejoin="round"/>
+<line x1="52" x2="620" y1="210.0" y2="210.0" stroke="#bdbdbd"/>
+<text x="52.0" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >0</text>
+<text x="165.6" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >30</text>
+<text x="279.2" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >60</text>
+<text x="392.8" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >90</text>
+<text x="506.4" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >120</text>
+<text x="620.0" y="225.0" font-size="10" text-anchor="middle" font-weight="400" fill="#737373" >150</text>
+<line x1="279.2" x2="279.2" y1="36" y2="210.0" stroke="#0b0c0c" stroke-width="1.1" stroke-dasharray="3 3"/>
+<circle cx="279.2" cy="34.0" r="8" fill="#ffdd00" stroke="#0b0c0c" stroke-width="1.2"/>
+<text x="279.2" y="37.6" font-size="10" text-anchor="middle" font-weight="800" fill="#0b0c0c" >1</text>
+<text x="291.2" y="38.0" font-size="10.5" text-anchor="start" font-weight="600" fill="#0b0c0c" >95% out</text>
+<line x1="377.7" x2="377.7" y1="36" y2="210.0" stroke="#0b0c0c" stroke-width="1.1" stroke-dasharray="3 3"/>
+<circle cx="377.7" cy="76.0" r="8" fill="#ffdd00" stroke="#0b0c0c" stroke-width="1.2"/>
+<text x="377.7" y="79.6" font-size="10" text-anchor="middle" font-weight="800" fill="#0b0c0c" >2</text>
+<text x="389.7" y="80.0" font-size="10.5" text-anchor="start" font-weight="600" fill="#0b0c0c" >last person out on their own</text>
+<line x1="574.6" x2="574.6" y1="36" y2="210.0" stroke="#0b0c0c" stroke-width="1.1" stroke-dasharray="3 3"/>
+<circle cx="574.6" cy="118.0" r="8" fill="#ffdd00" stroke="#0b0c0c" stroke-width="1.2"/>
+<text x="574.6" y="121.6" font-size="10" text-anchor="middle" font-weight="800" fill="#0b0c0c" >3</text>
+<text x="562.6" y="122.0" font-size="10.5" text-anchor="end" font-weight="600" fill="#0b0c0c" >everyone out, after rescue</text>
+<text x="476.1" y="176.1" font-size="10.5" text-anchor="middle" font-weight="400" fill="#4f5154" >waiting for rescue</text>
+<text x="336.0" y="244.0" font-size="10.5" text-anchor="middle" font-weight="400" fill="#4f5154" >minutes after the alarm (a sketch of an average night in the 40-storey example)</text>
+<text x="12.0" y="14.0" font-size="10.5" text-anchor="start" font-weight="400" fill="#4f5154" >people still inside</text>
+</svg>
+<!-- /svg:curve -->
+    <figcaption>A sketch of an average night: how many people are still inside as time passes. Most people are out within the first hour; a few who cannot use the stairs wait much longer for the firefighters.</figcaption>
+  </figure>
+  <table>
+    <thead><tr><th style="width:26%">On screen</th><th>What it measures</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pinref">1</span><strong>95% of occupants</strong></td><td>The time until 95 out of every 100 people are out. One or two very late people do not change it, so it shows how the crowd as a whole does.</td></tr>
+      <tr><td><span class="pinref">2</span><strong>Last self-evacuee</strong></td><td>The time until the last person who left <em>on their own</em> is out: on foot, carried by family, or by lift. It leaves out people waiting to be rescued, so it shows how the building works for people who can move.</td></tr>
+      <tr><td><span class="pinref">3</span><strong>Everyone out</strong></td><td>The time until the very last person is out, including people brought down by the firefighters. It depends heavily on how rescue works, which TailSafe can only estimate.</td></tr>
+    </tbody>
+  </table>
+  <p>For each of the three, TailSafe gives the <strong>mean</strong>, the <strong>P95</strong> and the <strong>CVaR<sub>95</sub></strong> (see <a href="#c3">chapter 3</a>), each with its 95% confidence interval. Read them together: &ldquo;everyone out&rdquo; tells you about rescue, the other two about the stairs.</p>
+
+  <h3>The smoke dose (FED)</h3>
+  <p>As a person breathes smoke, TailSafe adds up a <strong>dose</strong>. The dose counts mainly carbon monoxide (a poisonous gas in smoke) and heat. Fire engineers call it the <strong>fractional effective dose</strong>, or <strong>FED</strong>.</p>
+  <ul>
+    <li>At an FED of <strong>1</strong>, a person is <strong>incapacitated</strong>: they can no longer move by themselves.</li>
+    <li>TailSafe treats an FED of <strong>0.3</strong> as already harmful, to protect the most vulnerable people. These limits follow ISO 13571.</li>
+  </ul>
+
+  <h3>P(RSET &gt; ASET): how often someone is caught</h3>
+  <p>This is the share of nights on which someone is still on a floor after its corridors have become untenable, or breathes a harmful dose of smoke (an FED of 0.3 or more). It is written as a number between 0 and 1: <strong>0.60 means 60 nights in every 100</strong>. It needs the smoke to be simulated; without smoke it shows a dash.</p>
+
+  <h3>Who carries the tail</h3>
+  <p>On each of the worst nights, TailSafe looks at the <strong>late stragglers</strong>: the households still inside near the end of that night. It then compares the kinds of people among the stragglers with the kinds of people in the building, using a <strong>risk ratio</strong>:</p>
+  <p style="text-align:center;font-weight:800">risk ratio = share of the late stragglers &divide; share of all the people</p>
+  <p>A risk ratio of 1 means a group is just as common among the late stragglers as in the building. A risk ratio of 21 means it is 21 times more common. It also names the floors where the stragglers live, for example &ldquo;wheelchair users on 30/F to 39/F&rdquo;.</p>
+
+  <h3>Floors that fail, and where the stairs queue</h3>
+  <p><strong>Floors that fail</strong> shows, for each floor, how often someone is still there after it has become untenable. Floors at and just above the fire are usually the worst. <strong>Where stairs queue</strong> shows how much queueing happens on each flight of each staircase on the worst nights, in <strong>person-minutes</strong>: if 10 people wait for 3 minutes, that is 30 person-minutes.</p>
+</section>
+
+<!-- Chapter 12 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 12</p>
+  <h2 id="c12">Finding the cause</h2>
+  <p class="lead">A <strong>bottleneck</strong> is a narrow place that slows everything behind it, like the neck of a bottle. TailSafe finds the bottlenecks that make the worst nights bad.</p>
+
+  <p>The obvious approach is to look for where the crowd is thickest. TailSafe goes one step further and asks a <strong>what-if</strong> question for every candidate: <em>if this part of the building were better, how much shorter would the worst nights be?</em> Asking what would have happened if something had been different is called a <strong>counterfactual</strong> test.</p>
+  <p>The candidates are:</p>
+  <ul>
+    <li>each whole staircase, all its flights at once;</li>
+    <li>the doors of each staircase;</li>
+    <li>each final exit;</li>
+    <li>the places where the longest queues form on the worst nights;</li>
+    <li>any staircase the scenario blocks with smoke. Here the test is &ldquo;what if it had stayed usable?&rdquo;.</li>
+  </ul>
+  <p>For each candidate, TailSafe gives it more room (50% more capacity by default; you can also choose 25% or 100%), re-runs the bad nights with exactly the same dice, and measures how much the average of the worst 5% falls. The candidates are then ranked, the biggest improvement first, each with its confidence interval.</p>
+
+  <p>TailSafe also works out two simpler facts about the building's escape routes:</p>
+  <ul>
+    <li><strong>Maximum egress flow</strong>: the most people per second the whole building could possibly get out, if everyone were already queued at the right places. In the 40-storey example it is 1.62 people per second, which is exactly two staircases' worth.</li>
+    <li><strong>Minimum cut</strong>: the connections that set that limit, the narrowest point of the whole system. In the example it is the bottom flight of each staircase.</li>
+  </ul>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>In plain words</div>
+    <p>TailSafe does not guess which door matters. It tries improving each one on the bad nights and measures the difference.</p>
+  </div>
+</section>
+
+<!-- Chapter 13 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 13</p>
+  <h2 id="c13">Testing fixes</h2>
+  <p class="lead">TailSafe looks for <strong>operational</strong> fixes: changes to how a building is run, not to its walls. They are cheap and quick compared with building work.</p>
+
+  <h3>The five kinds of fix</h3>
+  <table>
+    <thead><tr><th style="width:25%">Fix</th><th>What it means</th><th style="width:26%">The catch</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Evacuation lifts</strong></td><td>Use the ordinary (not the firefighting) lifts to carry residents who cannot manage the stairs: wheelchair users and frail older adults, or wheelchair users only. The lifts start after a short changeover and can serve the highest floors first, the nearest waiting floor, or the lowest floors first.</td><td>People who wait for a lift may get out later than if they had walked.</td></tr>
+      <tr><td><strong>Hold stair doors open</strong></td><td>Keep the staircase doors open, so more people can pass.</td><td>Smoke also gets into the staircases more easily.</td></tr>
+      <tr><td><strong>Stair assignment by floor</strong></td><td>Tell some floors to use one staircase and the rest the other, so the streams do not collide. If the assigned staircase is blocked, people use whatever is quickest.</td><td>A staircase can end up with too many people.</td></tr>
+      <tr><td><strong>Phased release</strong></td><td>Let some floors leave first while others wait in their flats for a set time.</td><td>People waiting in their flats still breathe any smoke that reaches them.</td></tr>
+      <tr><td><strong>Floor wardens</strong></td><td>Trained residents or staff on a floor knock on every door of their floor and the floors next to it, so people react sooner, and each helps one household that cannot use the stairs alone.</td><td>They have to be recruited and trained.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>How TailSafe searches</h3>
+  <p>There are far too many combinations to try them all, so TailSafe searches step by step, testing every candidate on the same set of nights:</p>
+  <div class="flow-steps">
+    <div><span class="n">1</span><span class="t">Try each fix on its own</span><span class="d">For example, lifts with each way of choosing floors, or a warden on each likely floor.</span></div>
+    <div><span class="n">2</span><span class="t">Combine the good ones</span><span class="d">Start from the best single fix and add the others one at a time, as long as the result keeps getting better.</span></div>
+    <div><span class="n">3</span><span class="t">Add wardens</span><span class="d">One at a time, up to the number you allow.</span></div>
+    <div><span class="n">4</span><span class="t">Fine-tune the timing</span><span class="d">If letting floors leave in phases helped, adjust the waiting times. (The method used is called CMA-ES.)</span></div>
+    <div><span class="n on">5</span><span class="t">Confirm on fresh nights</span><span class="d">Test the winning plan against doing nothing, on new nights it has never seen, and report only this result.</span></div>
+  </div>
+
+  <h3>Why the fresh nights?</h3>
+  <p>If you try 30 plans on the same 60 nights, the plan that looks best is partly lucky: it happens to suit those particular nights. This is called the <strong>winner's curse</strong>. It is like a student who memorised last year's exam: the real test is a new exam. So TailSafe tests the winning plan again on fresh nights (200 by default) and only then says whether it helps.</p>
+
+  <h3>Better, worse, or no clear change</h3>
+  <p>For every outcome, TailSafe shows the value without the plan, with the plan, the change, and the confidence interval of the change. Then it gives a verdict:</p>
+  <ul>
+    <li><strong>better</strong>: the whole range of the change is below zero;</li>
+    <li><strong>worse</strong>: the whole range is above zero;</li>
+    <li><strong>no clear change</strong>: the range includes zero, so we cannot tell.</li>
+  </ul>
+
+  <div class="box remember">
+    <div class="label"><svg><use href="#i-check"/></svg>Remember</div>
+    <p>A fix can make one thing better and another worse. In the 40-storey example, evacuation lifts halve the time until everyone is out, but make the time for 95% of people to get out several minutes longer. TailSafe always shows every outcome and warns you about trade-offs. It never hides them.</p>
+  </div>
+</section>
+
+<!-- Chapter 14 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 14</p>
+  <h2 id="c14">Four helpers</h2>
+  <p class="lead">Four more parts of TailSafe make the results easier to see, quicker to explore and easier to share.</p>
+
+  <h3>1. The person-by-person replay</h3>
+  <p>The fast simulator treats crowds like water in pipes. For a closer look, TailSafe has a second, <strong>microscopic</strong> simulator that moves every single person as a small disc across the floor plan, keeping a safe gap to whoever is in front (a <em>collision-free speed model</em>, after Tordeux, Chraibi and Seyfried, 2016). It is much slower, so TailSafe uses it only to replay single nights, and to check that the two simulators roughly agree. In a 20-storey block they agree on when the last walker leaves to within a few seconds on average; for most of the crowd, the detailed one is 7 to 15% slower, because real queues at doors take up room.</p>
+
+  <h3>2. The quick guesser</h3>
+  <p>A <strong>neural network</strong> is a program that learns patterns from examples. TailSafe's network has studied 800 simulated buildings and nights. Show it a building and some settings, and it estimates the results in a fraction of a second, instead of a minute or more. It passes messages along the building's map, from flat to corridor to staircase, which is why it is called a <strong>graph neural network</strong>. Its formal name is a <strong>surrogate</strong>: a stand-in for the simulator.</p>
+  <p>On buildings like the ones it learned from, its estimates of the bad nights are usually within 10 to 20% of the simulator. On a kind of building it has never seen, it can be off by a third or more.</p>
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>Watch out</div>
+    <p>The quick guesser learned from the simulator, not from real fires, so it can only be as good as the simulator, and usually a little worse. It warns you when your settings are outside what it has learned. Before you rely on a number, press <span class="ui">Confirm with full simulation</span>.</p>
+  </div>
+
+  <h3>3. The briefing</h3>
+  <p>A one-page summary for a building manager, which can be saved as a PDF. TailSafe writes it by filling fixed sentences with the numbers from your results, and then checks every number in the text against the results. Whoever runs the full app can also switch on an optional AI writer (a large language model) to draft the text. It is off unless it is set up. If its draft contains any number that is not in the results, the draft is thrown away and the fixed-sentence briefing is shown instead.</p>
+
+  <h3>4. The floor-plan reader</h3>
+  <p>It turns a picture of a floor plan into a TailSafe building. It finds the walls, rooms, doorways and staircases in the picture; you correct its mistakes; then it stacks the floor into a tower. It works in the full app only. <a href="#c29">Chapter 29</a> shows how to use it.</p>
+</section>
+
+<!-- =============================================================== PART 3 -->
+<section class="part">
+  <div class="top">
+    <span class="num">Part 3</span>
+    <h1 id="p3">Getting TailSafe running</h1>
+  </div>
+  <div class="body">
+    <p>There are two ways to use TailSafe: the browser version, which anyone can open in a few seconds, and the full app, which runs on your own computer and can study any building and any night. This part explains both, click by click.</p>
+    <ol class="inpart">
+      <li><a href="#c15"><span class="n">15</span>Two ways to use TailSafe</a><span class="pg" data-page-of="c15">00</span></li>
+      <li><a href="#c16"><span class="n">16</span>The browser version, step by step</a><span class="pg" data-page-of="c16">00</span></li>
+      <li><a href="#c17"><span class="n">17</span>The full app with Docker, step by step</a><span class="pg" data-page-of="c17">00</span></li>
+      <li><a href="#c18"><span class="n">18</span>Other ways to run the full app</a><span class="pg" data-page-of="c18">00</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- Chapter 15 -->
+<section class="chapter" style="break-before:auto">
+  <p class="eyebrow">Chapter 15</p>
+  <h2 id="c15">Two ways to use TailSafe</h2>
+  <p class="lead">The <strong>browser version</strong> is a website: nothing to install, works on any phone. The <strong>full app</strong> runs on your own computer and can simulate anything you ask.</p>
+
+  <figure class="bare">
+    <svg viewBox="0 0 640 262" role="img" aria-label="The browser version is a website your device downloads; the full app runs on your computer and other devices connect to it">
+      <text x="0" y="16" font-size="13" font-weight="800" fill="#0b0c0c">Browser version</text>
+      <rect x="60" y="34" width="180" height="96" rx="4" fill="#f3f3f2" stroke="#0b0c0c" stroke-width="1.4"/>
+      <line x1="60" x2="240" y1="48" y2="48" stroke="#0b0c0c" stroke-width="1"/>
+      <g fill="#0b0c0c"><circle cx="69" cy="41" r="2"/><circle cx="77" cy="41" r="2"/><circle cx="85" cy="41" r="2"/></g>
+      <g font-size="10.5" fill="#0b0c0c" text-anchor="middle"><text x="150" y="68" font-weight="800">A website (GitHub Pages)</text><text x="150" y="86">the web app</text><text x="150" y="102">results recorded in advance</text><text x="150" y="118">the What-if network</text></g>
+      <g stroke="#0b0c0c" stroke-width="1.6" fill="none"><path d="M150 134v28M144 155l6 7 6-7"/></g>
+      <text x="160" y="152" font-size="10" fill="#4f5154">downloaded to your device</text>
+      <g fill="#ffffff" stroke="#0b0c0c" stroke-width="1.4">
+        <rect x="84" y="172" width="26" height="48" rx="4"/><rect x="122" y="166" width="46" height="58" rx="4"/>
+        <rect x="182" y="176" width="60" height="38" rx="2"/><path d="M175 214h74l-6 8h-62z"/>
+      </g>
+      <text x="150" y="246" font-size="10.5" text-anchor="middle" fill="#0b0c0c">Any phone, tablet or computer</text>
+
+      <line x1="318" x2="318" y1="10" y2="250" stroke="#dcdcdc"/>
+
+      <text x="340" y="16" font-size="13" font-weight="800" fill="#0b0c0c">Full app</text>
+      <rect x="410" y="34" width="160" height="100" rx="3" fill="#f3f3f2" stroke="#0b0c0c" stroke-width="1.4"/>
+      <rect x="480" y="134" width="20" height="12" fill="#0b0c0c"/><rect x="465" y="146" width="50" height="5" fill="#0b0c0c"/>
+      <g font-size="10.5" fill="#0b0c0c" text-anchor="middle"><text x="490" y="58" font-weight="800">Your computer</text><text x="490" y="76">TailSafe running in Docker:</text><text x="490" y="92">simulator, server, web app</text><text x="490" y="118" font-family="Atkinson Hyperlegible Mono, monospace" font-size="9.5">localhost:7860</text></g>
+      <g stroke="#0a7a3f" stroke-width="1.6" stroke-dasharray="5 4" fill="none"><path d="M372 180C390 160 410 150 432 146"/><path d="M606 180C592 162 574 152 552 148"/></g>
+      <text x="490" y="182" font-size="10" text-anchor="middle" fill="#075c2f" font-weight="700">same Wi-Fi network</text>
+      <g fill="#ffffff" stroke="#0b0c0c" stroke-width="1.4"><rect x="352" y="184" width="26" height="48" rx="4"/><rect x="592" y="180" width="44" height="56" rx="4"/></g>
+      <text x="490" y="246" font-size="10.5" text-anchor="middle" fill="#0b0c0c">Other devices open http://&lt;computer's address&gt;:7860</text>
+    </svg>
+    <figcaption>Left: the browser version is a set of files that your device downloads from a website; the quick What-if network then runs on your device. Right: the full app runs on one computer, and other devices on the same network can use it through their web browser.</figcaption>
+  </figure>
+
+  <table class="compare">
+    <thead><tr><th></th><th>Browser version</th><th>Full app</th></tr></thead>
+    <tbody>
+      <tr><td>What you need</td><td>A web browser</td><td>A computer with Docker (or Python and Node)</td></tr>
+      <tr><td>Setting up</td><td>None: open a web address</td><td>A one-off build of several minutes</td></tr>
+      <tr><td>Works on</td><td>Any phone, tablet or computer</td><td>The computer running it, and any device that can reach it</td></tr>
+      <tr><td>Buildings</td><td>The four standard building types, at their standard sizes</td><td>The four types at any size, a floor-plan image, or your own building file</td></tr>
+      <tr><td>Scenarios</td><td>The reference scenario of each building (Sunday, 3 a.m.)</td><td>Any settings you like</td></tr>
+      <tr><td>Stress test, 3D view, replay, bottlenecks, plan, briefing</td><td>Recorded in advance from the simulator, 300 nights per building</td><td>Worked out when you ask, 100 to 2,000 nights</td></tr>
+      <tr><td>What-if</td><td>Yes, for any settings (it runs on your device)</td><td>Yes, plus <span class="ui">Confirm with full simulation</span> for any settings</td></tr>
+      <tr><td>Floor-plan reader</td><td>No</td><td>Yes</td></tr>
+      <tr><td>Where the work happens</td><td>On your device; nothing you enter is uploaded</td><td>On the computer running the full app</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Which one should I use?</h3>
+  <table>
+    <thead><tr><th style="width:62%">If you want to&hellip;</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>See what TailSafe does, or show it to someone</td><td>the browser version</td></tr>
+      <tr><td>Look at the four example buildings on your phone</td><td>the browser version</td></tr>
+      <tr><td>Get a quick estimate for different settings</td><td>the What-if screen, in either version</td></tr>
+      <tr><td>Run a full stress test with your own settings, such as a daytime fire or more older residents</td><td>the full app</td></tr>
+      <tr><td>Study a building of a different size, your own building file, or a floor-plan image</td><td>the full app</td></tr>
+      <tr><td>Let a team use it from their own phones and laptops</td><td>the full app on one computer they can reach, or on a public web address (<a href="#c18">chapter 18</a>)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Chapter 16 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 16</p>
+  <h2 id="c16">The browser version, step by step</h2>
+  <p class="lead">You need a phone, tablet or computer with an up-to-date web browser (such as Chrome, Edge, Firefox or Safari) and an internet connection. That is all.</p>
+
+  <ol class="do">
+    <li><strong>Open your web browser.</strong></li>
+    <li><strong>Go to this address:</strong><br><code>https://chingkheinganba231005.github.io/Tail_Safe/</code><br>Type it into the address bar at the top of the browser and press Enter (on a phone, tap <em>Go</em>).</li>
+    <li><strong>Wait a moment</strong> for the page to load. You will see the black TailSafe bar at the top and, just below it, a small black label saying <strong>BROWSER VERSION</strong>.</li>
+    <li><strong>Follow the steps.</strong> On a computer they are listed down the left side. On a phone, tap <strong>All steps</strong> near the top to see them. Part 4 of this guide explains every step.</li>
+  </ol>
+
+  <figure>
+    <div class="three">
+      <img src="img/phone-building.jpg" alt="The browser version on a phone: step 1, choosing a building">
+      <img src="img/phone-results.jpg" alt="The browser version on a phone: step 3, the results">
+      <img src="img/phone-steps.jpg" alt="The browser version on a phone: the list of all steps">
+    </div>
+    <figcaption>The browser version on a phone. Left: step 1. Middle: the results of the stress test. Right: the list of steps, opened with <strong>All steps</strong>.</figcaption>
+  </figure>
+
+  <div class="two">
+    <div>
+      <h3 style="margin-top:0">What you can do</h3>
+      <ul>
+        <li>Use all nine screens for the four standard buildings.</li>
+        <li>See the results, the 3D view, the person-by-person replay, the bottleneck ranking, the recommended plan and the briefing, all recorded from the simulator.</li>
+        <li>Use the What-if screen with <em>any</em> settings: the quick guesser runs on your device.</li>
+        <li>Download the one-page briefing as a PDF.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="margin-top:0">What needs the full app</h3>
+      <ul>
+        <li>Changing the size of a building, reading a floor plan, or uploading your own building.</li>
+        <li>A full stress test with settings other than the reference scenario.</li>
+        <li>Replays of nights other than the worst one and the median one.</li>
+        <li>Ranking bottlenecks or searching for a plan with other options.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>If you change a setting</h3>
+  <p>The browser version only holds results for the reference scenario of each building. If you change the scenario, the <span class="ui">Run stress test</span> button stops working and this message appears. Press <span class="ui">Back to the reference scenario</span> to undo your changes, or use the What-if screen to get a quick estimate for your settings.</p>
+  <figure class="narrow">
+    <img src="img/s2-changed.jpg" alt="Message: you have changed the scenario, with a button to go back to the reference scenario">
+    <figcaption>The message shown when the scenario differs from the recorded one.</figcaption>
+  </figure>
+
+  <h3>Good to know</h3>
+  <ul>
+    <li><strong>Nothing you enter is uploaded.</strong> The browser version only downloads pages and results recorded in advance; there is no server that stores or works on what you type.</li>
+    <li><strong>Nothing is saved.</strong> If you reload the page, you start again at step 1. Only your choice of light or dark colours is remembered.</li>
+    <li><strong>Every chart can be read as a table.</strong> Use the <span class="ui">Chart</span> / <span class="ui">Table</span> switch above it. On a phone, turning the phone sideways gives charts more room.</li>
+    <li><strong>The 3D views need WebGL</strong>, a graphics feature built into almost every modern browser. If a 3D view stays blank, see <a href="#c33">chapter 33</a>.</li>
+    <li><strong>Tap &ldquo;Read the notice&rdquo;</strong> under the black bar to read the full responsible-use notice.</li>
+  </ul>
+</section>
+
+<!-- Chapter 17 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 17</p>
+  <h2 id="c17">The full app with Docker, step by step</h2>
+  <p class="lead"><strong>Docker</strong> is a free program that runs software inside a <strong>container</strong>: a sealed box that holds everything the software needs. With Docker you do not have to install Python or anything else yourself.</p>
+
+  <h3>Step 1. Install Docker (once)</h3>
+  <ul>
+    <li><strong>Windows or Mac:</strong> download <strong>Docker Desktop</strong> from <code>https://www.docker.com/products/docker-desktop/</code> and install it. On a Mac, choose the version for your chip (Apple or Intel). The installer may ask you to restart the computer. Then open Docker Desktop and wait until it says that Docker is running.</li>
+    <li><strong>Linux:</strong> install <strong>Docker Engine</strong> by following the steps for your system at <code>https://docs.docker.com/engine/install/</code>.</li>
+  </ul>
+
+  <h3>Step 2. Download TailSafe (once)</h3>
+  <ul>
+    <li><strong>If you know git:</strong><pre class="cmd">git clone https://github.com/chingkheinganba231005/Tail_Safe.git</pre></li>
+    <li><strong>If you do not:</strong> open <code>https://github.com/chingkheinganba231005/Tail_Safe</code>, click the green <span class="ui">Code</span> button, then <span class="ui">Download ZIP</span>. Unzip the file. You get a folder called <code>Tail_Safe-main</code>.</li>
+  </ul>
+
+  <h3>Step 3. Open a terminal in the TailSafe folder</h3>
+  <p>A <strong>terminal</strong> is a window where you type commands.</p>
+  <ul>
+    <li><strong>Windows:</strong> open the TailSafe folder in File Explorer, click the address bar at the top, type <code>powershell</code> and press Enter.</li>
+    <li><strong>Mac:</strong> open <em>Terminal</em> (in Applications, then Utilities), type <code>cd</code> followed by a space, drag the TailSafe folder into the window, and press Enter.</li>
+    <li><strong>Linux:</strong> right-click inside the folder and choose <em>Open in Terminal</em>.</li>
+  </ul>
+
+  <h3>Step 4. Build TailSafe (once, and after each update)</h3>
+  <pre class="cmd">docker build -t tailsafe .</pre>
+  <p>Type it exactly, including the full stop at the end, which means &ldquo;this folder&rdquo;. The first build downloads a lot of software and can take several minutes. Later builds are quicker, because Docker remembers the parts that have not changed.</p>
+
+  <h3>Step 5. Start TailSafe</h3>
+  <pre class="cmd">docker run -p 7860:7860 tailsafe</pre>
+  <p>After a few seconds a line like <code>Uvicorn running on http://0.0.0.0:7860</code> appears. TailSafe is now running. Leave this window open.</p>
+
+  <h3>Step 6. Open it</h3>
+  <p>In your web browser go to <code>http://localhost:7860</code>. <strong>localhost</strong> means &ldquo;this computer&rdquo;, and <strong>7860</strong> is the <strong>port</strong>: a numbered door on your computer where TailSafe is listening. The label under the black bar now says <strong>PROTOTYPE</strong> instead of BROWSER VERSION, and every option works.</p>
+
+  <h3>Step 7 (optional). Use it from a phone or tablet</h3>
+  <ol class="do">
+    <li>Make sure the phone and the computer are on the <strong>same Wi-Fi network</strong>.</li>
+    <li>Find the computer's <strong>IP address</strong> (its address on your network), for example <code>192.168.1.23</code>.
+      <ul>
+        <li>Windows: in PowerShell type <code>ipconfig</code> and look for <em>IPv4 Address</em>.</li>
+        <li>Mac: <em>System Settings</em>, then <em>Wi-Fi</em>, then <em>Details</em> next to your network.</li>
+        <li>Linux: type <code>hostname -I</code> and use the first address.</li>
+      </ul>
+    </li>
+    <li>On the phone, open <code>http://192.168.1.23:7860</code>, using your computer's address.</li>
+    <li>If it does not load, the computer's firewall may be blocking it. Allow Docker through the firewall when asked, and check the address again.</li>
+  </ol>
+
+  <h3>Step 8. Stop it</h3>
+  <p>Press <strong>Ctrl</strong> and <strong>C</strong> together in the terminal window, or stop the container in Docker Desktop. To start again later, repeat step 5; you do not need to build again.</p>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>Good to know</div>
+    <ul>
+      <li><strong>The first simulation is slower.</strong> After each start, the simulator needs about ten seconds to prepare itself the first time it runs.</li>
+      <li><strong>How long runs take.</strong> On a four-core computer, 300 nights of the 40-storey example take about 20 seconds and 1,000 nights a little over a minute. Ranking bottlenecks and searching for a plan re-run many nights, so they take several minutes.</li>
+      <li><strong>Repeats are instant.</strong> While TailSafe is running it remembers results, so asking for the same thing twice gives the answer at once. When you stop the container, it forgets.</li>
+      <li><strong>To update TailSafe,</strong> download it again (or run <code>git pull</code> in the folder), then build again (step 4).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- Chapter 18 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 18</p>
+  <h2 id="c18">Other ways to run the full app</h2>
+
+  <h3>From the source code (for developers)</h3>
+  <p>If you want to change TailSafe itself, run it directly from its code. You need <strong>Python 3.11</strong> or newer, <strong>Node 20</strong> or newer, <strong>git</strong> and <strong>make</strong>. These commands are for macOS and Linux; on Windows, use Docker or the Windows Subsystem for Linux (WSL).</p>
+<pre class="cmd">git clone https://github.com/chingkheinganba231005/Tail_Safe.git
+cd Tail_Safe
+make install   <span class="c"># set up Python and install TailSafe (once)</span>
+make web       <span class="c"># build the web app (once, and after changing it)</span>
+make api       <span class="c"># start TailSafe</span></pre>
+  <p>Then open <code>http://localhost:8000</code>. While changing the web app itself, <code>make dev</code> starts TailSafe with a web app that reloads whenever you save a file, at <code>http://localhost:5173</code>. <code>make check</code> runs all the tests. The development guide, <code>DEVELOPMENT.md</code>, has the details.</p>
+
+  <h3>At a public web address (Hugging Face Space)</h3>
+  <p><strong>Hugging Face</strong> is a website that can run a Docker container for you, for free, at a public web address; such a hosted app is called a <strong>Space</strong>. TailSafe comes with an automatic workflow that sends the full app to your Space whenever the code on GitHub changes:</p>
+  <ol class="do">
+    <li>Create a free account on <code>huggingface.co</code>.</li>
+    <li>Create a new <strong>Space</strong> and choose <strong>Docker</strong> as its type. The free CPU hardware is enough. Note its name, for example <code>yourname/tailsafe</code>.</li>
+    <li>In your Hugging Face settings, create an <strong>access token</strong> with <em>write</em> permission, and copy it.</li>
+    <li>On GitHub, open the TailSafe repository, then <em>Settings</em>, <em>Secrets and variables</em>, <em>Actions</em>. Add a <strong>secret</strong> called <code>HF_TOKEN</code> containing the token, and a <strong>variable</strong> called <code>HF_SPACE</code> containing the Space name.</li>
+    <li>Open the <em>Actions</em> tab, choose <strong>Full app (Hugging Face Space)</strong> and press <span class="ui">Run workflow</span>. When the Space has finished building, open it at <code>https://huggingface.co/spaces/yourname/tailsafe</code>.</li>
+  </ol>
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>Watch out</div>
+    <p>Anyone with the address can use it, and what they enter goes to that server. The free hardware has two processor cores, so runs take about twice as long as on a four-core laptop, and only one simulation runs at a time. A free Space may pause when nobody has used it for a while; the next visitor then waits for it to start.</p>
+  </div>
+</section>
+
+<!-- =============================================================== PART 4 -->
+<section class="part">
+  <div class="top">
+    <span class="num">Part 4</span>
+    <h1 id="p4">Screen by screen</h1>
+  </div>
+  <div class="body">
+    <p>TailSafe has nine screens, one for each step. This part walks through every one: what it is for, what to press, and how to read what you see. The pictures come from the browser version, using the 40-storey example; the full app looks the same.</p>
+    <ol class="inpart">
+      <li><a href="#c19"><span class="n">19</span>Finding your way around</a><span class="pg" data-page-of="c19">00</span></li>
+      <li><a href="#c20"><span class="n">20</span>Step 1: Choose the building</a><span class="pg" data-page-of="c20">00</span></li>
+      <li><a href="#c21"><span class="n">21</span>Step 2: Set the scenario</a><span class="pg" data-page-of="c21">00</span></li>
+      <li><a href="#c22"><span class="n">22</span>Step 3: See how bad the tail is</a><span class="pg" data-page-of="c22">00</span></li>
+      <li><a href="#c23"><span class="n">23</span>Step 4: Watch it floor by floor</a><span class="pg" data-page-of="c23">00</span></li>
+      <li><a href="#c24"><span class="n">24</span>Step 5: Replay people moving</a><span class="pg" data-page-of="c24">00</span></li>
+      <li><a href="#c25"><span class="n">25</span>Step 6: Find what causes it</a><span class="pg" data-page-of="c25">00</span></li>
+      <li><a href="#c26"><span class="n">26</span>Step 7: Test operational fixes</a><span class="pg" data-page-of="c26">00</span></li>
+      <li><a href="#c27"><span class="n">27</span>Step 8: Try changes instantly</a><span class="pg" data-page-of="c27">00</span></li>
+      <li><a href="#c28"><span class="n">28</span>Step 9: Get the one-page briefing</a><span class="pg" data-page-of="c28">00</span></li>
+      <li><a href="#c29"><span class="n">29</span>Reading a floor-plan image</a><span class="pg" data-page-of="c29">00</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- Chapter 19 -->
+<section class="chapter" style="break-before:auto">
+  <p class="eyebrow">Chapter 19</p>
+  <h2 id="c19">Finding your way around</h2>
+  <p class="lead">Every screen has the same frame around it. Once you know the frame, you always know where you are and where to go next.</p>
+
+  <figure><div class="shot">
+    <img src="img/layout.jpg" alt="The TailSafe screen on a computer, with numbered parts">
+    <span class="pin" style="left:4.9%;top:3.3%">1</span>
+    <span class="pin" style="left:84%;top:3.3%">2</span>
+    <span class="pin" style="left:3.6%;top:9.5%">3</span>
+    <span class="pin" style="left:3.2%;top:45%">4</span>
+    <span class="pin" style="left:27%;top:23.2%">5</span>
+    <span class="pin" style="left:27%;top:50%">6</span>
+    <span class="pin" style="left:43.5%;top:81.6%">7</span>
+    </div>
+      <figcaption>The first screen on a computer, with its parts numbered.</figcaption>
+  </figure>
+  <ol class="pins">
+    <li><span class="pinref">1</span><span><strong>The black bar.</strong> Click the TailSafe name at any time to go back to step 1.</span></li>
+    <li><span class="pinref">2</span><span><strong>Colour buttons:</strong> match your device, always light, or always dark. TailSafe remembers your choice.</span></li>
+    <li><span class="pinref">3</span><span><strong>The notice.</strong> The label shows which version you are using (<strong>BROWSER VERSION</strong> or, in the full app, <strong>PROTOTYPE</strong>) and reminds you that TailSafe is decision support only. Click <em>Read the notice</em> for the full text.</span></li>
+    <li><span class="pinref">4</span><span><strong>The step list:</strong> nine steps in three groups. Click any step to go to it. Steps you cannot use yet are greyed out: most need a building first, and the results need a stress test first.</span></li>
+    <li><span class="pinref">5</span><span><strong>Where you are:</strong> &ldquo;Step 1 of 9&rdquo;.</span></li>
+    <li><span class="pinref">6</span><span><strong>The screen itself.</strong> Its title says what it is for.</span></li>
+    <li><span class="pinref">7</span><span><strong>Green buttons</strong> do the main thing on each screen, such as <span class="ui">Generate building</span> or <span class="ui">Run stress test</span>.</span></li>
+  </ol>
+
+  <h3>Back and Continue</h3>
+  <p>At the bottom of every screen there is a <strong>Back</strong> link to the previous step, and from step 3 onwards a green <strong>Continue</strong> button to the next one. Steps 1 and 2 move on with their own buttons, <span class="ui">Confirm building →</span> and <span class="ui">Run stress test</span>. So you can go through all of TailSafe by pressing the green buttons, one after another.</p>
+  <p>The footer at the very bottom of every screen links to the project page, this guide, the assumptions, the validation and the source code.</p>
+
+  <h3>On a phone</h3>
+  <p>On a narrow screen the step list is folded away. Near the top you see &ldquo;Step 3 of 9&rdquo; and the name of the step; tap <strong>All steps</strong> to open the list (see the phone pictures in <a href="#c16">chapter 16</a>). Everything else works the same way.</p>
+
+  <h3>Reading the charts</h3>
+  <ul>
+    <li><strong>Every chart has a table.</strong> Use the <span class="ui">Chart</span> / <span class="ui">Table</span> switch above it to see the exact numbers.</li>
+    <li><strong>Point at a bar or a line</strong> (or tap it on a phone) to see its value.</li>
+    <li><strong>Colours.</strong> Purple, orange and green show data. Warnings always come with a symbol and words, never with colour alone.</li>
+    <li><strong>Waiting.</strong> Long jobs show a progress bar with the number of nights done. In the browser version answers appear almost at once, because they were recorded in advance.</li>
+  </ul>
+</section>
+
+<!-- Chapter 20 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 20</p>
+  <h2 id="c20">Step 1: Choose the building</h2>
+  <p class="lead">Pick the building to test. Everything that follows is worked out for this building.</p>
+
+  <div class="side">
+    <figure><div class="shot">
+      <img src="img/s1-review.jpg" alt="Step 1 after generating the cruciform building">
+      <span class="pin" style="left:47.5%;top:12.4%">1</span>
+      <span class="pin" style="left:-1.8%;top:16%">2</span>
+      <span class="pin" style="left:81.5%;top:33%">3</span>
+      <span class="pin" style="left:22%;top:36.6%">4</span>
+      <span class="pin" style="left:-1.8%;top:43%">5</span>
+      <span class="pin" style="left:24.5%;top:60.8%">6</span>
+      <span class="pin" style="left:97%;top:55%">7</span>
+      <span class="pin" style="left:88.5%;top:86.5%">8</span>
+      </div>
+      <figcaption>Step 1 after pressing <strong>Generate building</strong>.</figcaption>
+    </figure>
+    <div>
+      <ol class="pins">
+        <li><span class="pinref">1</span><span><strong>Where the building comes from:</strong> <span class="ui">Building type</span>, <span class="ui">Floor-plan image</span> (<a href="#c29">chapter 29</a>) or <span class="ui">Upload file</span>. The last two need the full app.</span></li>
+        <li><span class="pinref">2</span><span><strong>The four building types.</strong> Click one; a black border shows your choice.</span></li>
+        <li><span class="pinref">3</span><span><strong>Size options</strong>, such as the number of storeys. Fixed in the browser version.</span></li>
+        <li><span class="pinref">4</span><span><span class="ui">Generate building</span> makes the building.</span></li>
+        <li><span class="pinref">5</span><span><strong>The building in numbers:</strong> storeys, flats (or rooms), staircases, lifts (the firefighting lift is marked) and height.</span></li>
+        <li><span class="pinref">6</span><span><strong>The floor plan.</strong> Choose any floor from the <strong>Floor</strong> menu.</span></li>
+        <li><span class="pinref">7</span><span><strong>Check and correct:</strong> the clear width of each staircase and each final exit, in metres.</span></li>
+        <li><span class="pinref">8</span><span><span class="ui">Confirm building →</span> takes you to step 2.</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>Do this</h3>
+  <ol class="do">
+    <li>Make sure <span class="ui">Building type</span> is selected, then click one of the four building cards.</li>
+    <li><em>Full app only:</em> change the options if you want a different size. The table below lists them.</li>
+    <li>Click <span class="ui">Generate building</span>. The numbers, the plan and the correction panel appear.</li>
+    <li>Look through a few floors with the <strong>Floor</strong> menu. Floors marked <em>(refuge)</em> or <em>(ground)</em> differ from the typical floor.</li>
+    <li><em>Full app only:</em> if a staircase or exit is wider or narrower in your building, type its clear width and click <span class="ui">Apply corrections</span>. TailSafe checks the change before using it.</li>
+    <li>Click <span class="ui">Confirm building →</span>.</li>
+  </ol>
+
+  <h3>Reading the plan</h3>
+  <p>Grey areas are corridors, lobbies and stair landings; each staircase is labelled with its letter (A, B, and so on). Dark lines across openings are doors. Green dots are the final exits to the outside. White boxes are flats (or, in a care home, rooms).</p>
+
+  <h3>The size options</h3>
+  <table>
+    <thead><tr><th style="width:22%">Building type</th><th>Options (standard values in brackets)</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cruciform</strong></td><td>Storeys (40), flats per wing (5), lifts (3), wing end stairs (off: when on, adds a staircase at the end of each of the four wings), flat width (6 m) and depth (8 m).</td></tr>
+      <tr><td><strong>Slab</strong></td><td>Storeys (30), flats per side of the corridor (10), lifts (2), flat width (6 m) and depth (8 m).</td></tr>
+      <tr><td><strong>Twin core</strong></td><td>Storeys (45), podium levels without homes (3), flats per floor (8), lifts (3), protected lobbies in front of the staircases (on), flat width (7 m) and depth (9 m).</td></tr>
+      <tr><td><strong>Care home</strong></td><td>Storeys (4), rooms per side of the corridor (6), lifts (1), room width (4.5 m) and depth (6 m).</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box try">
+    <div class="label"><svg><use href="#i-play"/></svg>Try it (full app)</div>
+    <p>Generate the cruciform block twice, once with 20 storeys and once with 40, and run the same stress test on both (step 2). How much longer do the worst nights take in the taller block?</p>
+  </div>
+
+  <p><strong>Upload file</strong> (full app) takes a building described in a JSON file that follows TailSafe's building schema (<code>schemas/building.schema.json</code>). The easiest way to make one is to start from a generated building: <code>tailsafe building generate</code> writes such a file (<a href="#c31">chapter 31</a>).</p>
+</section>
+
+<!-- Chapter 21 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 21</p>
+  <h2 id="c21">Step 2: Set the scenario</h2>
+  <p class="lead">A <strong>scenario</strong> describes the fire night you want to test. You set what you know; everything else is rolled again for every night.</p>
+
+  <figure><div class="shot">
+    <img src="img/s2-scenario.jpg" alt="Step 2, the scenario screen with the reference scenario loaded">
+    <span class="pin" style="left:26.5%;top:15.9%">1</span>
+    <span class="pin" style="left:-1.8%;top:23.4%">2</span>
+    <span class="pin" style="left:51.1%;top:23.4%">3</span>
+    <span class="pin" style="left:-1.8%;top:55.2%">4</span>
+    <span class="pin" style="left:51.1%;top:55.2%">5</span>
+    <span class="pin" style="left:-1.8%;top:82.5%">6</span>
+    <span class="pin" style="left:46%;top:85.2%">7</span>
+    </div>
+      <figcaption>The scenario screen with the reference scenario: a Sunday at 3 a.m., 22% of residents aged 65 or over, fire on 14/F, Stair A smoke-logged after 4 minutes, one lift out of service.</figcaption>
+  </figure>
+  <ol class="pins">
+    <li><span class="pinref">1</span><span><span class="ui">Load the reference scenario</span> puts back the standard Sunday, 3 a.m. night.</span></li>
+    <li><span class="pinref">2</span><span><strong>When and who:</strong> time of day and the mix of residents.</span></li>
+    <li><span class="pinref">3</span><span><strong>Fire and smoke:</strong> whether smoke is simulated, the fire floor, and how often the burning flat's door is left open.</span></li>
+    <li><span class="pinref">4</span><span><strong>Staircases:</strong> which staircase fills with smoke, and when.</span></li>
+    <li><span class="pinref">5</span><span><strong>Lifts and rescue:</strong> broken lifts, evacuation lifts and fire-service rescue teams.</span></li>
+    <li><span class="pinref">6</span><span><strong>How many nights</strong> to simulate, and the <strong>seed</strong> (<a href="#c10">chapter 10</a>).</span></li>
+    <li><span class="pinref">7</span><span><span class="ui">Run stress test</span> starts the simulation.</span></li>
+  </ol>
+
+  <h3>Every setting explained</h3>
+  <table>
+    <thead><tr><th style="width:31%">Setting</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Time of day</strong></td><td>Weekday day, weekday night, weekend day, or weekend night (3 a.m.). It changes who is at home and how quickly they react.</td></tr>
+      <tr><td><strong>Residents aged 65+</strong></td><td>The share of residents aged 65 or over (up to 60%). Untick <em>registry default</em> to set your own.</td></tr>
+      <tr><td><strong>Of those, aged 80+</strong></td><td>Of the older residents, the share who are 80 or over (the frail group).</td></tr>
+      <tr><td><strong>Vacant flats</strong></td><td>The share of empty flats (up to 50%).</td></tr>
+      <tr><td><strong>Households that first go against the flow</strong></td><td>The share of households that first fetch family or check on a neighbour.</td></tr>
+      <tr><td><strong>Simulate smoke spread and tenability</strong></td><td>Switches the smoke model on. Needed for P(RSET &gt; ASET) and for smoke to slow and harm people.</td></tr>
+      <tr><td><strong>Fire floor</strong></td><td>A chosen floor, or <em>Random floor</em> (a new floor every night).</td></tr>
+      <tr><td><strong>Fire flat door left open</strong></td><td>How often the burning flat's door is left open (only with smoke on).</td></tr>
+      <tr><td><strong>Stair&nbsp;A smoke-logged</strong> (one line per staircase)</td><td>Tick to lose that staircase. Choose <em>at</em> and a time in minutes, or <em>between</em> two times for a different random time every night.</td></tr>
+      <tr><td><strong>Chance that one more random staircase is lost</strong></td><td>On this share of nights, one more staircase, chosen at random, is lost at a random time in the first 15 minutes.</td></tr>
+      <tr><td><strong>Lifts out of service</strong></td><td>How many lifts are broken. Which ones is chosen at random every night.</td></tr>
+      <tr><td><strong>Use non-firefighting lifts to evacuate mobility-impaired residents</strong></td><td>Turns on evacuation lifts, with <strong>Dispatch</strong> (highest floors first, nearest waiting floor, or lowest floors first) and <strong>Who may wait for a lift</strong> (wheelchair users and frail older adults, or wheelchair users only).</td></tr>
+      <tr><td><strong>Fire-service rescue teams</strong></td><td>How many rescue teams the firefighters use. Leave it empty for the standard number.</td></tr>
+      <tr><td><strong>Monte Carlo runs</strong></td><td>How many nights: 100, 300, 1,000 or 2,000.</td></tr>
+      <tr><td><strong>Seed</strong></td><td>The starting number for the dice. Same seed, same nights.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>&ldquo;Registry default&rdquo;</strong> means TailSafe uses its standard value from its settings file (the <em>parameter registry</em>, <code>config/params.yaml</code>).</p>
+
+  <h3>Do this</h3>
+  <ol class="do">
+    <li>For a first look, keep the reference scenario that is already loaded.</li>
+    <li><em>Full app only:</em> change the settings you want to test, and choose the number of nights (300 to explore).</li>
+    <li>Click <span class="ui">Run stress test</span>. A progress bar counts the nights. When it finishes, TailSafe opens step 3 by itself.</li>
+  </ol>
+
+  <div class="box try">
+    <div class="label"><svg><use href="#i-play"/></svg>Try it (full app)</div>
+    <p>Run the reference scenario with 300 nights. Then untick <strong>Stair A smoke-logged</strong> and run again with the <em>same seed</em>. Because the seed is the same, the people and the fires are the same, so any difference is caused by the staircase alone.</p>
+  </div>
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>Watch out</div>
+    <p>In the browser version, <span class="ui">Run stress test</span> only works for the reference scenario. If you change anything, a message offers to put it back (<a href="#c16">chapter 16</a>). The What-if screen (step 8) can estimate any settings.</p>
+  </div>
+</section>
+
+<!-- Chapter 22 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 22</p>
+  <h2 id="c22">Step 3: See how bad the tail is</h2>
+  <p class="lead">This is the heart of TailSafe: how long the evacuation takes over all the simulated nights, and how bad the worst nights are.</p>
+
+  <figure><div class="shot">
+    <img src="img/s3-top.jpg" alt="Step 3, the stress-test results: the key numbers and the distribution">
+    <span class="pin" style="left:50%;top:20%">1</span>
+    <span class="pin" style="left:-1.8%;top:29.5%">2</span>
+    <span class="pin" style="left:76%;top:29.3%">3</span>
+    <span class="pin" style="left:83.8%;top:58.7%">4</span>
+    <span class="pin" style="left:86.5%;top:65.3%">5</span>
+    </div>
+      <figcaption>The top of the results screen for the 40-storey example (300 nights).</figcaption>
+  </figure>
+  <ol class="pins">
+    <li><span class="pinref">1</span><span><strong>Which outcome</strong> to show: <span class="ui">Everyone out</span>, <span class="ui">Last self-evacuee</span> or <span class="ui">95% of occupants</span> (<a href="#c11">chapter 11</a>). Everything below changes with it.</span></li>
+    <li><span class="pinref">2</span><span><strong>CVaR<sub>95</sub>, the average of the worst 5%.</strong> The most important number, marked with a green line. Under it, its 95% confidence interval. Next to it: <strong>P95</strong> and the <strong>mean</strong>, each with its interval.</span></li>
+    <li><span class="pinref">3</span><span><strong>P(RSET &gt; ASET):</strong> how often someone is caught by smoke, as a bar from 0 to 1 with its interval. Here 0.60: on 60 nights in 100.</span></li>
+    <li><span class="pinref">4</span><span><strong>Chart / Table</strong> switch.</span></li>
+    <li><span class="pinref">5</span><span><strong>The histogram:</strong> each bar counts nights. Dashed lines mark the mean and P95; the solid line marks CVaR<sub>95</sub>. The long stretch on the right is the tail.</span></li>
+  </ol>
+  <p>The line under the title tells you what the numbers are based on: the building, the number of nights and the seed, about how many people were in the building, and how long the computer took.</p>
+
+  <h3>Further down the screen</h3>
+  <div class="two">
+    <figure>
+      <img src="img/s3-who.jpg" alt="Who is still inside in the worst 5 percent">
+      <figcaption><strong>Who is still inside in the worst 5%.</strong> The sentence at the top gives the headline. The bars show the risk ratio of each kind of household: here, households with a wheelchair user are 21 times more common among the last people out than in the building.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/s3-floors.jpg" alt="Floors that fail">
+      <figcaption><strong>Floors that fail.</strong> For each floor, the share of nights on which someone is still there after it has become untenable, with its interval. The fire floor (14/F) and the floors just above it fail most often.</figcaption>
+    </figure>
+  </div>
+  <figure>
+    <img src="img/s3-stairs.jpg" alt="Where stairs queue in the worst 5 percent">
+    <figcaption><strong>Where stairs queue in the worst 5%.</strong> Person-minutes of queueing on each flight, one chart per staircase, all on the same scale. Here Stair A is lost after 4 minutes, so nearly everyone queues on Stair B, most of all around 15/F to 20/F.</figcaption>
+  </figure>
+  <p>At the very bottom, <strong>Replay a scenario in 3D</strong> lists the ten worst nights and the median night. Click one to watch it in step 4. (In the browser version, the worst night and the median night are recorded.)</p>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>How to read it</div>
+    <p>Compare CVaR<sub>95</sub> with the mean. If the average of the worst 5% is much larger than the mean, a few very bad nights are hiding behind a comfortable average. Then look at who is still inside and where the stairs queue: that tells you whom the bad nights hurt, and where.</p>
+  </div>
+</section>
+
+<!-- Chapter 23 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 23</p>
+  <h2 id="c23">Step 4: Watch it floor by floor</h2>
+  <p class="lead">The 3D view replays one night, with the same people, fire and broken lift as in the stress test, so you can see how a bad night unfolds: where the smoke goes, where the queues build, and who is left behind.</p>
+
+  <div class="side">
+    <figure><div class="shot">
+      <img src="img/s4-stack.jpg" alt="Step 4, the 3D stack view of the worst night">
+      <span class="pin" style="left:29.5%;top:9.75%">1</span>
+      <span class="pin" style="left:12%;top:31%">2</span>
+      <span class="pin" style="left:61%;top:54.4%">3</span>
+      <span class="pin" style="left:61.3%;top:15.25%">4</span>
+      <span class="pin" style="left:61.3%;top:35.5%">5</span>
+      <span class="pin" style="left:-1.8%;top:71.75%">6</span>
+      </div>
+      <figcaption>The worst of the 300 nights, 22 minutes and 47 seconds after the alarm.</figcaption>
+    </figure>
+    <div>
+      <ol class="pins">
+        <li><span class="pinref">1</span><span><strong>Which night</strong> to replay: one of the ten worst, or the median.</span></li>
+        <li><span class="pinref">2</span><span><strong>The tower.</strong> Each floor is a thin slab, coloured by the smoke in its corridors: pale is clear, dark brown means you can see only 2&nbsp;m. The columns are the staircases, coloured by how many people queue on each flight: pale blue is none, dark blue is many. A dark grey column is a smoke-logged staircase. Drag to turn the tower, scroll or pinch to zoom, and point at a floor for its numbers.</span></li>
+        <li><span class="pinref">3</span><span><span class="ui">Play</span> / <span class="ui">Pause</span>, the time slider and the playback speed.</span></li>
+        <li><span class="pinref">4</span><span><strong>This scenario:</strong> how many people, when everyone was out, when 95% were out, how many were rescued or incapacitated, and what happened that night (the fire, the lost staircase, the broken lift, when rescue started).</span></li>
+        <li><span class="pinref">5</span><span><strong>Still on each floor</strong> at the time on the slider.</span></li>
+        <li><span class="pinref">6</span><span><strong>People evacuated and still inside</strong> over the whole night. The dots follow the slider.</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>What to look for</h3>
+  <ul>
+    <li>Press <span class="ui">Play</span> and watch the smoke appear on the fire floor and climb to the floors just above it.</li>
+    <li>Watch the queue build on the one staircase that is left after Stair A is lost.</li>
+    <li>Look at the long, flat end of the orange &ldquo;still inside&rdquo; line: those are people waiting for the firefighters. On this night everyone was out only after about four hours.</li>
+  </ul>
+</section>
+
+<!-- Chapter 24 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 24</p>
+  <h2 id="c24">Step 5: Replay people moving</h2>
+  <p class="lead">A closer look at one night: every person is a dot on the floor plan, walking, queueing and taking the stairs.</p>
+
+  <div class="side">
+    <figure><div class="shot">
+      <img src="img/s5-replay.jpg" alt="Step 5, the person-by-person replay of the fire floor">
+      <span class="pin" style="left:29.5%;top:12.4%">1</span>
+      <span class="pin" style="left:-1.8%;top:17.5%">2</span>
+      <span class="pin" style="left:42.5%;top:32.3%">3</span>
+      <span class="pin" style="left:62.5%;top:69.3%">4</span>
+      <span class="pin" style="left:63.5%;top:31.8%">5</span>
+      <span class="pin" style="left:-1.8%;top:78%">6</span>
+      </div>
+      <figcaption>The fire floor, 7 minutes after the alarm, on the worst night.</figcaption>
+    </figure>
+    <div>
+      <ol class="pins">
+        <li><span class="pinref">1</span><span><strong>Which night</strong> to replay (in the browser version, the worst night).</span></li>
+        <li><span class="pinref">2</span><span><strong>Fast engine vs person-by-person:</strong> when half, 95% and the last of the walkers got out in each simulator, and the difference.</span></li>
+        <li><span class="pinref">3</span><span><strong>Which floor</strong> to watch. TailSafe starts on the fire floor.</span></li>
+        <li><span class="pinref">4</span><span><span class="ui">Play</span>, the time slider, and the speed: 1&times; to 60&times; real time.</span></li>
+        <li><span class="pinref">5</span><span><strong>People on each floor</strong> right now. Click a bar to watch that floor.</span></li>
+        <li><span class="pinref">6</span><span><strong>People on this floor over time.</strong></span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>Reading the dots</h3>
+  <ul>
+    <li><strong>Filled purple dot:</strong> a person walking.</li>
+    <li><strong>Hollow purple ring:</strong> a person on the stairs (drawn across the stair enclosure).</li>
+    <li><strong>Grey dot:</strong> a person not moving yet, or waiting (for example for a lift or for rescue).</li>
+  </ul>
+  <p>People who wait for a lift or for the firefighters are not walked by this simulator; they keep the times from the fast simulator. The comparison table counts only the people who walk.</p>
+
+  <div class="box try">
+    <div class="label"><svg><use href="#i-play"/></svg>Try it</div>
+    <p>Watch the fire floor first: its households react quickly and leave early. Then click the bar for a high floor, such as 35/F, and play again at 15&times;: you will see people waiting because the staircase below them is full.</p>
+  </div>
+</section>
+
+<!-- Chapter 25 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 25</p>
+  <h2 id="c25">Step 6: Find what causes it</h2>
+  <p class="lead">Which staircase, door or exit makes the worst nights bad? This screen ranks them by testing each one (<a href="#c12">chapter 12</a>).</p>
+
+  <div class="side">
+    <figure><div class="shot">
+      <img src="img/s6-ranking.jpg" alt="Step 6, the bottleneck ranking">
+      <span class="pin" style="left:54%;top:13.65%">1</span>
+      <span class="pin" style="left:-1.8%;top:18.1%">2</span>
+      <span class="pin" style="left:-1.8%;top:25.25%">3</span>
+      <span class="pin" style="left:49.5%;top:25.5%">4</span>
+      <span class="pin" style="left:-1.8%;top:70.2%">5</span>
+      </div>
+      <figcaption>The bottlenecks of the 40-storey example, for the time until 95% of people are out.</figcaption>
+    </figure>
+    <div>
+      <ol class="pins">
+        <li><span class="pinref">1</span><span><strong>Outcome</strong> to improve, <strong>Extra capacity</strong> to give each candidate (+25%, +50% or +100%), and <span class="ui">Rank bottlenecks</span>.</span></li>
+        <li><span class="pinref">2</span><span><strong>The headline</strong>, then the maximum egress flow and the minimum cut.</span></li>
+        <li><span class="pinref">3</span><span><strong>The ranking.</strong> Each bar is how many minutes the average of the worst 5% would fall if that element were improved; bars to the left mean an improvement. The whisker is the confidence interval.</span></li>
+        <li><span class="pinref">4</span><span><strong>Where it is.</strong> Click a row: the element is outlined on the plan and in the 3D tower. Choose a floor from the menu.</span></li>
+        <li><span class="pinref">5</span><span><strong>Where queues form in the worst 5%:</strong> the share of bad nights with a queue of 10 or more people, the person-minutes of queueing, and the longest queue. Click a row to find it.</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>Do this</h3>
+  <ol class="do">
+    <li>Choose the outcome. <strong>95% of occupants</strong> is a good start, because it is about the crowd rather than the few people waiting for rescue.</li>
+    <li>Choose the extra capacity, or keep +50%.</li>
+    <li>Click <span class="ui">Rank bottlenecks</span>. In the full app this re-runs the bad nights for every candidate, which can take a few minutes.</li>
+    <li>Read the headline, then click the top rows to see where they are.</li>
+  </ol>
+
+  <h3>What the example shows</h3>
+  <p>&ldquo;Losing Stair A drives the tail: keeping it usable cuts CVaR95 of p95 occupant time by 12.4 min (95% CI 11.3 to 13.3 min).&rdquo; More room on Stair B would help next (8.7 minutes). Wider doors or exits would hardly change anything. The building can get out at most 1.62 people per second, limited by the bottom flight of each staircase.</p>
+
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>Watch out</div>
+    <p>A ranking tells you what matters most, not what to build. &ldquo;Stair B, +50%&rdquo; means &ldquo;if Stair B could carry 50% more people&rdquo;. Keeping a staircase free of smoke, or its doors clear, may achieve much of that without any building work. Discuss it with a fire engineer.</p>
+  </div>
+</section>
+
+<!-- Chapter 26 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 26</p>
+  <h2 id="c26">Step 7: Test operational fixes</h2>
+  <p class="lead">Let TailSafe search for the best combination of cheap fixes, and check it on fresh nights (<a href="#c13">chapter 13</a>).</p>
+
+  <figure>
+    <img src="img/s7-setup.jpg" alt="Step 7, the optimise settings">
+    <figcaption>The settings: what to improve, how many wardens are allowed, how many nights to use, and which fixes the plan may use.</figcaption>
+  </figure>
+
+  <h3>Do this</h3>
+  <ol class="do">
+    <li><strong>Minimise:</strong> choose what to improve: <em>CVaR<sub>95</sub> (tail)</em>, <em>P(RSET &gt; ASET)</em>, or <em>Mean + CVaR<sub>95</sub></em>, and <strong>Of</strong> which outcome.</li>
+    <li><strong>Max wardens:</strong> how many floor wardens the plan may use (0 to 10).</li>
+    <li><strong>Scenarios per plan:</strong> how many nights each candidate is tested on while searching (30, 60, 100 or 200). <strong>Confirmation scenarios:</strong> how many fresh nights the winner is checked on (100, 200 or 400). More nights are more reliable but slower.</li>
+    <li><strong>Levers the plan may use:</strong> untick any fix that is not possible in your building.</li>
+    <li>Click <span class="ui">Find a better plan</span>. In the full app this can take several minutes.</li>
+  </ol>
+  <p>In the browser version, the recorded search used the standard settings: the tail of the time until everyone is out, 60 nights per plan, 200 fresh nights, at most 2 wardens, all five fixes.</p>
+
+  <h3>Reading the result</h3>
+  <figure>
+    <img src="img/s7-plan.jpg" alt="The recommended plan and its confirmation on fresh nights">
+    <figcaption>The recommended plan in plain English, and the check on 200 fresh nights. Each row compares the average of the worst 5% without and with the plan, the change, its confidence interval and the verdict.</figcaption>
+  </figure>
+  <p>Here the plan is to use the non-firefighting lifts for mobility-impaired residents (nearest waiting floor first) and to station floor wardens on 14/F and 35/F. On the fresh nights:</p>
+  <ul>
+    <li>the time until <strong>everyone</strong> is out drops from 201.5 to 102.0 minutes: <strong>better</strong>;</li>
+    <li>the time until the <strong>last self-evacuee</strong> is out drops from 108.3 to 102.0 minutes: <strong>better</strong>;</li>
+    <li>the time for <strong>95% of occupants</strong> rises from 66.8 to 75.4 minutes: <strong>worse</strong>;</li>
+    <li>P(RSET &gt; ASET) drops from 0.58 to 0.55: <strong>better</strong>.</li>
+  </ul>
+  <p>The orange <strong>Trade-off</strong> warning points out the outcome that got worse. Frail residents who would otherwise have walked now wait for the lifts, and on nights when one of the evacuation lifts is broken, the other cannot keep up.</p>
+
+  <figure>
+    <img src="img/s7-before-after.jpg" alt="Before and after distributions and the side-by-side 3D replay">
+    <figcaption><strong>Before / after.</strong> Top: the same 200 nights without and with the plan; switch the outcome with the buttons. Bottom: the worst of those nights replayed without and with the plan, side by side on one clock (click <span class="ui">Load animation</span>, then <span class="ui">Play</span>). At 25 minutes, more people are still inside <em>with</em> the plan, which is the trade-off; yet everyone is out after 60 minutes instead of 221.</figcaption>
+  </figure>
+</section>
+
+<!-- Chapter 27 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 27</p>
+  <h2 id="c27">Step 8: Try changes instantly</h2>
+  <p class="lead">Move the controls and see an estimate straight away, from the quick guesser (<a href="#c14">chapter 14</a>). Then check it with the real simulator.</p>
+
+  <div class="side">
+    <figure><div class="shot">
+      <img src="img/s8-whatif.jpg" alt="Step 8, the What-if screen">
+      <span class="pin" style="left:-1.8%;top:14.2%">1</span>
+      <span class="pin" style="left:73.5%;top:23.8%">2</span>
+      <span class="pin" style="left:37.4%;top:46.8%">3</span>
+      <span class="pin" style="left:88.9%;top:46.8%">4</span>
+      <span class="pin" style="left:37.4%;top:57%">5</span>
+      <span class="pin" style="left:34.5%;top:90%">6</span>
+      </div>
+      <figcaption>The What-if screen after <strong>Confirm with full simulation</strong>.</figcaption>
+    </figure>
+    <div>
+      <ol class="pins">
+        <li><span class="pinref">1</span><span><strong>The controls:</strong> time of day, share aged 65+, fire floor, smoke, a smoke-logged staircase and from when, lifts out of service, evacuation lifts, and wardens on the fire floor and the floor above.</span></li>
+        <li><span class="pinref">2</span><span><strong>The estimate</strong> for each outcome, in purple. The bar runs from the median to P95; the small ticks are P75 and P90; the diamond is CVaR<sub>95</sub>. Once confirmed, the simulator's answer appears below it in orange.</span></li>
+        <li><span class="pinref">3</span><span><span class="ui">Confirm with full simulation</span> runs a real stress test of 300 nights with the same settings.</span></li>
+        <li><span class="pinref">4</span><span><span class="ui">Open the full results →</span> shows those results in step 3.</span></li>
+        <li><span class="pinref">5</span><span><strong>Where queues are expected,</strong> most congested first.</span></li>
+        <li><span class="pinref">6</span><span><strong>How the network was trained</strong>, and how far off it was on building types it had not seen.</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <p>The estimate updates a moment after you move a control, and the chart says how many milliseconds it took. In this example the quick guesser puts the average of the worst 5% for &ldquo;everyone out&rdquo; at 188 minutes; the full simulation says 218. That gap of about 14% is fine for exploring, but not for deciding.</p>
+
+  <h3>When the guesser is out of its depth</h3>
+  <p>If your settings go beyond what the network was trained on, an orange box says so and lists why:</p>
+  <figure class="narrow">
+    <img src="img/s8-warning.jpg" alt="Warning: outside what the surrogate was trained on">
+    <figcaption>Here, two lifts are out of service; the training only ever had one.</figcaption>
+  </figure>
+
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>Watch out</div>
+    <p>In the browser version the estimate works for any settings, but <span class="ui">Confirm with full simulation</span> only works for the reference scenario, because only that one was recorded. For anything else, use the full app.</p>
+  </div>
+</section>
+
+<!-- Chapter 28 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 28</p>
+  <h2 id="c28">Step 9: Get the one-page briefing</h2>
+  <p class="lead">A one-page summary for a building manager, written only from the numbers TailSafe has worked out, and ready to save as a PDF.</p>
+
+  <div class="side">
+    <figure><div class="shot">
+      <img src="img/s9-briefing.jpg" alt="Step 9, the briefing">
+      <span class="pin" style="left:50.5%;top:14.65%">1</span>
+      <span class="pin" style="left:-1.8%;top:19.4%">2</span>
+      <span class="pin" style="left:-1.8%;top:24.7%">3</span>
+      </div>
+      <figcaption>The briefing for the 40-storey example, after steps 6 and 7.</figcaption>
+    </figure>
+    <div>
+      <ol class="pins">
+        <li><span class="pinref">1</span><span><span class="ui">Write briefing</span> (then <span class="ui">Write again</span>) uses the AI writer if the full app has one set up, and the fixed sentences otherwise. <span class="ui">Template only</span> always uses the fixed sentences. <span class="ui">Download PDF</span> saves the page.</span></li>
+        <li><span class="pinref">2</span><span><strong>The check:</strong> every number in the text was checked against the results. If an AI draft was rejected, an orange note says why.</span></li>
+        <li><span class="pinref">3</span><span><strong>The briefing.</strong></span></li>
+      </ol>
+      <h3>What is in it</h3>
+      <ul>
+        <li><strong>Scenario</strong> and how many nights it is based on.</li>
+        <li><strong>What we found:</strong> the average and the worst 5%, how often smoke catches someone, which floors.</li>
+        <li><strong>Who is most at risk.</strong></li>
+        <li><strong>Why:</strong> the top bottlenecks (if step 6 was run).</li>
+        <li><strong>What to do:</strong> the plan and its tested effect, with any trade-off (if step 7 was run).</li>
+        <li><strong>Limits:</strong> the assumptions and the responsible-use notice.</li>
+      </ul>
+    </div>
+  </div>
+  <p>Steps 6 and 7 are optional, but the briefing is much more useful with them. The PDF adds a chart of the time until everyone is out, before and after the plan. <strong>Remember:</strong> the briefing inherits every assumption behind the numbers. Share it as a starting point for a conversation with a fire engineer, never as a verdict on a building.</p>
+</section>
+
+<!-- Chapter 29 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 29</p>
+  <h2 id="c29">Reading a floor-plan image</h2>
+  <p class="lead">No building file? The full app can turn a picture of a typical floor plan into a TailSafe building. You help it by correcting what it gets wrong.</p>
+
+  <figure>
+    <img src="../img/web_plan_editor.png" alt="The floor-plan editor with detected rooms and doorways">
+    <figcaption>The floor-plan editor with the sample plan: rooms coloured by type, doorways marked, and the panel with the four stages on the right.</figcaption>
+  </figure>
+
+  <h3>Do this</h3>
+  <ol class="do">
+    <li>In step 1, click <span class="ui">Floor-plan image</span>.</li>
+    <li>Choose a file: a PNG or JPEG picture, or a PDF (TailSafe uses its first page). Or click <span class="ui">Try a sample plan</span> to practise.</li>
+    <li><strong>1. Scale.</strong> Click the <span class="ui">Reference line</span> tool, then click both ends of something whose length you know, such as a 10&nbsp;m grid line. Type its real length in the box. Without a line, TailSafe guesses the scale from the thickness of the walls, which is less reliable.</li>
+    <li>Click <span class="ui">2. Read plan</span>. TailSafe finds the rooms and doorways and colours the rooms by type.</li>
+    <li><strong>3. Check and correct.</strong> With the <span class="ui">Select</span> tool, click a room and change its type in the menu: Flat / room, Corridor, Lobby, Staircase, Refuge area or Not walkable. Click a doorway to see its width, and <span class="ui">Delete doorway</span> if it is wrong. To add a missing doorway, choose <span class="ui">Add doorway</span> and click one side of the opening, then the other. Warnings in orange tell you what to check.</li>
+    <li><strong>4. Build.</strong> Type the number of <strong>storeys (including G/F)</strong> and a name, then click <span class="ui">Build building →</span>. The same plan is used for every floor, and doorways to the outside become exits on the ground floor.</li>
+    <li>Check the new building on the usual step 1 screen, then click <span class="ui">Confirm building →</span>.</li>
+  </ol>
+
+  <h3>What the reader can and cannot do</h3>
+  <ul>
+    <li>Walls must run straight across and straight up and down the picture. Turn scanned plans upright first; curved or slanted walls are not read.</li>
+    <li>Walls must be drawn thicker than other lines. Plans drawn with thin or hatched walls need more correcting.</li>
+    <li>Doorways are gaps between 0.6 and 2.0&nbsp;m wide. Wider openings join the rooms on both sides into one.</li>
+    <li>Refuge floors and lifts are not found; the ground floor usually differs from the typical floor and should be checked.</li>
+    <li>If the plan shows no doors to the outside, TailSafe puts an exit at the foot of every staircase, and says so.</li>
+    <li>On TailSafe's own test plans it finds 96 to 100% of the doorways. Those plans are drawn by the computer, so real drawings will do worse: checking is part of the job.</li>
+  </ul>
+  <p>The plan is only read on the computer running the full app; it is not sent anywhere else.</p>
+</section>
+
+<!-- =============================================================== PART 5 -->
+<section class="part">
+  <div class="top">
+    <span class="num">Part 5</span>
+    <h1 id="p5">Putting it together</h1>
+  </div>
+  <div class="body">
+    <p>A complete example from question to answer, the command line for people who like typing, the limits to keep in mind, and help for when something goes wrong.</p>
+    <ol class="inpart">
+      <li><a href="#c30"><span class="n">30</span>A worked example: one night at 3 a.m.</a><span class="pg" data-page-of="c30">00</span></li>
+      <li><a href="#c31"><span class="n">31</span>The command line</a><span class="pg" data-page-of="c31">00</span></li>
+      <li><a href="#c32"><span class="n">32</span>Limits and responsible use</a><span class="pg" data-page-of="c32">00</span></li>
+      <li><a href="#c33"><span class="n">33</span>Troubleshooting</a><span class="pg" data-page-of="c33">00</span></li>
+      <li><a href="#c34"><span class="n">34</span>Questions people ask</a><span class="pg" data-page-of="c34">00</span></li>
+      <li><a href="#c35"><span class="n">35</span>Word list</a><span class="pg" data-page-of="c35">00</span></li>
+      <li><a href="#c36"><span class="n">36</span>Where to learn more</a><span class="pg" data-page-of="c36">00</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- Chapter 30 -->
+<section class="chapter" style="break-before:auto">
+  <p class="eyebrow">Chapter 30</p>
+  <h2 id="c30">A worked example: one night at 3 a.m.</h2>
+  <p class="lead">This chapter follows one question all the way through TailSafe, using a larger study of 1,000 nights run in the full app.</p>
+
+  <div class="box plain">
+    <div class="label"><svg><use href="#i-info"/></svg>The question</div>
+    <p>A 40-storey public housing block. It is Sunday, 3 a.m. A fire starts in a flat on 14/F. Four minutes later, Stair A fills with smoke. One lift is out of service. 22% of the residents are 65 or older. How bad could the evacuation get, why, and what would help?</p>
+  </div>
+  <p>This is TailSafe's <strong>reference scenario</strong>: the standard example that the browser version records for every building type, and that the command line uses unless you give it another one. The numbers below come from 1,000 nights with seed 0. The browser version's 300 nights are the first 300 of these, so its numbers are close but not identical.</p>
+
+  <h3>1. How bad is it?</h3>
+  <div class="stat-row">
+    <div class="hi"><div class="v">219 min</div><div class="l">Everyone out, average of the worst 5% (212 to 226)</div></div>
+    <div><div class="v">138 min</div><div class="l">Everyone out, average of all nights</div></div>
+    <div><div class="v">114 min</div><div class="l">Last person out on their own, worst 5%</div></div>
+    <div><div class="v">0.60</div><div class="l">P(RSET &gt; ASET): someone caught by smoke on 60 nights in 100</div></div>
+  </div>
+  <ul>
+    <li>On an average night, 95% of the residents are out after about an hour (60 minutes); on the worst 5% of nights, after 66.5 minutes. The last person able to leave unaided is out after 86 minutes on average.</li>
+    <li>Everyone is out, counting the people carried down by firefighters, after 138 minutes on average and 219 minutes on the worst 5% of nights. The gap between the two shows that a few bad nights hide behind the average.</li>
+    <li>Smoke catches someone on 60% of nights, most often on 14/F (58% of nights), 15/F (47%) and 16/F (19%): the fire floor and the floors just above it. On 6.5% of nights at least one person is incapacitated.</li>
+  </ul>
+
+  <h3>2. Who is left?</h3>
+  <ul>
+    <li>Households with a wheelchair user on 30/F to 39/F are 1.2% of the residents but all of the people still inside at the very end of the worst nights. They wait for the firefighters, who come down the stairs one household at a time.</li>
+    <li>Among people leaving on their own, households with a frail resident aged 80 or over on 30/F to 39/F are 4.9% of the residents but 70% of the late stragglers.</li>
+  </ul>
+
+  <h3>3. Why?</h3>
+  <p>Losing Stair A. From four minutes on, the whole block must use Stair B, which lets about 48 people a minute down. Queues form on Stair B on every bad night. The bottleneck ranking confirms it: keeping Stair A usable would cut the worst-5% average of the time for 95% of residents to get out by 12.8 minutes (12.2 to 13.4), and giving Stair B 50% more capacity by 8.6 minutes. Wider doors would hardly matter.</p>
+
+  <h3>4. What helps?</h3>
+  <p>The plan search proposes using the non-firefighting lifts for mobility-impaired residents (nearest waiting floor first), and floor wardens on 14/F and 35/F. Checked on 400 fresh nights:</p>
+  <table>
+    <thead><tr><th>Average of the worst 5%</th><th class="num">Without the plan</th><th class="num">With the plan</th><th class="num">Change</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td>Time until everyone is out</td><td class="num">204.9 min</td><td class="num">104.6 min</td><td class="num">&minus;100.3 min</td><td>better</td></tr>
+      <tr><td>Time until the last self-evacuee is out</td><td class="num">109.5 min</td><td class="num">104.6 min</td><td class="num">&minus;5.0 min</td><td>better</td></tr>
+      <tr><td>Time for 95% of occupants to get out</td><td class="num">66.3 min</td><td class="num">75.6 min</td><td class="num">+9.3 min</td><td><strong>worse</strong></td></tr>
+      <tr><td>Nights on which smoke catches someone</td><td class="num">58%</td><td class="num">55%</td><td class="num">&minus;3 points</td><td>better</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5. What should a building manager take away?</h3>
+  <ol class="do">
+    <li><strong>The longest nights are about rescue.</strong> Residents who cannot use the stairs wait a long time. Lifts for them halve the tail of the time until everyone is out.</li>
+    <li><strong>But there is a price.</strong> With lifts, frail residents who could have walked wait for a lift instead, so the crowd as a whole gets out later. When one of the evacuation lifts is the broken one, the other cannot keep up. This needs weighing, perhaps by limiting the lifts to wheelchair users (a setting TailSafe can test).</li>
+    <li><strong>Stair A matters most.</strong> Anything that keeps it usable for longer is worth discussing with a fire engineer.</li>
+    <li><strong>All of this rests on assumed numbers</strong> (<a href="#c32">chapter 32</a>). It shows where to look and what to ask, not exact minutes.</li>
+  </ol>
+
+  <div class="box try">
+    <div class="label"><svg><use href="#i-play"/></svg>Try it</div>
+    <p>Follow the same path in the browser version, with 300 nights: step 3 for the spread, step 4 to watch the worst night, step 6 for the cause, step 7 for the plan, step 9 for the briefing. The numbers differ slightly from this chapter, because they come from 300 nights instead of 1,000.</p>
+  </div>
+</section>
+
+<!-- Chapter 31 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 31</p>
+  <h2 id="c31">The command line</h2>
+  <p class="lead">Everything in the web app can also be done by typing commands. This is handy for running many studies, or for keeping a record of exactly what was run.</p>
+
+  <p>The <code>tailsafe</code> command comes with the full app when it is installed from the source code (<a href="#c18">chapter 18</a>). After <code>make install</code>, either type <code>source .venv/bin/activate</code> once in your terminal, or put <code>.venv/bin/</code> in front of every command. <code>tailsafe --help</code> lists every command, and <code>--help</code> after any command lists its options.</p>
+
+  <table>
+    <thead><tr><th style="width:52%">Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>tailsafe building generate cruciform --storeys 40 --out out/tower.json</code></td><td>Makes a building and saves it as a building file.</td></tr>
+      <tr><td><code>tailsafe sim run cruciform --slot weekend_night --share-65 0.22 --block-stair A@240 --plot out/run.png</code></td><td>Simulates one single night and draws it. <code>A@240</code> means Stair A is lost after 240 seconds.</td></tr>
+      <tr><td><code>tailsafe stress run cruciform --runs 1000 --out out/stress</code></td><td>The stress test: 1,000 nights of the reference scenario. Prints the key numbers and saves the results and a chart.</td></tr>
+      <tr><td><code>tailsafe stress report out/stress --loss self_evacuation_time</code></td><td>Prints a saved stress test again, for another outcome.</td></tr>
+      <tr><td><code>tailsafe stress bottlenecks out/stress</code></td><td>Ranks the bottlenecks of a saved stress test.</td></tr>
+      <tr><td><code>tailsafe optimize cruciform --out out/plan</code></td><td>Searches for a plan and checks it on fresh nights.</td></tr>
+      <tr><td><code>tailsafe brief --stress out/stress --optimization out/plan --pdf out/brief.pdf</code></td><td>Writes the one-page briefing (text and PDF).</td></tr>
+      <tr><td><code>tailsafe micro run cruciform --index 3 --level 14 --plot out/floor.png</code></td><td>Replays night 3 person by person and draws 14/F.</td></tr>
+      <tr><td><code>tailsafe vision detect plan.png --scale 0,0,200,0,10 --out det.json</code></td><td>Reads a floor plan. The scale says that the line from pixel (0,&nbsp;0) to pixel (200,&nbsp;0) is 10 metres long.</td></tr>
+      <tr><td><code>tailsafe vision build det.json --storeys 30 --out out/plan_building.json</code></td><td>Stacks the read floor into a 30-storey building file.</td></tr>
+      <tr><td><code>tailsafe validate</code></td><td>Runs the checks of the simulator against hand calculations.</td></tr>
+      <tr><td><code>tailsafe params list --assumptions</code></td><td>Lists every number that still needs a published source.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Your own scenario in a file</h3>
+  <p>The stress test, the plan search and the replays take <code>--spec</code> followed by a scenario file, written in YAML (a simple text format) or JSON. For example, save this as <code>my-night.yaml</code>:</p>
+<pre class="cmd">name: weekday-afternoon
+time_slot: weekday_day         <span class="c"># or weekday_night, weekend_day, weekend_night</span>
+share_65_plus: 0.30            <span class="c"># 30% of residents aged 65 or over</span>
+fire_level: 10                 <span class="c"># fire on 10/F</span>
+stair_blockages:
+  - stair: B                   <span class="c"># Stair B lost between 2 and 10 minutes in</span>
+    time: {dist: uniform, min: 120, max: 600}
+lifts_out_of_service: 1
+hazard: {enabled: true}        <span class="c"># simulate the smoke</span></pre>
+  <p>and run it with <code>tailsafe stress run cruciform --spec my-night.yaml --runs 300 --out out/weekday</code>. Times are in seconds. Anything you leave out takes its standard value.</p>
+</section>
+
+<!-- Chapter 32 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 32</p>
+  <h2 id="c32">Limits and responsible use</h2>
+  <p class="lead">Every model simplifies the world. These are the most important simplifications in TailSafe, and they are why its results are for learning and comparing, not for exact answers.</p>
+
+  <ul>
+    <li><strong>Many numbers are educated guesses.</strong> 146 of the 169 numbers in the settings file are marked as assumptions, including how fast frail people walk, how long people take to react at night, and how quickly firefighters rescue people.</li>
+    <li><strong>The buildings are generic.</strong> The four building types are made by rules, not measured from real blocks. Real stair widths, door widths and refuge floors may differ.</li>
+    <li><strong>The smoke model is simple:</strong> one fire; each room is one well-mixed box of air; no wind, no sprinklers, no fans that keep smoke out of the stairs. It is not a detailed fire simulation.</li>
+    <li><strong>People behave simply.</strong> Everyone knows the quickest way out, and only learns a staircase is blocked when they reach it. On the stairs, fast walkers can pass slow ones freely, which is optimistic on narrow stairs.</li>
+    <li><strong>Rescue is a rough model.</strong> It is an assumption, and it decides how long &ldquo;everyone out&rdquo; takes. Always read it alongside the other two outcomes.</li>
+    <li><strong>Not yet compared with real drills.</strong> TailSafe's checks show that the simulator does what the engineering method says. They do not show that the method and the numbers are right for Hong Kong towers.</li>
+    <li><strong>The quick guesser learns the simulator, not reality,</strong> and is weakest for building types unlike those it learned from, especially care homes.</li>
+    <li><strong>The browser version uses 300 nights,</strong> so its confidence intervals are wider than those of a 1,000-night study.</li>
+  </ul>
+  <p>The full list is in <code>docs/assumptions.md</code>, and the checks are described in <code>docs/validation.md</code>.</p>
+
+  <h3>How to talk about the results</h3>
+  <div class="say">
+    <div class="no"><p><b>Do not say</b></p><ul><li>&ldquo;Our building is safe.&rdquo;</li><li>&ldquo;Evacuation takes 219 minutes.&rdquo;</li><li>&ldquo;TailSafe proved that lifts are the answer.&rdquo;</li></ul></div>
+    <div class="yes"><p><b>Say instead</b></p><ul><li>&ldquo;In TailSafe's model, the worst nights come from losing Stair A.&rdquo;</li><li>&ldquo;The model suggests lifts help wheelchair users a lot, with a cost for the crowd.&rdquo;</li><li>&ldquo;We should ask a fire engineer about keeping Stair A usable.&rdquo;</li></ul></div>
+  </div>
+
+  <div class="box warn">
+    <div class="label"><svg><use href="#i-alert"/></svg>The responsible-use notice</div>
+    <p>TailSafe is an educational and decision-support prototype. It is not a substitute for a registered fire engineer, the Fire Services Department, or compliance with the Buildings Department's Code of Practice for Fire Safety in Buildings. All occupants are synthetic; no personal data is used.</p>
+  </div>
+</section>
+
+<!-- Chapter 33 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 33</p>
+  <h2 id="c33">Troubleshooting</h2>
+  <p class="lead">Something not working? Find the problem below.</p>
+
+  <h3>In the web app</h3>
+  <div class="trouble">
+    <div><p class="p">A message says the browser version has no results for these settings.</p><p>The browser version only holds the reference scenario of each building. Press <span class="ui">Back to the reference scenario</span>, use the What-if screen for an estimate, or run the full app (<a href="#c17">chapter 17</a>).</p></div>
+    <div><p class="p">A step in the list is grey and cannot be clicked.</p><p>Do the earlier steps first. Most steps need a building (step 1), and the results need a stress test (step 2).</p></div>
+    <div><p class="p">The 3D view is blank.</p><p>Your browser may have WebGL, its graphics feature, switched off. Update the browser, try another one, or turn on &ldquo;hardware acceleration&rdquo; in its settings.</p></div>
+    <div><p class="p">The charts are cramped on my phone.</p><p>Turn the phone sideways, or switch the chart to <span class="ui">Table</span>.</p></div>
+    <div><p class="p">The What-if screen shows an orange box &ldquo;Outside what the surrogate was trained on&rdquo;.</p><p>Your settings go beyond what the quick guesser learned. Treat its estimate as rough and press <span class="ui">Confirm with full simulation</span> (in the full app).</p></div>
+    <div><p class="p">The briefing shows a note that a draft was rejected.</p><p>The optional AI writer used a number that is not in the results, so TailSafe showed the fixed-sentence briefing instead. Nothing needs fixing.</p></div>
+    <div><p class="p">The floor-plan reader misses rooms or joins them.</p><p>Draw a reference line for the scale, check that the walls are thick and straight, then fix room types by hand and add missing doorways (<a href="#c29">chapter 29</a>).</p></div>
+  </div>
+
+  <h3>With the full app</h3>
+  <div class="trouble">
+    <div><p class="p">&ldquo;docker: command not found&rdquo;, or &ldquo;Cannot connect to the Docker daemon&rdquo;.</p><p>Docker is not installed, or not running. Open Docker Desktop and wait until it says it is running, then try again.</p></div>
+    <div><p class="p">&ldquo;port is already allocated&rdquo;.</p><p>Something else, perhaps another copy of TailSafe, is already using port 7860. Stop it, or start TailSafe on another port with <code>docker run -p 8080:7860 tailsafe</code> and open <code>http://localhost:8080</code>.</p></div>
+    <div><p class="p">The build stops with a download or certificate error.</p><p>Some networks, often at work, block or inspect downloads. Try another network, or ask your IT team.</p></div>
+    <div><p class="p">My phone cannot open the full app.</p><p>Use the computer's IP address, not <code>localhost</code> (which on the phone means the phone itself). Check that both are on the same Wi-Fi, and allow Docker through the computer's firewall.</p></div>
+    <div><p class="p">The first run is slow.</p><p>That is normal: the simulator prepares itself the first time (about ten seconds).</p></div>
+    <div><p class="p">A run takes very long.</p><p>Use fewer nights (300 instead of 2,000). Ranking bottlenecks and searching for a plan are the slowest steps; fewer <em>scenarios per plan</em> makes the search quicker.</p></div>
+    <div><p class="p">My numbers differ from someone else's.</p><p>Compare the seed, the number of nights, the building options and every scenario setting. The same settings with the same seed always give the same numbers.</p></div>
+  </div>
+</section>
+
+<!-- Chapter 34 -->
+<section class="chapter flow qa">
+  <p class="eyebrow">Chapter 34</p>
+  <h2 id="c34">Questions people ask</h2>
+
+  <h4>Does TailSafe use real residents' data?</h4>
+  <p>No. Every resident is made up by the computer, following general rules about ages, households and behaviour. No personal data is used.</p>
+  <h4>Can TailSafe tell me whether my building is safe?</h4>
+  <p>No. It is a learning and decision-support tool. Only a registered fire engineer, the Fire Services Department and compliance with the Code of Practice can do that.</p>
+  <h4>Is anything I enter sent somewhere?</h4>
+  <p>In the browser version, nothing you enter is uploaded. In the full app, buildings and floor plans go only to the computer that runs it; on a public Hugging Face Space, that is Hugging Face's server.</p>
+  <h4>Why does &ldquo;everyone out&rdquo; take hours?</h4>
+  <p>Because a few residents cannot use the stairs and wait for the firefighters, who, in TailSafe's model, rescue one household at a time. How rescue works is an assumption. The other two outcomes show how the stairs themselves perform.</p>
+  <h4>Why are the lifts not used?</h4>
+  <p>In Hong Kong, lifts are normally kept for the firefighters during a fire, so TailSafe's standard scenario does not use them. Using some lifts to evacuate residents who cannot manage the stairs is one of the fixes you can test.</p>
+  <h4>Why did my results change when I changed the seed?</h4>
+  <p>A different seed means different dice, so different nights. With enough nights the change is small, and the confidence intervals tell you how small.</p>
+  <h4>How many nights should I run?</h4>
+  <p>300 to explore; 1,000 or more for comparisons that matter.</p>
+  <h4>Why is the What-if estimate different from the full simulation?</h4>
+  <p>It is a quick learned guess. On buildings like those it trained on it is usually within 10 to 20%; on unfamiliar buildings it can be further off. That is why the confirm button exists.</p>
+  <h4>Can I use TailSafe for an office, a school or a shopping centre?</h4>
+  <p>Not as it is. TailSafe is built for homes: households, who is at home at different times of day, and residents' ages. Other buildings would need a different model of the people in them.</p>
+  <h4>Where do TailSafe's numbers come from?</h4>
+  <p>From one settings file, <code>config/params.yaml</code>. Every number there says where it comes from, or that it is still an assumption. <code>tailsafe params list --assumptions</code> lists the assumptions.</p>
+  <h4>Where do I report a problem or suggest an idea?</h4>
+  <p>On the project's GitHub page, <code>github.com/chingkheinganba231005/Tail_Safe</code>, under <em>Issues</em>.</p>
+</section>
+
+<!-- Chapter 35 -->
+<section class="chapter">
+  <p class="eyebrow">Chapter 35</p>
+  <h2 id="c35">Word list</h2>
+  <dl class="words">
+    <div><dt>Able adult</dt><dd>An adult who can walk and help others.</dd></div>
+    <div><dt>Alarm</dt><dd>The signal that starts the evacuation. In TailSafe everyone hears it when the fire starts.</dd></div>
+    <div><dt>ASET</dt><dd>Available safe egress time: how long a place stays safe before smoke makes it untenable. The smoke clock.</dd></div>
+    <div><dt>Average</dt><dd>See <em>mean</em>.</dd></div>
+    <div><dt>Bottleneck</dt><dd>A narrow place, such as a staircase or door, that slows everyone behind it.</dd></div>
+    <div><dt>Browser version</dt><dd>The TailSafe website anyone can open, with results recorded in advance for four standard buildings.</dd></div>
+    <div><dt>Capacity</dt><dd>How many people can pass through a door or down a staircase each second.</dd></div>
+    <div><dt>CI (confidence interval)</dt><dd>A range that we can be fairly (95%) sure contains the true value. More nights give a narrower range.</dd></div>
+    <div><dt>Common random numbers</dt><dd>Testing different plans on exactly the same nights, so that only the plan differs.</dd></div>
+    <div><dt>Container</dt><dd>A sealed box that holds a program and everything it needs. Docker runs containers.</dd></div>
+    <div><dt>Counter-flow</dt><dd>Walking the opposite way to everyone else, for example back upstairs to fetch a relative.</dd></div>
+    <div><dt>Counterfactual</dt><dd>A &ldquo;what if it had been different?&rdquo; test, such as re-running a night with a wider staircase.</dd></div>
+    <div><dt>CVaR<sub>95</sub></dt><dd>The average of the worst 5% of nights. TailSafe's main measure of how bad the bad nights are.</dd></div>
+    <div><dt>Docker</dt><dd>A free program that runs software in containers. The easiest way to run the full app.</dd></div>
+    <div><dt>Domestic helper</dt><dd>A live-in helper who can help an older person or carry a wheelchair user.</dd></div>
+    <div><dt>Egress</dt><dd>Going out; leaving a building.</dd></div>
+    <div><dt>Evacuation</dt><dd>Everyone leaving a building because of danger.</dd></div>
+    <div><dt>Evacuation lift</dt><dd>An ordinary lift used during a fire to carry residents who cannot use the stairs. One of the fixes TailSafe can test.</dd></div>
+    <div><dt>FED</dt><dd>Fractional effective dose: a count of how much smoke and heat a person has taken in. At 1 they are incapacitated; TailSafe treats 0.3 as harmful.</dd></div>
+    <div><dt>Firefighting lift</dt><dd>The lift kept for firefighters. TailSafe never uses it to evacuate residents.</dd></div>
+    <div><dt>Floor warden</dt><dd>A trained resident or staff member who knocks on doors and helps one household that cannot use the stairs.</dd></div>
+    <div><dt>Full app</dt><dd>TailSafe running on your own computer: the simulator, the server and the web app together.</dd></div>
+    <div><dt>G/F, 1/F, 14/F</dt><dd>Hong Kong floor names: ground floor, first floor, fourteenth floor.</dd></div>
+    <div><dt>Graph</dt><dd>A map of places (nodes) joined by connections (edges).</dd></div>
+    <div><dt>Histogram</dt><dd>A bar chart that counts how many nights fell into each band of times.</dd></div>
+    <div><dt>Hydraulic model</dt><dd>A standard engineering method that treats crowds a bit like water in pipes, to work out how many people can pass a door or a staircase.</dd></div>
+    <div><dt>Incapacitated</dt><dd>No longer able to move by oneself.</dd></div>
+    <div><dt>IP address</dt><dd>A computer's address on a network, such as 192.168.1.23.</dd></div>
+    <div><dt>Localhost</dt><dd>&ldquo;This computer&rdquo;, in a web address.</dd></div>
+    <div><dt>Mean</dt><dd>The average: add up all the values and divide by how many there are.</dd></div>
+    <div><dt>Median</dt><dd>The middle value: half are smaller, half are bigger.</dd></div>
+    <div><dt>Mesoscopic</dt><dd>&ldquo;In the middle&rdquo;: TailSafe's fast simulator, which moves groups along the map with queues at every door and staircase.</dd></div>
+    <div><dt>Microscopic</dt><dd>Person by person: the slower simulator that walks each person across the floor plan.</dd></div>
+    <div><dt>Monte Carlo method</dt><dd>Working something out by repeating a random experiment many times and counting the results.</dd></div>
+    <div><dt>Neural network</dt><dd>A program that learns patterns from examples. TailSafe's learned from 800 simulated buildings.</dd></div>
+    <div><dt>Night</dt><dd>In this guide, one simulated version of the fire; on screen also called a scenario or a run.</dd></div>
+    <div><dt>Operational fix</dt><dd>A change to how a building is run, not to its walls.</dd></div>
+    <div><dt>P95</dt><dd>The 95th percentile: 95 nights in 100 are quicker than this. The border of the worst 5%.</dd></div>
+    <div><dt>P(RSET &gt; ASET)</dt><dd>The share of nights on which someone is still on a floor after it has become untenable, or breathes a harmful dose of smoke.</dd></div>
+    <div><dt>Person-minutes</dt><dd>People multiplied by minutes: 10 people queueing for 3 minutes is 30 person-minutes.</dd></div>
+    <div><dt>Phased release</dt><dd>Letting some floors leave first while others wait.</dd></div>
+    <div><dt>Port</dt><dd>A numbered door on a computer where a program listens, such as 7860.</dd></div>
+    <div><dt>Pre-movement time</dt><dd>The time between the alarm and starting to move.</dd></div>
+    <div><dt>Reference scenario</dt><dd>TailSafe's standard example: Sunday, 3 a.m., fire on 14/F, Stair A smoke-logged after 4 minutes, one lift out of service, 22% of residents aged 65 or over.</dd></div>
+    <div><dt>Refuge floor</dt><dd>An open floor in a tall building where people can step out of the staircase and rest in fresher air.</dd></div>
+    <div><dt>Risk ratio</dt><dd>How much more common a group is among the late stragglers than in the whole building.</dd></div>
+    <div><dt>RSET</dt><dd>Required safe egress time: how long the people in a place need to get out. The walking clock.</dd></div>
+    <div><dt>Scenario</dt><dd>A description of the fire night to test: the time, the people, the fire, the smoke, the stairs and the lifts.</dd></div>
+    <div><dt>Scissor staircase</dt><dd>Two staircases twisted around each other in one shaft.</dd></div>
+    <div><dt>Seed</dt><dd>The starting number for the computer's dice. The same seed gives the same nights.</dd></div>
+    <div><dt>Smoke-logged</dt><dd>So full of smoke that nobody can use it.</dd></div>
+    <div><dt>Stack effect</dt><dd>Hot, smoky air rising up staircases and lift shafts, as up a chimney.</dd></div>
+    <div><dt>Straggler</dt><dd>A household still inside near the end of a night.</dd></div>
+    <div><dt>Stress test</dt><dd>Running hundreds or thousands of nights and looking at the spread of results.</dd></div>
+    <div><dt>Surrogate</dt><dd>A fast stand-in for the simulator: TailSafe's quick guesser.</dd></div>
+    <div><dt>Synthetic</dt><dd>Made up by the computer, not taken from real people.</dd></div>
+    <div><dt>Tail</dt><dd>The rare, very slow nights at the far end of the spread of results.</dd></div>
+    <div><dt>Tenable / untenable</dt><dd>Safe to be in / too dangerous to be in.</dd></div>
+    <div><dt>Winner's curse</dt><dd>The plan that looks best on a set of nights is partly lucky, so it must be checked on fresh nights.</dd></div>
+  </dl>
+</section>
+
+<!-- Chapter 36 -->
+<section class="chapter flow">
+  <p class="eyebrow">Chapter 36</p>
+  <h2 id="c36">Where to learn more</h2>
+  <h3>TailSafe</h3>
+  <ul>
+    <li><strong>The browser version:</strong> <code>https://chingkheinganba231005.github.io/Tail_Safe/</code></li>
+    <li><strong>The source code and the project page:</strong> <code>https://github.com/chingkheinganba231005/Tail_Safe</code></li>
+    <li><strong>In the <code>docs</code> folder:</strong> <code>architecture.md</code> (how each part works, in technical detail), <code>validation.md</code> (what has been checked, and how well it holds), <code>assumptions.md</code> (every simplification, in plain language) and <code>spec.md</code> (what TailSafe is meant to do).</li>
+    <li><strong><code>DEVELOPMENT.md</code>:</strong> commands, conventions and how to publish the two versions.</li>
+    <li><strong><code>config/params.yaml</code>:</strong> every number TailSafe uses, with its source.</li>
+  </ul>
+  <h3>Sources named in TailSafe</h3>
+  <p>TailSafe's settings and documents point to these sources, among others. The settings file marks its published sources as still to be checked against the edition used.</p>
+  <ul>
+    <li><em>SFPE Handbook of Fire Protection Engineering</em>: the hydraulic model of people's movement, and standard fire growth rates.</li>
+    <li>ISO 13571: guidelines for estimating the time available for escape (tenability limits and FED).</li>
+    <li>Frantzich and Nilsson (2003): walking speed in smoke.</li>
+    <li>Tordeux, Chraibi and Seyfried (2016): the collision-free speed model behind the person-by-person replay.</li>
+    <li>Buildings Department, <em>Code of Practice for Fire Safety in Buildings</em> (2011): named as the reference to check for Hong Kong's rules on means of escape.</li>
+  </ul>
+</section>
+
+<section class="back-cover">
+  <div class="inner">
+    <p style="display:flex;align-items:center;gap:3mm;margin-bottom:4mm">
+      <svg width="34" height="34" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="6" y="3.5" width="11" height="25" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <g stroke="#ffffff" stroke-width="1.2" opacity="0.6"><line x1="8.2" x2="14.8" y1="8" y2="8"/><line x1="8.2" x2="14.8" y1="12" y2="12"/><line x1="8.2" x2="14.8" y1="16" y2="16"/><line x1="8.2" x2="14.8" y1="20" y2="20"/><line x1="8.2" x2="14.8" y1="24" y2="24"/></g>
+        <path d="M17 5.5c1.2 0 2 3.5 3 8.5s2.8 9.6 5.2 11.9c.9.9 2 1.4 3.3 1.6" fill="none" stroke="#3ccf7f" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <strong>TailSafe</strong>
+    </p>
+    <p>Evacuation stress-testing for high-rise buildings: how bad the worst nights are, why, and what fixes them.</p>
+    <p>github.com/chingkheinganba231005/Tail_Safe</p>
+    <p style="margin-top:6mm;font-size:8pt;color:#a9a9a6">TailSafe is an educational and decision-support prototype. It is not a substitute for a registered fire engineer, the Fire Services Department, or compliance with the Buildings Department's Code of Practice for Fire Safety in Buildings. All occupants are synthetic; no personal data is used.</p>
+  </div>
+</section>
+
+</body>
+</html>

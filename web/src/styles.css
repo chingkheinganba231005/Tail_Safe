@@ -320,10 +320,17 @@
     transform: translateY(2px);
     box-shadow: none;
   }
-  .btn-ghost[aria-pressed="true"] {
+  /* Selected stays selected under the pointer (phones keep hover after a tap). */
+  .btn-ghost[aria-pressed="true"],
+  .btn-ghost[aria-pressed="true"]:hover:not(:disabled) {
     background: var(--text-primary);
     color: var(--page);
     box-shadow: 0 2px 0 var(--text-primary);
+  }
+  .btn-ghost[aria-pressed="true"]:focus-visible:not(:disabled) {
+    background: var(--focus);
+    color: #0b0c0c;
+    box-shadow: 0 2px 0 #0b0c0c;
   }
 
   /* -------------------------------------------------------- segmented */

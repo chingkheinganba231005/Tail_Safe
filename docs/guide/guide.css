@@ -1,0 +1,867 @@
+/*
+ * TailSafe user guide, printed to A4 by build.mjs (Chromium).
+ * Same visual language as the web app: white page, black type, exit-sign
+ * green for "go", signage-yellow markers, square edges, hairline rules, and
+ * Atkinson Hyperlegible for easy reading.
+ */
+
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("../../web/node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-normal.woff2")
+    format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible Next";
+  src: url("../../web/node_modules/@fontsource-variable/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-wght-italic.woff2")
+    format("woff2");
+  font-weight: 200 800;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible Mono";
+  src: url("../../web/node_modules/@fontsource-variable/atkinson-hyperlegible-mono/files/atkinson-hyperlegible-mono-latin-wght-normal.woff2")
+    format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+}
+
+:root {
+  --ink: #0b0c0c;
+  --ink-2: #4f5154;
+  --muted: #737373;
+  --rule: #dcdcdc;
+  --grid: #e8e8e8;
+  --panel: #f3f3f2;
+  --go: #0a7a3f;
+  --go-bright: #3ccf7f;
+  --go-soft: #e6f2eb;
+  --signal: #ffdd00;
+  --warning: #b35c00;
+  --plum: #7a4a9e;
+  --amber: #d9730d;
+  --green: #12805c;
+}
+
+/* ------------------------------------------------------------------ pages */
+
+@page {
+  size: A4;
+  margin: 17mm 19mm 21mm 19mm;
+  @bottom-left {
+    content: "TailSafe  ·  The plain-language guide";
+    font-family: "Atkinson Hyperlegible Next", sans-serif;
+    font-size: 7.5pt;
+    color: #737373;
+    vertical-align: top;
+    padding-top: 7mm;
+  }
+  @bottom-right {
+    content: counter(page);
+    font-family: "Atkinson Hyperlegible Next", sans-serif;
+    font-size: 8.5pt;
+    font-weight: 700;
+    color: #0b0c0c;
+    vertical-align: top;
+    padding-top: 7mm;
+  }
+}
+@page cover {
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+@page part {
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+html {
+  font-family: "Atkinson Hyperlegible Next", sans-serif;
+  font-size: 10.6pt;
+  line-height: 1.55;
+  color: var(--ink);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+body {
+  margin: 0;
+}
+* {
+  box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------------ cover */
+
+.cover {
+  page: cover;
+  position: relative;
+  height: 296.5mm;
+  overflow: hidden;
+  background: var(--ink);
+  color: #fff;
+  break-after: page;
+}
+.cover .band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 24mm;
+  border-bottom: 2.2mm solid var(--go);
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  padding: 0 19mm;
+}
+.cover .band .word {
+  font-size: 19pt;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.cover .art {
+  position: absolute;
+  right: 10mm;
+  top: 40mm;
+  width: 80mm;
+  height: 152mm;
+}
+.cover .title {
+  position: absolute;
+  left: 19mm;
+  top: 78mm;
+  width: 97mm;
+}
+.cover .kicker {
+  display: inline-block;
+  background: #fff;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 8.5pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 1.2mm 2.4mm;
+}
+.cover h1 {
+  margin: 7mm 0 0;
+  font-size: 35pt;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+.cover .sub {
+  margin: 7mm 0 0;
+  font-size: 13.5pt;
+  line-height: 1.4;
+  color: #e4e4e2;
+  max-width: 92mm;
+}
+.cover .meta {
+  position: absolute;
+  left: 19mm;
+  right: 19mm;
+  bottom: 16mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 8.5pt;
+  line-height: 1.5;
+  color: #c9c9c6;
+}
+.cover .meta strong {
+  color: #fff;
+}
+
+.back-cover {
+  page: cover;
+  height: 296.5mm;
+  background: var(--ink);
+  color: #fff;
+  position: relative;
+  break-before: page;
+}
+.back-cover .inner {
+  position: absolute;
+  left: 19mm;
+  right: 19mm;
+  bottom: 22mm;
+  border-top: 2.2mm solid var(--go);
+  padding-top: 7mm;
+  font-size: 9.5pt;
+  color: #d8d8d5;
+}
+.back-cover .inner strong {
+  color: #fff;
+  font-size: 13pt;
+}
+
+/* ------------------------------------------------------------ part pages */
+
+.part {
+  page: part;
+  height: 296.5mm;
+  position: relative;
+  break-before: page;
+  break-after: page;
+}
+.part .top {
+  background: var(--ink);
+  color: #fff;
+  height: 108mm;
+  padding: 0 19mm;
+  position: relative;
+  border-bottom: 2.2mm solid var(--go);
+}
+.part .num {
+  position: absolute;
+  left: 19mm;
+  top: 30mm;
+  font-size: 10pt;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--go-bright);
+}
+.part h1 {
+  position: absolute;
+  left: 19mm;
+  right: 19mm;
+  bottom: 14mm;
+  margin: 0;
+  font-size: 33pt;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+.part .body {
+  padding: 11mm 19mm 0;
+}
+.part .body p {
+  font-size: 13pt;
+  line-height: 1.5;
+  max-width: 150mm;
+}
+.part ol.inpart {
+  list-style: none;
+  margin: 7mm 0 0;
+  padding: 0;
+  border-top: 1px solid var(--ink);
+}
+.part ol.inpart li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6mm;
+  padding: 1.9mm 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 11pt;
+}
+.part ol.inpart .n {
+  color: var(--muted);
+  display: inline-block;
+  width: 10mm;
+  font-weight: 700;
+}
+.part ol.inpart a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* -------------------------------------------------------------- chapters */
+
+.chapter {
+  break-before: page;
+}
+.chapter.flow {
+  break-before: auto;
+  margin-top: 11mm;
+}
+.eyebrow {
+  display: block;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--go);
+  margin: 0 0 1.5mm;
+}
+h2 {
+  font-size: 22pt;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-weight: 800;
+  margin: 0 0 4mm;
+  break-after: avoid;
+}
+h3 {
+  font-size: 13.2pt;
+  line-height: 1.25;
+  font-weight: 800;
+  margin: 7mm 0 2mm;
+  break-after: avoid;
+}
+h4 {
+  font-size: 11pt;
+  font-weight: 800;
+  margin: 5mm 0 1.5mm;
+  break-after: avoid;
+}
+h3 + p,
+h4 + p {
+  margin-top: 0;
+}
+p {
+  margin: 0 0 3mm;
+  orphans: 3;
+  widows: 3;
+}
+.lead {
+  font-size: 12.6pt;
+  line-height: 1.5;
+  color: #1c1d1e;
+  margin-bottom: 5mm;
+}
+ul,
+ol {
+  margin: 0 0 3.5mm;
+  padding-left: 5.5mm;
+}
+li {
+  margin-bottom: 1.3mm;
+}
+li::marker {
+  color: var(--ink-2);
+}
+strong {
+  font-weight: 800;
+}
+a {
+  color: var(--ink);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+code,
+.mono {
+  font-family: "Atkinson Hyperlegible Mono", monospace;
+  font-size: 0.92em;
+  background: var(--panel);
+  padding: 0.2mm 1mm;
+  word-break: break-word;
+}
+.ui {
+  /* a button or label as it appears on screen */
+  font-weight: 800;
+  white-space: nowrap;
+}
+.ui::before,
+.ui::after {
+  content: "";
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 9pt;
+}
+.nowrap {
+  white-space: nowrap;
+}
+.keep {
+  break-inside: avoid;
+}
+.pb {
+  break-before: page;
+}
+
+pre.cmd {
+  font-family: "Atkinson Hyperlegible Mono", monospace;
+  font-size: 8.7pt;
+  line-height: 1.5;
+  background: var(--ink);
+  color: #f3f3f2;
+  padding: 3.2mm 4mm;
+  margin: 2mm 0 4mm;
+  border-left: 1.4mm solid var(--go);
+  white-space: pre-wrap;
+  break-inside: avoid;
+}
+pre.cmd .c {
+  color: #9fd8b6;
+}
+
+/* --------------------------------------------------------------- figures */
+
+figure {
+  margin: 4.5mm 0 5.5mm;
+  break-inside: avoid;
+}
+figure img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--rule);
+}
+figure.bare img {
+  border: 0;
+}
+figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+figcaption {
+  font-size: 8.8pt;
+  line-height: 1.45;
+  color: var(--ink-2);
+  margin-top: 2mm;
+  padding-left: 3mm;
+  border-left: 2px solid var(--rule);
+}
+figure.half {
+  width: 62%;
+}
+figure.narrow img {
+  width: 80%;
+}
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6mm;
+  align-items: start;
+}
+.two > figure {
+  margin-top: 0;
+}
+.three {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4mm;
+  align-items: start;
+}
+
+/* numbered pins on screenshots */
+.shot {
+  position: relative;
+}
+.pin,
+.pinref {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.6mm;
+  height: 5.6mm;
+  border-radius: 50%;
+  background: var(--signal);
+  border: 1.4px solid var(--ink);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 8.4pt;
+  line-height: 1;
+}
+.pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1.4px #fff;
+}
+.pinref {
+  width: 4.8mm;
+  height: 4.8mm;
+  font-size: 7.6pt;
+  vertical-align: 0.2mm;
+  margin-right: 1mm;
+}
+ol.pins {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 4mm;
+}
+ol.pins > li {
+  display: grid;
+  grid-template-columns: 7mm 1fr;
+  margin-bottom: 1.8mm;
+}
+
+/* ----------------------------------------------------------------- boxes */
+
+.box {
+  break-inside: avoid;
+  background: var(--panel);
+  border-left: 1.4mm solid var(--ink);
+  padding: 3.4mm 4.6mm 1mm;
+  margin: 4.5mm 0 5mm;
+}
+.box > .label {
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.6mm;
+}
+.box > .label svg {
+  width: 4.4mm;
+  height: 4.4mm;
+  flex: none;
+}
+.box.plain {
+  border-left-color: var(--go);
+}
+.box.plain > .label {
+  color: var(--go);
+}
+.box.try {
+  border-left-color: var(--ink);
+}
+.box.warn {
+  border-left-color: var(--warning);
+}
+.box.warn > .label {
+  color: var(--warning);
+}
+.box.remember {
+  border-left-color: var(--plum);
+}
+.box.remember > .label {
+  color: var(--plum);
+}
+.box p:last-child,
+.box ul:last-child,
+.box ol:last-child {
+  margin-bottom: 2.4mm;
+}
+
+/* numbered instructions */
+ol.do {
+  list-style: none;
+  counter-reset: do;
+  padding: 0;
+  margin: 2mm 0 4mm;
+}
+ol.do > li {
+  counter-increment: do;
+  position: relative;
+  padding-left: 10mm;
+  margin-bottom: 2.6mm;
+  min-height: 6.4mm;
+  break-inside: avoid;
+}
+ol.do > li::before {
+  content: counter(do);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6.4mm;
+  height: 6.4mm;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 800;
+  font-size: 9pt;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* a vertical flow like the app's step list */
+.flow-steps {
+  margin: 3mm 0 5mm;
+  break-inside: avoid;
+}
+.flow-steps > div {
+  display: grid;
+  grid-template-columns: 9mm 1fr;
+  column-gap: 3mm;
+  position: relative;
+  padding-bottom: 3.4mm;
+}
+.flow-steps > div::before {
+  content: "";
+  position: absolute;
+  left: 4.1mm;
+  top: 8mm;
+  bottom: 0;
+  width: 0.5mm;
+  background: var(--rule);
+}
+.flow-steps > div:last-child::before {
+  display: none;
+}
+.flow-steps .n {
+  width: 8.4mm;
+  height: 8.4mm;
+  border-radius: 50%;
+  border: 0.5mm solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 10pt;
+  background: #fff;
+  position: relative;
+  z-index: 1;
+}
+.flow-steps .n.on {
+  background: var(--ink);
+  color: #fff;
+}
+.flow-steps .t {
+  font-weight: 800;
+  font-size: 11pt;
+  padding-top: 1.2mm;
+}
+.flow-steps .d {
+  grid-column: 2;
+  color: var(--ink-2);
+  font-size: 9.8pt;
+}
+.flow-steps .where {
+  font-size: 8.4pt;
+  font-weight: 700;
+  color: var(--go);
+  margin-left: 1.5mm;
+}
+
+/* ---------------------------------------------------------------- tables */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9.3pt;
+  line-height: 1.4;
+  margin: 2mm 0 5mm;
+  break-inside: auto;
+}
+thead {
+  display: table-header-group;
+}
+tr {
+  break-inside: avoid;
+}
+th {
+  text-align: left;
+  font-weight: 800;
+  border-bottom: 1.2px solid var(--ink);
+  padding: 1.8mm 2.4mm 1.8mm 0;
+  vertical-align: bottom;
+}
+td {
+  border-bottom: 1px solid var(--rule);
+  padding: 1.8mm 2.4mm 1.8mm 0;
+  vertical-align: top;
+}
+td.num,
+th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+table.compare td:first-child {
+  font-weight: 700;
+  width: 30%;
+}
+table.compare td:nth-child(2),
+table.compare td:nth-child(3) {
+  width: 35%;
+}
+
+/* ---------------------------------------------------------- contents page */
+
+.toc {
+  break-after: page;
+}
+.toc h2 {
+  margin-bottom: 3mm;
+}
+.toc ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.toc .part-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 10.2pt;
+  border-top: 1.2px solid var(--ink);
+  padding: 1.7mm 0 0.8mm;
+  margin-top: 1.5mm;
+}
+.toc .part-row .k {
+  color: var(--go);
+  margin-right: 2mm;
+}
+.toc li.ch {
+  display: flex;
+  align-items: baseline;
+  gap: 2mm;
+  font-size: 9.2pt;
+  line-height: 1.36;
+  padding: 0.18mm 0;
+  margin: 0;
+}
+.toc li.ch .n {
+  width: 7mm;
+  flex: none;
+  color: var(--muted);
+  font-weight: 700;
+}
+.toc li.ch .dots {
+  flex: 1;
+  border-bottom: 1px dotted #b7b7b4;
+  transform: translateY(-1.2mm);
+}
+.toc a {
+  color: inherit;
+  text-decoration: none;
+}
+.toc .pg {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 7mm;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------- glossary etc. */
+
+dl.words {
+  margin: 0;
+  columns: 2;
+  column-gap: 8mm;
+}
+dl.words > div {
+  break-inside: avoid;
+  margin-bottom: 2.6mm;
+}
+dl.words dt {
+  font-weight: 800;
+}
+dl.words dd {
+  margin: 0;
+  font-size: 9.4pt;
+  color: #25272a;
+}
+
+.qa h4 {
+  margin-top: 4.5mm;
+}
+.trouble > div {
+  break-inside: avoid;
+  border-top: 1px solid var(--rule);
+  padding: 2.4mm 0 0.6mm;
+}
+.trouble .p {
+  font-weight: 800;
+  margin-bottom: 1mm;
+}
+
+.glyphs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4mm;
+  margin: 3mm 0 5mm;
+  break-inside: avoid;
+}
+.glyphs > div {
+  border: 1px solid var(--rule);
+  padding: 3mm;
+  font-size: 9pt;
+  line-height: 1.4;
+}
+.glyphs svg {
+  width: 11mm;
+  height: 11mm;
+  display: block;
+  margin-bottom: 1.5mm;
+}
+.glyphs b {
+  display: block;
+  font-size: 10.5pt;
+  margin-bottom: 0.8mm;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3mm;
+  margin: 3mm 0 5mm;
+  break-inside: avoid;
+}
+.stat-row > div {
+  border: 1px solid var(--rule);
+  padding: 2.6mm 3mm;
+}
+.stat-row .v {
+  font-size: 16pt;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.stat-row .l {
+  font-size: 8.4pt;
+  color: var(--ink-2);
+  line-height: 1.35;
+  margin-top: 1mm;
+}
+.stat-row > div.hi {
+  border-top: 1.2mm solid var(--go);
+}
+
+.say {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4mm;
+  break-inside: avoid;
+  margin: 3mm 0 5mm;
+}
+.say > div {
+  border: 1px solid var(--rule);
+  padding: 3mm 3.6mm 1mm;
+  font-size: 9.6pt;
+}
+.say .no b {
+  color: #c21c1c;
+}
+.say .yes b {
+  color: var(--go);
+}
+
+.legend4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3mm;
+  margin: 2mm 0 4mm;
+}
+.legend4 > .box {
+  margin: 0;
+  padding: 2.6mm 3mm 0.4mm;
+  font-size: 9pt;
+  line-height: 1.4;
+}
+
+/* screenshot beside its instructions */
+.side {
+  display: grid;
+  grid-template-columns: 57% 1fr;
+  gap: 6mm;
+  align-items: start;
+  margin: 3mm 0 4mm;
+}
+.side > figure {
+  margin: 0;
+}
+.side > div > :first-child {
+  margin-top: 0;
+}
+.side ol.pins > li {
+  font-size: 9.6pt;
+  line-height: 1.45;
+}
+.eyebrow {
+  break-after: avoid;
+}
+
+.legend4 > .box > .label {
+  font-size: 7.2pt;
+  letter-spacing: 0.05em;
+  gap: 1.4mm;
+}
