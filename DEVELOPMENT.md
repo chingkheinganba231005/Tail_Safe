@@ -93,7 +93,8 @@ tailsafe/api/          FastAPI app: jobs (progress over SSE, disk cache), views 
 web/                   React + TS + Vite + Tailwind + react-three-fiber UI (screens 1–9)
 config/params.yaml     parameter registry
 schemas/               generated JSON schemas (do not edit by hand; `make schema`)
-docs/                  specification, architecture, validation, assumptions
+docs/                  user guide (PDF; source in docs/guide/), specification,
+                       architecture, validation, assumptions
 ```
 
 ## Publishing
@@ -114,6 +115,31 @@ Two ways for anyone to use TailSafe from a browser, on any device:
   has 2 cores, so expect roughly twice the run times of a 4-core laptop (not
   yet measured on a Space). Jobs run one at a time, so simultaneous visitors
   queue.
+
+## User guide
+
+`docs/TailSafe-User-Guide.pdf` is printed by Chromium from
+`docs/guide/guide.html` and `guide.css`, in the web UI's typeface. The build
+prints it twice: the first pass reads the page of every chapter from the PDF's
+bookmarks, the second fills them into the contents pages.
+
+```bash
+npm install -g playwright   # once (plus `npx playwright install chromium` if needed)
+make guide                  # needs web/node_modules for the fonts
+```
+
+The screenshots in `docs/guide/img/` are taken from the browser version:
+
+```bash
+.venv/bin/tailsafe export-site --out web/public/data   # record the results (~8 min)
+cd web && VITE_STATIC=1 npx vite build && npx vite preview --port 4173 &
+NODE_PATH="$(npm root -g)" node docs/guide/screenshots.mjs
+```
+
+The numbers quoted in the guide come from those recorded results (300 nights)
+and from `make stress-example` (1,000 nights). When the simulator or the
+parameters change, re-take the screenshots and check the numbers in chapters
+3, 4, 7, 10, 12, 22 to 27 and 30, and the numbered markers on the screenshots.
 
 ## Design decisions
 
