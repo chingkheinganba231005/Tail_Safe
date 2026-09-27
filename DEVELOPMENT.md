@@ -9,7 +9,7 @@ and current status.
 ## Commands
 
 ```bash
-make install     # .venv + editable install with dev + surrogate extras
+make install     # .venv + editable install with the dev, surrogate and vision extras
 make test        # fast tests (pytest -m "not slow")
 make test-slow   # performance / large Monte Carlo tests
 make check       # ruff lint + format check + mypy --strict + tests  (= CI)

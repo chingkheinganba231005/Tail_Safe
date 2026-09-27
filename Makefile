@@ -16,7 +16,7 @@ help: ## Show this help
 $(STAMP): pyproject.toml
 	$(PYTHON) -m venv $(VENV)
 	$(BIN)/python -m pip install -q --upgrade pip
-	$(BIN)/python -m pip install -q -e ".[dev,surrogate]"
+	$(BIN)/python -m pip install -q -e ".[dev,surrogate,vision]"
 	@touch $(STAMP)
 
 install: $(STAMP) ## Create .venv and install tailsafe with dev dependencies
