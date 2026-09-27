@@ -134,7 +134,7 @@ class ScenarioSpec(_Model):
         default=None, description="Start of fire-service rescue; default from the registry."
     )
     rescue_teams: int | None = Field(default=None, ge=0)
-    hazard: HazardSpec | None = Field(default=None, description="Fire and smoke (M4).")
+    hazard: HazardSpec | None = Field(default=None, description="Fire and smoke.")
     warden_levels: list[int] = Field(
         default_factory=list,
         description="Floors where a warden is stationed (knocks on doors, escorts one "
@@ -151,7 +151,7 @@ class ScenarioSpec(_Model):
 
 
 def reference_spec() -> ScenarioSpec:
-    """The reference scenario (spec §10).
+    """The reference scenario (spec §9).
 
     Sunday 3 a.m., 22% of residents aged 65+, fire on 14/F, Stair A smoke-logged
     at t = 4 min, one lift out of service.

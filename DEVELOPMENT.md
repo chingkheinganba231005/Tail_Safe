@@ -3,8 +3,8 @@
 TailSafe stress-tests evacuation of Hong Kong high-rise buildings under uncertain,
 worst-case conditions and ranks cheap operational interventions by how much they
 shrink the **tail** (CVaR₉₅, P(RSET > ASET)), not the mean. The full product spec
-is [`docs/spec.md`](docs/spec.md); this file records conventions, commands
-and current status.
+is [`docs/spec.md`](docs/spec.md); this file records commands, conventions
+and design decisions.
 
 ## Commands
 
@@ -64,7 +64,6 @@ make example     # generate + render the 40-storey cruciform block
   live in `tests/validation/` and are summarised in `docs/validation.md`.
 - **Responsible use:** show the disclaimer (`tailsafe.DISCLAIMER`) in the UI,
   API and reports. All occupants are synthetic.
-- **Git:** commits are authored by the repository owner.
 
 ## Layout
 
@@ -97,23 +96,6 @@ schemas/               generated JSON schemas (do not edit by hand; `make schema
 docs/                  specification, architecture, validation, assumptions
 ```
 
-## Status
-
-| # | Milestone | State |
-|---|---|---|
-| M0 | Scaffolding: tooling, CI, DEVELOPMENT.md, params.yaml | ✅ done |
-| M1 | Building model + JSON schema + procedural HK templates | ✅ done (`make example`) |
-| M2 | Meso simulator + population model | ✅ done (`tailsafe validate`, `tailsafe sim run`) |
-| M3 | Scenario sampler, Monte Carlo runner, risk metrics | ✅ done (`make stress-example`: 1,000 runs ≈ 1 min on 4 cores) |
-| M4 | Hazard model (smoke, visibility, FED, ASET) | ✅ done (P(RSET>ASET) in `stress run`; `sim run --fire`) |
-| M5 | Bottleneck attribution | ✅ done (`tailsafe stress bottlenecks DIR`) |
-| M6 | Intervention optimiser | ✅ done (`tailsafe optimize`) |
-| M7 | Web app (job API + React UI) | ✅ done (`make dev`, screens 1–4, 6, 7) |
-| M8 | Micro simulator + replay screen | ✅ done (`tailsafe micro`, web screen 5) |
-| M9 | Floor-plan ingestion + correction editor | ✅ done (`tailsafe vision`, Building → Floor plan image) |
-| M10 | GNN surrogate + live what-if | ✅ done (`tailsafe surrogate`, web screen 8) |
-| M11 | Briefing, PDF export, polish | ✅ done (`tailsafe brief`, web screen 9) |
-
 ## Publishing
 
 Two ways for anyone to use TailSafe from a browser, on any device:
@@ -133,14 +115,13 @@ Two ways for anyone to use TailSafe from a browser, on any device:
   yet measured on a Space). Jobs run one at a time, so simultaneous visitors
   queue.
 
-## Decisions taken (open for review)
+## Design decisions
 
-The spec asks for sign-off on hard-to-reverse choices. These were made to get
-started and are easy to revisit while the codebase is small:
+Choices that are expensive to reverse, and the reasons for them:
 
 1. **Stack:** Python 3.11+, NumPy/SciPy, Numba for the simulator kernel, NetworkX
    for graph analytics, Pydantic v2 models as the source of truth for the JSON
-   schema, FastAPI backend, Typer CLI. Frontend (M7): React + TypeScript + Vite +
+   schema, FastAPI backend, Typer CLI. Frontend: React + TypeScript + Vite +
    Tailwind + react-three-fiber.
 2. **Graph schema:** physical connections are stored once as undirected *edges*
    (`flat`, `door`, `stair`, `lift`); the simulator expands them into directed
@@ -156,24 +137,25 @@ started and are easy to revisit while the codebase is small:
 5. **Walking density** excludes people standing in queues and is capped at the
    flow-maximising density 1/(2a); denser states are represented by queues.
    Without this, slow walkers cause a runaway density–speed collapse.
-6. **Surrogate in JAX, not PyTorch Geometric** (M10). The spec named PyG; its
+6. **Surrogate in JAX, not PyTorch Geometric.** The spec named PyG; its
    wheels (download.pytorch.org) were blocked by the development environment's
    network policy, so the message-passing network is written in JAX + optax
    (optional extra `tailsafe[surrogate]`). Same model class; switching back is
    a rewrite of `tailsafe/surrogate/model.py` only (features and data are
    framework-free).
-7. **LLM briefing is opt-in** (M11): it runs only when `ANTHROPIC_API_KEY` and
+7. **LLM briefing is opt-in.** It runs only when `ANTHROPIC_API_KEY` and
    `TAILSAFE_BRIEFING_MODEL` are set (no model is hard-coded) and the
    `briefing` extra is installed; otherwise the template briefing is used.
    Either way every number is checked against the facts JSON.
 
-## Open questions for the project owner
+## Open questions
 
 - Preferred sources for HK-specific values (stair widths, refuge floor interval,
   household composition, pre-movement times) — currently `ASSUMPTION`.
 - Should reaching a refuge floor count as "safe" for RSET, or only final exits?
   (Current default: final exits; refuge arrival is recorded separately.)
-- Is JuPedSim acceptable as an optional validation dependency for M8?
+- Is JuPedSim acceptable as an optional dependency for validating the
+  person-by-person engine?
 - "Twin-core private tower" is implemented as one core with a scissor (twin)
   staircase pair. Should it instead have two separate cores?
 - Refuge floors: should occupants be forced to transfer between stairs at a

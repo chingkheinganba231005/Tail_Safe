@@ -22,8 +22,7 @@
               FastAPI backend  ◄──►  Web frontend
 ```
 
-This document describes each implemented module and the design decisions behind
-it. Sections are added as milestones land.
+This document describes each module and the design decisions behind it.
 
 ## Parameter registry (`config/params.yaml`, `tailsafe/config.py`)
 
@@ -169,7 +168,7 @@ fixes what is known — time slot, population mix, operational measures (phased
 release, stair assignment, evacuation lifts and their priority rule) — and
 describes what is uncertain with `Dist` objects: when named stairs become
 impassable, whether a random stair is lost and when, how many lifts are out of
-service, when fire-service rescue starts. `reference_spec()` is the reference scenario (spec §10).
+service, when fire-service rescue starts. `reference_spec()` is the reference scenario (spec §9).
 
 **Sampler** (`sampler.py`). Scenario-level draws use a fixed 16-slot uniform
 vector per scenario (rescue start, fire level, random blockage ×3, lifts out ×3,
@@ -209,10 +208,8 @@ floor band are compared with shares of all occupants (risk ratio), which gives
 a plain-language headline.
 
 Performance: 1,000 scenarios of the 40-storey reference block (~1,830 occupants)
-take ~64 s on 4 cores as of M11 (~41 s when measured at M3, before the smoke
-model and later features; `make stress-example`; target < 120 s, checked by the
-slow test). Scenarios are
-handed to workers in chunks of at most 10, and smaller for short runs (tail
+take 65–75 s on 4 cores with the smoke model (`make stress-example`; the target
+is under 120 s, checked by a slow test). Scenarios are handed to workers in chunks of at most 10, and smaller for short runs (tail
 re-runs, optimiser samples) so every worker stays busy; each scenario is
 seeded by its index, so chunking never changes results.
 
@@ -328,8 +325,8 @@ covered floors react no later than the warden's sweep time, and each warden
 escorts one household that would otherwise wait for rescue down the stairs.
 
 CLI: `tailsafe optimize cruciform --scenarios 100 --confirm 400 --out out/plan`.
-The GNN surrogate (M10) will pre-screen candidates here; the simulator will
-still confirm finalists.
+The graph surrogate does not pre-screen candidates yet: every candidate plan is
+simulated.
 
 ## Web API (`tailsafe/api/`)
 
@@ -551,11 +548,11 @@ job API above; `vite dev` proxies `/api` to the backend, and `make web` builds
 | 2 Scenario | Time of day, age mix, vacancy, counter-flow, fire floor, smoke on/off, stair blockages (fixed or random time), random stair loss, lifts out, evacuation lifts, rescue teams; runs and seed |
 | 3 Stress results | Histogram with mean / P95 / CVaR₉₅ markers, stat tiles with CIs, P(RSET > ASET) meter, who is in the tail (risk ratios), floors that fail, stair queues by floor |
 | 4 3D stack | One scenario re-simulated with time series: translucent floors coloured by smoke, stair columns by queue length, blocked stairs, scrubber, people still on each floor, evacuation curve |
-| 5 Replay (people) | The micro engine's replay of one scenario, top-down, one floor at a time, with the meso/micro comparison for that scenario and people on each floor over time (M8) |
+| 5 Replay (people) | The micro engine's replay of one scenario, top-down, one floor at a time, with the meso/micro comparison for that scenario and people on each floor over time |
 | 6 Bottlenecks | Counterfactual ranking with CIs; clicking a row highlights the element in the plan and in 3D; where queues recur |
 | 7 Optimise | Objective, levers and sample sizes; plan in plain English; paired confirmation with verdicts; before/after distributions on identical scenarios and the worst confirmation scenario replayed side by side on one clock |
-| 8 What-if (live) | Scenario controls; the surrogate's P50–P95 range and CVaR₉₅ for each outcome as the controls move, where queues are expected, and *Confirm with full simulation* overlaying a 300-run stress test (M10) |
-| 9 Briefing | The checked briefing (template or LLM draft, with the reason when a draft was rejected) and *Download PDF* (M11) |
+| 8 What-if (live) | Scenario controls; the surrogate's P50–P95 range and CVaR₉₅ for each outcome as the controls move, where queues are expected, and *Confirm with full simulation* overlaying a 300-run stress test |
+| 9 Briefing | The checked briefing (template or LLM draft, with the reason when a draft was rejected) and *Download PDF* |
 
 Charts are small hand-written SVG components (`web/src/components/charts/`)
 following one set of rules: one hue per single-series chart, fixed categorical

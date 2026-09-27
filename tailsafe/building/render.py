@@ -1,6 +1,6 @@
 """Static rendering of buildings with Matplotlib (plan view + 3D stack).
 
-The web frontend (M7) renders interactively from the same JSON; this module is
+The web frontend renders interactively from the same JSON; this module is
 for quick inspection, reports and tests. Colours follow the Okabe–Ito
 colour-blind-safe palette.
 """

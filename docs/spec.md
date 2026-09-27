@@ -4,14 +4,12 @@
 
 ---
 
-## 0. What TailSafe is, and how it is built
+## 0. What TailSafe is
 
 **TailSafe** is a system that stress-tests how people evacuate Hong Kong high-rise buildings under realistic, uncertain, worst-case conditions, and then recommends interventions that shrink the *worst* outcomes, not just the average.
 
 Engineering principles:
-- Agree the architecture and milestone plan before writing code; decisions that are expensive to reverse (framework choice, data schema, simulation model) are reviewed by the project owner.
-- Maintain `DEVELOPMENT.md` with project conventions, commands, and current status.
-- Build in the milestone order in §9. Each milestone ends with passing tests and something runnable.
+- Decisions that are expensive to reverse (framework choice, data schema, simulation model) are recorded with their reasons in `DEVELOPMENT.md`.
 - **Determinism:** every stochastic component takes an explicit seed. Same seed → same result.
 - **Never invent citations or statistics.** Put every physical/demographic parameter in `config/params.yaml` with a `source:` field. If the source is not known, write `source: ASSUMPTION — needs citation` so it can be filled in later.
 - Prefer clarity over cleverness. Type hints everywhere, docstrings on public functions, `ruff` + `mypy` clean.
@@ -125,7 +123,7 @@ Existing tools (Pathfinder, MassMotion, buildingEXODUS, open-source JuPedSim/Vad
 - Output: best intervention set, before/after distributions, improvement with confidence intervals.
 
 ### 4.10 GNN surrogate (`tailsafe/surrogate/`)
-- PyTorch Geometric. Input: building graph with node/edge features + scenario/intervention features. Output: quantiles of total evacuation time and per-edge congestion.
+- Graph neural network (specified in PyTorch Geometric; implemented in JAX, see `DEVELOPMENT.md`). Input: building graph with node/edge features + scenario/intervention features. Output: quantiles of total evacuation time and per-edge congestion.
 - Train on simulator-generated data across procedurally generated buildings; hold out whole building typologies for testing (report generalization honestly).
 - Metrics: quantile loss, calibration of predicted quantiles, speedup vs simulator.
 
@@ -134,6 +132,7 @@ Existing tools (Pathfinder, MassMotion, buildingEXODUS, open-source JuPedSim/Vad
 - Scale calibration from a user-drawn reference line of known length.
 - **Human-in-the-loop editor** in the frontend: user corrects walls/doors/stairs, tags refuge areas, then confirms. Full automation is not required; a reliable semi-automatic flow is.
 - Evaluate on a small hand-labelled set; report precision/recall for doors and stairs.
+- The main path never depends on the floor-plan reader: procedural templates are the default.
 
 ### 4.12 LLM briefing (`tailsafe/report/`)
 - Optional (uses `ANTHROPIC_API_KEY` if present; otherwise a template report).
@@ -194,40 +193,19 @@ web/
 tests/
 notebooks/        # experiments, surrogate training
 docs/  (spec.md, architecture.md, validation.md, assumptions.md)
-DEVELOPMENT.md  README.md  pyproject.toml  docker-compose.yml
+DEVELOPMENT.md  README.md  pyproject.toml  Dockerfile
 ```
 
 ---
 
-## 9. Milestones (build in this order)
-
-| # | Milestone | Done when |
-|---|---|---|
-| M0 | Scaffolding: repo, tooling, CI, `DEVELOPMENT.md`, `params.yaml` | `make test` and `make dev` work |
-| M1 | Building model + JSON schema + procedural HK templates | Can generate and visualize a 40-storey cruciform block |
-| M2 | Meso simulator + population model | Single scenario runs; analytical validation passes |
-| M3 | Scenario sampler, Monte Carlo runner, risk metrics | CVaR₉₅ with CIs in < 2 min for target building |
-| M4 | Hazard model (smoke, visibility, FED, ASET) | P(RSET>ASET) reported; monotonicity tests pass |
-| M5 | Bottleneck attribution | Ranked, counterfactual bottleneck table |
-| M6 | Intervention optimizer | Before/after with statistically significant CVaR reduction on the reference building |
-| M7 | Backend API + frontend screens 1–4, 6, 7 | The full flow in the browser |
-| M8 | Micro simulator + replay screen | Worst-case animation; meso–micro agreement report |
-| M9 | Floor plan ingestion + correction editor | Upload → corrected graph → simulation |
-| M10 | GNN surrogate + live what-if | Surrogate calibrated; ≥100× faster than simulator |
-| M11 | LLM briefing, PDF export, polish | Briefing checked against the computed results; PDF export |
-
-The main path must never depend on the CV module working: procedural templates are the default.
-
----
-
-## 10. Reference scenario
+## 9. Reference scenario
 
 "Sunday, 3 a.m., 40-storey public housing block, 22% of residents aged 65+, fire on 14/F, Stair A smoke-logged at t = 4 min, one lift out of service."
 The default scenario in the CLI (`--spec reference`) and the web UI. The standard path through the tool follows it: baseline distribution → the tail → where it comes from (bottleneck + which residents) → optimized operational plan → before/after animation → one-page briefing.
 
 ---
 
-## 11. Responsible use
+## 10. Responsible use
 
 - TailSafe is an educational and decision-support prototype, **not** a substitute for a registered fire engineer, the Fire Services Department, or compliance with the Buildings Department's Code of Practice for Fire Safety in Buildings. Show this in the UI and README.
 - No personal data. All occupants are synthetic.

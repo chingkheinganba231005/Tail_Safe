@@ -62,7 +62,7 @@ LIFT_RULES = {"top_down": K.LIFT_TOP_DOWN, "nearest": K.LIFT_NEAREST, "bottom_up
 
 
 class HazardField(Protocol):
-    """Time-gridded hazard fields on nodes (produced by the hazard model, M4)."""
+    """Time-gridded hazard fields on nodes (produced by the hazard model)."""
 
     dt: float
     speed_multiplier: NDArray[np.float32]  # [H, N]
